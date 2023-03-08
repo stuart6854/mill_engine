@@ -73,6 +73,8 @@ namespace mill
         {
             auto now = high_resolution_clock::now();
             m_pimpl->deltaTime = duration_cast<milliseconds>(now - lastFrameTime).count() / 1000.0f;
+
+            m_pimpl->window->poll_events();
         }
 
         shutdown();
@@ -94,6 +96,7 @@ namespace mill
         auto window_height = static_cast<u32>(static_cast<::mill::i64>(*toml_window_size->get(1)->as_integer()));
         m_pimpl->window = platform::create_window();
         m_pimpl->window->init(window_width, window_height, "Mill Engine");
+        m_pimpl->window->cb_on_window_close_requested.connect_member(this, &Engine::quit);
     }
 
     void Engine::shutdown()

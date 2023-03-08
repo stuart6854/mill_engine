@@ -17,6 +17,8 @@ namespace mill::platform
         void init(u32 width, u32 height, const std::string& title) override;
         void shutdown() override;
 
+        void poll_events() override;
+
         void set_title(const std::string& title) override;
         void set_size() override;
         void set_position() override;

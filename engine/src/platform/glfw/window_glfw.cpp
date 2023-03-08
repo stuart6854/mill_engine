@@ -19,6 +19,53 @@ namespace mill
             LOG_ERROR("WindowGLFW - Failed to create window!");
             return;
         }
+
+        glfwSetWindowUserPointer(m_window, this);
+
+        glfwSetWindowCloseCallback(m_window,
+                                   [](GLFWwindow* window)
+                                   {
+                                       auto* window_data = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
+                                       window_data->cb_on_window_close_requested.emit();
+                                   });
+
+        glfwSetWindowSizeCallback(m_window,
+                                  [](GLFWwindow* window, i32 width, i32 height)
+                                  {
+                                      auto* window_data = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
+                                      window_data->cb_on_window_size.emit({ width, height });
+                                  });
+
+        glfwSetKeyCallback(m_window,
+                           [](GLFWwindow* window, i32 key, i32 /*scancode*/, i32 action, i32 /*mods*/)
+                           {
+                               if (action == GLFW_REPEAT)
+                               {
+                                   return;
+                               }
+
+                               auto* window_data = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
+                               window_data->cb_on_input_keyboard_key.emit(key, action != GLFW_RELEASE);
+                           });
+
+        glfwSetMouseButtonCallback(m_window,
+                                   [](GLFWwindow* window, i32 btn, i32 action, i32 /*mods*/)
+                                   {
+                                       if (action == GLFW_REPEAT)
+                                       {
+                                           return;
+                                       }
+
+                                       auto* window_data = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
+                                       window_data->cb_on_input_mouse_btn.emit(btn, action != GLFW_RELEASE);
+                                   });
+
+        glfwSetCursorPosCallback(m_window,
+                                 [](GLFWwindow* window, f64 x, f64 y)
+                                 {
+                                     auto* window_data = static_cast<WindowGLFW*>(glfwGetWindowUserPointer(window));
+                                     window_data->cb_on_input_cursor_pos.emit({ x, y });
+                                 });
     }
 
     void platform::WindowGLFW::shutdown()
@@ -27,6 +74,11 @@ namespace mill
         m_window = nullptr;
 
         glfwTerminate();
+    }
+
+    void platform::WindowGLFW::poll_events()
+    {
+        glfwPollEvents();
     }
 
     void platform::WindowGLFW::set_title(const std::string& title)
