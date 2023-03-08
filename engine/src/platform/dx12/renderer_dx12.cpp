@@ -151,9 +151,7 @@ namespace mill::platform
         release(m_device);
     }
 
-    void RendererDX12::wait_and_begin_frame() {}
-
-    void RendererDX12::submit_and_present() {}
+    void RendererDX12::render(const SceneInfo& /*scene_info*/) {}
 
     auto create_renderer() -> Owned<RendererInterface>
     {

@@ -77,6 +77,9 @@ namespace mill
             m_pimpl->deltaTime = duration_cast<milliseconds>(now - lastFrameTime).count() / 1000.0f;
 
             m_pimpl->window->poll_events();
+
+            SceneInfo scene_info{};
+            m_pimpl->renderer->render(scene_info);
         }
 
         shutdown();

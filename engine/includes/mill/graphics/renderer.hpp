@@ -12,6 +12,22 @@ namespace mill
         bool window_vsync = true;
     };
 
+    struct MeshInstance
+    {
+        // Mesh
+        // Material
+        // Transform
+        // Render Flags - eg. AffectsShadows,
+    };
+
+    struct SceneInfo
+    {
+        // Camera - View, Proj
+        // MeshInstance[]
+        // Lighting Info - Lights, Skybox, etc.
+        // UI
+    };
+
     class RendererInterface
     {
     public:
@@ -23,8 +39,7 @@ namespace mill
         virtual void inititialise(const RendererInit& init) = 0;
         virtual void shutdown() = 0;
 
-        virtual void wait_and_begin_frame() = 0;
-        virtual void submit_and_present() = 0;
+        virtual void render(const SceneInfo& scene_info) = 0;
     };
 
     namespace platform

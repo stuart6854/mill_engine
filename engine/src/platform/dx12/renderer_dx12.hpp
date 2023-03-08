@@ -16,8 +16,7 @@ namespace mill::platform
         void inititialise(const RendererInit& init) override;
         void shutdown() override;
 
-        void wait_and_begin_frame() override;
-        void submit_and_present() override;
+        void render(const SceneInfo& scene_info) override;
 
     private:
         IDXGIFactory7* m_dxgi_factory = nullptr;
