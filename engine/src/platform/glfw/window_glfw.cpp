@@ -4,7 +4,7 @@
 
 namespace mill
 {
-    void platform::WindowGLFW::init(u32 width, u32 height, const std::string& title)
+    void platform::WindowGLFW::init(const WindowInit& init)
     {
         if (!glfwInit())
         {
@@ -13,7 +13,7 @@ namespace mill
         }
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+        m_window = glfwCreateWindow(init.width, init.height, init.title.c_str(), nullptr, nullptr);
         if (m_window == nullptr)
         {
             LOG_ERROR("WindowGLFW - Failed to create window!");

@@ -14,7 +14,7 @@ namespace mill::platform
 
         /* Commands */
 
-        void init(u32 width, u32 height, const std::string& title) override;
+        void init(const WindowInit& init) override;
         void shutdown() override;
 
         void poll_events() override;

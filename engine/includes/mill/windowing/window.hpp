@@ -10,6 +10,13 @@
 
 namespace mill
 {
+    struct WindowInit
+    {
+        u32 width{};
+        u32 height{};
+        std::string title{};
+    };
+
     class WindowInterface
     {
     public:
@@ -24,7 +31,7 @@ namespace mill
 
         /* Commands */
 
-        virtual void init(u32 width, u32 height, const std::string& title) = 0;
+        virtual void init(const WindowInit& init) = 0;
         virtual void shutdown() = 0;
 
         virtual void poll_events() = 0;

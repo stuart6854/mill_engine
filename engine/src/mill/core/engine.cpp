@@ -94,8 +94,14 @@ namespace mill
         auto toml_window_size = m_pimpl->config["window"]["resolution"].as_array();
         auto window_width = static_cast<u32>(static_cast<::mill::i64>(*toml_window_size->get(0)->as_integer()));
         auto window_height = static_cast<u32>(static_cast<::mill::i64>(*toml_window_size->get(1)->as_integer()));
+
+        WindowInit window_init{
+            window_width,
+            window_height,
+            "Mill Engine",
+        };
         m_pimpl->window = platform::create_window();
-        m_pimpl->window->init(window_width, window_height, "Mill Engine");
+        m_pimpl->window->init(window_init);
         m_pimpl->window->cb_on_window_close_requested.connect_member(this, &Engine::quit);
     }
 
