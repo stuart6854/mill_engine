@@ -2,6 +2,7 @@
 
 #include "mill/core/base.hpp"
 #include "platform/windowing.hpp"
+#include "platform/graphics.hpp"
 
 #include <toml.hpp>
 
@@ -43,6 +44,7 @@ namespace mill
         /* Systems */
 
         Owned<WindowInterface> window = nullptr;
+        Owned<RendererInterface> renderer = nullptr;
     };
 
     auto Engine::get() -> Engine*
@@ -103,11 +105,22 @@ namespace mill
         m_pimpl->window = platform::create_window();
         m_pimpl->window->init(window_init);
         m_pimpl->window->cb_on_window_close_requested.connect_member(this, &Engine::quit);
+
+        RendererInit renderer_init{
+            nullptr,
+            window_width,
+            window_height,
+        };
+        m_pimpl->renderer = platform::create_renderer();
+        m_pimpl->renderer->inititialise(renderer_init);
     }
 
     void Engine::shutdown()
     {
         LOG_INFO("Engine - Shutting down...");
+
+        m_pimpl->renderer->shutdown();
+        m_pimpl->renderer = nullptr;
 
         m_pimpl->window->shutdown();
         m_pimpl->window = nullptr;
