@@ -1,3 +1,6 @@
+# Application asset/config files
+/config
+
 # Project/Solution Artifacts
 *.sln
 *.vcxproj

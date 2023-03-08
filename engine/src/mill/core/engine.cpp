@@ -3,11 +3,31 @@
 #include "mill/core/base.hpp"
 #include "platform/windowing.hpp"
 
+#include <toml.hpp>
+
 #include <chrono>
 using namespace std::chrono;
+#include <fstream>
+#include <filesystem>
 
 namespace mill
 {
+    namespace
+    {
+        auto create_default_config() -> toml::table
+        {
+            toml::table config{
+                { "window",
+                  toml::table{
+                      { "resolution", toml::array{ 1080, 720 } },
+                      { "mode", 0 },
+                  } },
+            };
+
+            return config;
+        }
+    }
+
     static Engine* s_engine = nullptr;
 
     struct Engine::Pimpl
@@ -16,6 +36,9 @@ namespace mill
         bool isRunning = true;
 
         f32 deltaTime = 0.0;
+
+        // Engine Config
+        toml::table config{};
 
         /* Systems */
 
@@ -64,13 +87,38 @@ namespace mill
     {
         LOG_INFO("Engine - Initialising...");
 
+        load_config();
+
+        auto toml_window_size = m_pimpl->config["window"]["resolution"].as_array();
+        auto window_width = static_cast<u32>(static_cast<::mill::i64>(*toml_window_size->get(0)->as_integer()));
+        auto window_height = static_cast<u32>(static_cast<::mill::i64>(*toml_window_size->get(1)->as_integer()));
         m_pimpl->window = platform::create_window();
-        m_pimpl->window->init(1600, 900, "Mill Engine"); // #TODO: Try get default window size/mode from TOML config file 
+        m_pimpl->window->init(window_width, window_height, "Mill Engine");
     }
 
     void Engine::shutdown()
     {
         LOG_INFO("Engine - Shutting down...");
+    }
+
+    void Engine::load_config()
+    {
+        // Load engine config
+        const std::filesystem::path config_file = "../../config/engine.toml";
+        if (std::filesystem::exists(config_file))
+        {
+            m_pimpl->config = toml::parse_file(config_file.string());
+        }
+        else
+        {
+            LOG_WARN("Engine - No engine config file. Creating a default one...");
+            m_pimpl->config = create_default_config();
+
+            std::filesystem::create_directory(config_file.parent_path());
+            std::ofstream file(config_file, std::ios::trunc);
+            file << m_pimpl->config;
+            file.close();
+        }
     }
 
 }

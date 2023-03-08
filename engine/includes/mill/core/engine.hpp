@@ -22,6 +22,8 @@ namespace mill
         void initialise();
         void shutdown();
 
+        void load_config();
+
     private:
         struct Pimpl;
         Owned<Pimpl> m_pimpl = nullptr;
