@@ -10,7 +10,6 @@ project "Engine"
     targetname "engine"
     targetdir("../bin/" .. outputdir)
     objdir("../bin/" .. outputdir .. "/obj/%{prj.name}")
-    debugdir ("../bin/" .. outputdir)
     staticruntime "Off"
 
     flags
