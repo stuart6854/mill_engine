@@ -28,6 +28,6 @@
         if (!(_expr))                                                                  \
         {                                                                              \
             LOG_CRITICAL("Assert Failed: {} at {}:{}", "##_expr", __FILE__, __LINE__); \
-            DEBUG_BREAK();                                                             \
+            MILL_DEBUG_BREAK();                                                        \
         }                                                                              \
     } while (false)
