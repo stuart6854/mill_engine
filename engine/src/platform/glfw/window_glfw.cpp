@@ -2,9 +2,9 @@
 
 #include "mill/core/debug.hpp"
 
-namespace mill
+namespace mill::platform
 {
-    void platform::WindowGLFW::init(const WindowInit& init)
+    void WindowGLFW::init(const WindowInit& init)
     {
         if (!glfwInit())
         {
@@ -68,7 +68,7 @@ namespace mill
                                  });
     }
 
-    void platform::WindowGLFW::shutdown()
+    void WindowGLFW::shutdown()
     {
         glfwDestroyWindow(m_window);
         m_window = nullptr;
@@ -76,47 +76,47 @@ namespace mill
         glfwTerminate();
     }
 
-    void platform::WindowGLFW::poll_events()
+    void WindowGLFW::poll_events()
     {
         glfwPollEvents();
     }
 
-    void platform::WindowGLFW::set_title(const std::string& title)
+    void WindowGLFW::set_title(const std::string& title)
     {
         glfwSetWindowTitle(m_window, title.c_str());
     }
 
-    void platform::WindowGLFW::set_size() {}
+    void WindowGLFW::set_size() {}
 
-    void platform::WindowGLFW::set_position() {}
+    void WindowGLFW::set_position() {}
 
-    auto platform::WindowGLFW::get_size() const -> glm::ivec2
+    auto WindowGLFW::get_size() const -> glm::ivec2
     {
         i32 w, h;
         glfwGetWindowSize(m_window, &w, &h);
         return { w, h };
     }
 
-    auto platform::WindowGLFW::get_resolution() const -> glm::ivec2
+    auto WindowGLFW::get_resolution() const -> glm::ivec2
     {
         i32 w, h;
         glfwGetFramebufferSize(m_window, &w, &h);
         return { w, h };
     }
 
-    auto platform::WindowGLFW::get_position() const -> glm::ivec2
+    auto WindowGLFW::get_position() const -> glm::ivec2
     {
         i32 x, y;
         glfwGetWindowPos(m_window, &x, &y);
         return { x, y };
     }
 
-    auto platform::WindowGLFW::get_handle() const -> void*
+    auto WindowGLFW::get_handle() const -> void*
     {
         return m_window;
     }
 
-    auto platform::create_window() -> Owned<WindowInterface>
+    auto create_window() -> Owned<WindowInterface>
     {
         return CreateOwned<platform::WindowGLFW>();
     }

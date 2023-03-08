@@ -108,6 +108,9 @@ namespace mill
     void Engine::shutdown()
     {
         LOG_INFO("Engine - Shutting down...");
+
+        m_pimpl->window->shutdown();
+        m_pimpl->window = nullptr;
     }
 
     void Engine::load_config()
