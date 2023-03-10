@@ -44,3 +44,25 @@ namespace mill
         return std::make_unique<T>(std::forward<Args>(args)...);
     }
 }
+
+#ifndef UNUSED
+    #define UNUSED(_var) (void)_var
+#endif
+
+#ifndef DISABLE_COPY
+    #define DISABLE_COPY(_type) \
+        _type(_type&) = delete; \
+        auto operator=(_type&)->_type& = delete;
+#endif
+
+#ifndef DISABLE_MOVE
+    #define DISABLE_MOVE(_type)  \
+        _type(_type&&) = delete; \
+        auto operator=(_type&&)->_type& = delete;
+#endif
+
+#ifndef DISABLE_COPY_AND_MOVE
+    #define DISABLE_COPY_AND_MOVE(_type) \
+        DISABLE_COPY(_type);             \
+        DISABLE_MOVE(_type)
+#endif
