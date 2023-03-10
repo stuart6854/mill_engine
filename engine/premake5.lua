@@ -30,5 +30,7 @@ project "Engine"
 
     includedirs {        
         "src/",
+        "src/directx-headers/include/",
+        "src/directx-headers/include/directx",
         "includes/"
     }
