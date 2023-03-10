@@ -2,6 +2,12 @@
 
 #include "mill/core/debug.hpp"
 
+#ifdef MILL_WINDOWS
+    #define GLFW_EXPOSE_NATIVE_WIN32
+#endif
+#define GLFW_NATIVE_INCLUDE_NONE
+#include <glfw/glfw3native.h>
+
 namespace mill::platform
 {
     void WindowGLFW::init(const WindowInit& init)
@@ -114,6 +120,15 @@ namespace mill::platform
     auto WindowGLFW::get_handle() const -> void*
     {
         return m_window;
+    }
+
+    auto WindowGLFW::get_platform_handle() const -> void*
+    {
+#ifdef MILL_WINDOWS
+        auto hwnd = glfwGetWin32Window(m_window);
+        ASSERT(hwnd != nullptr);
+        return hwnd;
+#endif
     }
 
     auto create_window() -> Owned<WindowInterface>

@@ -47,6 +47,7 @@ namespace mill
         virtual auto get_position() const -> glm::ivec2 = 0;
 
         virtual auto get_handle() const -> void* = 0;
+        virtual auto get_platform_handle() const -> void* = 0;
     };
 
     namespace platform

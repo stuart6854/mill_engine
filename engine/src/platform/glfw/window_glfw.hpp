@@ -30,6 +30,7 @@ namespace mill::platform
         auto get_position() const -> glm::ivec2 override;
 
         auto get_handle() const -> void* override;
+        auto get_platform_handle() const -> void* override;
 
     private:
         GLFWwindow* m_window = nullptr;
