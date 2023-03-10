@@ -45,6 +45,7 @@ namespace mill::platform
         return signal_value;
     }
 
+    /* Wait for the queue to signal the given fence value. This call is CPU blocking. */
     void QueueD3D12::wait_for_signal(u64 signal_value)
     {
         if (m_fence->GetCompletedValue() < signal_value)
@@ -54,6 +55,7 @@ namespace mill::platform
         }
     }
 
+    /* Add a Signal to the end of the Queue and wait for the Queue to reach it. This call is CPU blocking. */
     void QueueD3D12::wait_for_idle()
     {
         const auto signal_value = signal_fence();

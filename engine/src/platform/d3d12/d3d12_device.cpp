@@ -154,8 +154,7 @@ namespace mill::platform
 
         m_frameIndex = (m_frameIndex + 1) % g_FrameBufferCount;
 
-        // #TODO: Wait for signal from 2 frames ago
-        m_graphicsQueue->wait_for_idle();
+        m_graphicsQueue->wait_for_signal(m_endOfFrameFenceValues[m_frameIndex]);
     }
 
     void DeviceD3D12::end_frame()
@@ -170,6 +169,8 @@ namespace mill::platform
         for (auto& surface : m_surfaces)
         {
             surface.swapchain->Present(1, 0);
+
+            m_endOfFrameFenceValues[m_frameIndex] = m_graphicsQueue->signal_fence();
         }
     }
 

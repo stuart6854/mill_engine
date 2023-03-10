@@ -62,6 +62,8 @@ namespace mill::platform
         Owned<QueueD3D12> m_graphicsQueue{ nullptr };
         u32 m_frameIndex{};
 
+        std::array<u64, g_FrameBufferCount> m_endOfFrameFenceValues{};
+
         ComPtr<IDXGIFactory7> m_factory{ nullptr };
         struct Surface
         {
