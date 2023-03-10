@@ -110,7 +110,7 @@ namespace mill
         m_pimpl->window->cb_on_window_close_requested.connect_member(this, &Engine::quit);
 
         RendererInit renderer_init{
-            nullptr,
+            m_pimpl->window->get_platform_handle(),
             window_width,
             window_height,
         };
