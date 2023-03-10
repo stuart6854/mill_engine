@@ -2,6 +2,7 @@
 
 #include "mill/core/base.hpp"
 #include "d3d12_common_headers.hpp"
+#include "d3d12_queue.hpp"
 #include "d3d12_resources.hpp"
 
 namespace mill::platform
@@ -58,7 +59,8 @@ namespace mill::platform
         ComPtr<ID3D12Device10> m_device{ nullptr };
         DWORD m_debugCallbackCookie{};
 
-        ComPtr<ID3D12CommandQueue> m_cmdQueue{ nullptr };
+        Owned<QueueD3D12> m_graphicsQueue{ nullptr };
+        u32 m_frameIndex{};
 
         ComPtr<IDXGIFactory7> m_factory{ nullptr };
         struct Surface
@@ -71,12 +73,6 @@ namespace mill::platform
             std::array<Owned<TextureResourceD3D12>, g_FrameBufferCount> renderTargets{};
         };
         std::vector<Surface> m_surfaces{};
-
-        u32 m_frameIndex{};
-
-        ComPtr<ID3D12Fence1> m_fence{ nullptr };
-        u64 m_fenceValue{};
-        HANDLE m_fenceEvent{ nullptr };
 
         ComPtr<ID3D12DescriptorHeap> m_rtvHeap{ nullptr };
         u32 m_rtvDescriptorSize{};

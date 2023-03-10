@@ -2,6 +2,7 @@
 
 #include "mill/core/debug.hpp"
 #include "d3d12_core.hpp"
+#include "d3d12_queue.hpp"
 #include "d3d12_context.hpp"
 #include "d3d12_resources.hpp"
 #include <memory>
@@ -96,21 +97,7 @@ namespace mill::platform
         }
 #endif
 
-        D3D12_COMMAND_QUEUE_DESC cmd_queue_desc{};
-        cmd_queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-        cmd_queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-        hr = m_device->CreateCommandQueue(&cmd_queue_desc, IID_PPV_ARGS(&m_cmdQueue));
-        if (FAILED(hr))
-        {
-            LOG_ERROR("DeviceD3D12 - Failed to create command queue!");
-            return false;
-        }
-
-        assert_if_failed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-        m_fenceValue = 0;
-
-        m_fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-        ASSERT(m_fenceEvent != nullptr);
+        m_graphicsQueue = CreateOwned<QueueD3D12>(*this, D3D12_COMMAND_LIST_TYPE_DIRECT);
 
         D3D12_DESCRIPTOR_HEAP_DESC rtv_heap_desc{};
         rtv_heap_desc.NumDescriptors = g_FrameBufferCount;
@@ -127,9 +114,6 @@ namespace mill::platform
     {
         wait_for_idle();
 
-        CloseHandle(m_fenceEvent);
-        m_fence = nullptr;
-
         for (auto& surface : m_surfaces)
         {
             destroy_swapchain(surface);
@@ -138,7 +122,7 @@ namespace mill::platform
 
         m_rtvHeap = nullptr;
 
-        m_cmdQueue = nullptr;
+        m_graphicsQueue = nullptr;
         m_factory = nullptr;
 
 #ifdef MILL_DEBUG
@@ -169,22 +153,14 @@ namespace mill::platform
         ASSERT(m_device);
 
         m_frameIndex = (m_frameIndex + 1) % g_FrameBufferCount;
+
+        // #TODO: Wait for signal from 2 frames ago
+        m_graphicsQueue->wait_for_idle();
     }
 
     void DeviceD3D12::end_frame()
     {
         ASSERT(m_device);
-
-        const auto signalValue = m_fenceValue;
-        m_cmdQueue->Signal(m_fence.Get(), signalValue);
-        ++m_fenceValue;
-
-        // Wait until the previous frame is finished
-        if (m_fence->GetCompletedValue() < signalValue)
-        {
-            assert_if_failed(m_fence->SetEventOnCompletion(signalValue, m_fenceEvent));
-            WaitForSingleObject(m_fenceEvent, INFINITE);
-        }
     }
 
     void DeviceD3D12::present()
@@ -252,8 +228,7 @@ namespace mill::platform
     {
         context.get_cmd_list()->Close();
 
-        ID3D12CommandList* cmdLists[] = { context.get_cmd_list() };
-        m_cmdQueue->ExecuteCommandLists(_countof(cmdLists), &cmdLists[0]);
+        m_graphicsQueue->execute_command_list(context.get_cmd_list());
 
         // Receipt
         // Reciept.frameId = m_frameIndex
@@ -264,17 +239,7 @@ namespace mill::platform
 
     void DeviceD3D12::wait_for_idle()
     {
-        // Signal and increment fence value
-        const u64 signalValue = m_fenceValue;
-        assert_if_failed(m_cmdQueue->Signal(m_fence.Get(), signalValue));
-        ++m_fenceValue;
-
-        // Wait until the previous frame is finished
-        if (m_fence->GetCompletedValue() < signalValue)
-        {
-            assert_if_failed(m_fence->SetEventOnCompletion(signalValue, m_fenceEvent));
-            WaitForSingleObject(m_fenceEvent, INFINITE);
-        }
+        m_graphicsQueue->wait_for_idle();
     }
 
     auto DeviceD3D12::get_device() const -> ID3D12Device10*
@@ -363,7 +328,8 @@ namespace mill::platform
         swapchain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         ComPtr<IDXGISwapChain1> swapchain = nullptr;
 
-        auto hr = m_factory->CreateSwapChainForHwnd(m_cmdQueue.Get(), surface.hwnd, &swapchain_desc, nullptr, nullptr, &swapchain);
+        auto hr =
+            m_factory->CreateSwapChainForHwnd(m_graphicsQueue->get_queue(), surface.hwnd, &swapchain_desc, nullptr, nullptr, &swapchain);
         if (FAILED(hr))
         {
             LOG_ERROR("DeviceD3D12 - Failed to create swapchain for hwnd ({})!", fmt::ptr(surface.hwnd));
