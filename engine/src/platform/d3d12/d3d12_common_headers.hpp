@@ -5,6 +5,7 @@
 
 #include <dxgi1_6.h>
 #include <d3d12.h>
+#include <d3dcompiler.h>
 #include <directx/d3dx12.h>
 #include <wrl.h>  // For ComPtr smart pointer class
 using namespace Microsoft::WRL;
@@ -12,6 +13,7 @@ using namespace Microsoft::WRL;
 // Tell linker which librarys to link to for DX12
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 
 namespace mill::platform
 {

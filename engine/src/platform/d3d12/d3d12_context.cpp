@@ -62,6 +62,56 @@ namespace mill::platform
         m_cmdList->ClearRenderTargetView(target.rtvDescriptor.cpuHandle, &color.x, 0, nullptr);
     }
 
+    void ContextD3D12::set_default_viewport_and_scissor(const glm::uvec2& screen_size)
+    {
+        D3D12_VIEWPORT viewport{};
+        viewport.TopLeftX = 0.0f;
+        viewport.TopLeftY = 0.0f;
+        viewport.Width = static_cast<f32>(screen_size.x);
+        viewport.Height = static_cast<f32>(screen_size.y);
+        viewport.MinDepth = 0.0f;
+        viewport.MaxDepth = 1.0f;
+        set_viewport(viewport);
+
+        D3D12_RECT scissor{};
+        scissor.top = 0;
+        scissor.left = 0;
+        scissor.bottom = screen_size.y;
+        scissor.right = screen_size.x;
+        set_scissor(scissor);
+    }
+
+    void ContextD3D12::set_viewport(const D3D12_VIEWPORT& viewport)
+    {
+        m_cmdList->RSSetViewports(1, &viewport);
+    }
+
+    void ContextD3D12::set_scissor(const D3D12_RECT& rect)
+    {
+        m_cmdList->RSSetScissorRects(1, &rect);
+    }
+
+    void ContextD3D12::set_render_target(const TextureResourceD3D12& target)
+    {
+        m_cmdList->OMSetRenderTargets(1, &target.rtvDescriptor.cpuHandle, false, nullptr);
+    }
+
+    void ContextD3D12::set_primitive_topology(D3D_PRIMITIVE_TOPOLOGY topology)
+    {
+        m_cmdList->IASetPrimitiveTopology(topology);
+    }
+
+    void ContextD3D12::set_pipeline(ID3D12PipelineState* pipeline, ID3D12RootSignature* root_signature)
+    {
+        m_cmdList->SetPipelineState(pipeline);
+        m_cmdList->SetGraphicsRootSignature(root_signature);
+    }
+
+    void ContextD3D12::draw(u32 vertex_count, u32 vertex_offset)
+    {
+        m_cmdList->DrawInstanced(vertex_count, 1, vertex_offset, 0);
+    }
+
     auto ContextD3D12::get_cmd_type() const -> D3D12_COMMAND_LIST_TYPE
     {
         return m_cmdType;
