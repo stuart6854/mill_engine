@@ -28,6 +28,7 @@ namespace mill
         // UI
     };
 
+    /* Defines the High-Level Rendering API used by the Engine. */
     class RendererInterface
     {
     public:
