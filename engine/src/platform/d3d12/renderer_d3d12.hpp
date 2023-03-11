@@ -32,5 +32,10 @@ namespace mill::platform
 
         ComPtr<ID3D12RootSignature> m_rootSignature{ nullptr };
         ComPtr<ID3D12PipelineState> m_pipelineState{ nullptr };
+
+        ComPtr<ID3D12Resource> m_vertexBuffer{ nullptr };
+        D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView{};
+        ComPtr<ID3D12Resource> m_indexBuffer{ nullptr };
+        D3D12_INDEX_BUFFER_VIEW m_indexBufferView{};
     };
 }

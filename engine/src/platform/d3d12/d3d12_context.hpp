@@ -37,6 +37,7 @@ namespace mill::platform
         void set_pipeline(ID3D12PipelineState* pipeline, ID3D12RootSignature* root_signature);
 
         void draw(u32 vertex_count, u32 vertex_offset);
+        void draw_indexed(u32 index_count, u32 index_offset, u32 vertex_offset);
 
         /* Getters */
 

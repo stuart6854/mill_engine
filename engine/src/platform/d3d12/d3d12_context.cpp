@@ -112,6 +112,11 @@ namespace mill::platform
         m_cmdList->DrawInstanced(vertex_count, 1, vertex_offset, 0);
     }
 
+    void ContextD3D12::draw_indexed(u32 index_count, u32 index_offset, u32 vertex_offset)
+    {
+        m_cmdList->DrawIndexedInstanced(index_count, 1, index_offset, vertex_offset, 0);
+    }
+
     auto ContextD3D12::get_cmd_type() const -> D3D12_COMMAND_LIST_TYPE
     {
         return m_cmdType;
