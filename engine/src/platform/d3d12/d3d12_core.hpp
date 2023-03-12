@@ -24,4 +24,10 @@ namespace mill::platform
     {
         obj->SetName(name);
     }
+
+    inline uint32_t AlignU32(uint32_t valueToAlign, uint32_t alignment)
+    {
+        alignment -= 1;
+        return (uint32_t)((valueToAlign + alignment) & ~alignment);
+    }
 }

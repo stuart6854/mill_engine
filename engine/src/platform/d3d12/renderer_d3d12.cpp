@@ -6,6 +6,8 @@
 
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_float4.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 #include <vector>
 
@@ -31,12 +33,20 @@ namespace mill::platform
         }
 
         {
-            CD3DX12_ROOT_SIGNATURE_DESC root_signature_desc{};
-            root_signature_desc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+            CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
+            CD3DX12_ROOT_PARAMETER1 root_params[1];
+
+            ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+            root_params[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
+
+            CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
+            root_signature_desc.Init_1_1(
+                _countof(root_params), root_params, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
             ComPtr<ID3DBlob> signature{ nullptr };
             ComPtr<ID3DBlob> error{ nullptr };
-            assert_if_failed(D3D12SerializeRootSignature(&root_signature_desc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+            assert_if_failed(
+                D3DX12SerializeVersionedRootSignature(&root_signature_desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error));
             assert_if_failed(m_device->get_device()->CreateRootSignature(
                 0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
         }
@@ -75,6 +85,8 @@ namespace mill::platform
             pso_desc.SampleDesc.Count = 1;
             assert_if_failed(m_device->get_device()->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&m_pipelineState)));
         }
+
+        const f32 aspect_ratio = static_cast<f32>(m_screenSize.x) / static_cast<f32>(m_screenSize.y);
         {
             /* Vertex Buffer */
             struct Vertex
@@ -83,7 +95,6 @@ namespace mill::platform
                 glm::vec4 color;
             };
 
-            const f32 aspect_ratio = static_cast<f32>(m_screenSize.x) / static_cast<f32>(m_screenSize.y);
             std::vector<Vertex> vertices{
                 { { 0.0f, 0.5f * aspect_ratio, 0.0f }, { 1.0f, 0.0f, 0.0f, 0.0f } },
                 { { 0.5f, -0.5f * aspect_ratio, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f } },
@@ -136,12 +147,49 @@ namespace mill::platform
             m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
             m_indexBufferView.SizeInBytes = index_buffer_size;
         }
+        {
+            D3D12_DESCRIPTOR_HEAP_DESC heap_desc{};
+            heap_desc.NumDescriptors = 1;
+            heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            assert_if_failed(m_device->get_device()->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&m_cbvHeap)));
+
+            /* Constant (Uniform) Buffer */
+            std::vector uniforms = {
+                glm::perspectiveLH_ZO(glm::radians(60.0f), aspect_ratio, 0.1f, 10.0f),
+                // glm::mat4(1.0f),
+                glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5))),
+            };
+
+            const auto buffer_size = static_cast<u32>(sizeof(glm::mat4) * uniforms.size());
+
+            auto heap_props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(AlignU32(buffer_size, 256));
+            assert_if_failed(m_device->get_device()->CreateCommittedResource(&heap_props,
+                                                                             D3D12_HEAP_FLAG_NONE,
+                                                                             &resource_desc,
+                                                                             D3D12_RESOURCE_STATE_GENERIC_READ,
+                                                                             nullptr,
+                                                                             IID_PPV_ARGS(&m_constantBuffer)));
+
+            u8* mappedData{ nullptr };
+            auto read_range = CD3DX12_RANGE(0, 0);
+            assert_if_failed(m_constantBuffer->Map(0, &read_range, reinterpret_cast<void**>(&mappedData)));
+            std::memcpy(mappedData, uniforms.data(), buffer_size);
+            m_constantBuffer->Unmap(0, nullptr);
+
+            D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc{};
+            cbv_desc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
+            cbv_desc.SizeInBytes = AlignU32(buffer_size, 256);
+            m_device->get_device()->CreateConstantBufferView(&cbv_desc, m_cbvHeap->GetCPUDescriptorHandleForHeapStart());
+        }
     }
 
     void RendererD3D12::shutdown()
     {
         m_device->wait_for_idle();
 
+        m_constantBuffer = nullptr;
         m_vertexBuffer = nullptr;
         m_indexBuffer = nullptr;
 
@@ -172,6 +220,11 @@ namespace mill::platform
         m_graphicsContext->set_render_target(backbuffer);
         m_graphicsContext->set_primitive_topology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         m_graphicsContext->set_pipeline(m_pipelineState.Get(), m_rootSignature.Get());
+
+        ID3D12DescriptorHeap* heaps[] = { m_cbvHeap.Get() };
+        m_graphicsContext->get_cmd_list()->SetDescriptorHeaps(_countof(heaps), heaps);
+        m_graphicsContext->get_cmd_list()->SetGraphicsRootDescriptorTable(0, m_cbvHeap->GetGPUDescriptorHandleForHeapStart());
+
         m_graphicsContext->get_cmd_list()->IASetVertexBuffers(0, 1, &m_vertexBufferView);
         m_graphicsContext->get_cmd_list()->IASetIndexBuffer(&m_indexBufferView);
         m_graphicsContext->draw_indexed(3, 0, 0);
