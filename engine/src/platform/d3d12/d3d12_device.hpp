@@ -40,7 +40,7 @@ namespace mill::platform
 
         /* Getters */
 
-        auto get_device() const -> ID3D12Device10*;
+        auto get_device() const -> ID3D12Device9*;
         auto get_frame_index() const -> u32;
 
         auto get_current_back_buffer(HWND hwnd) -> TextureResourceD3D12*;
@@ -56,7 +56,7 @@ namespace mill::platform
         void destroy_swapchain(Surface& surface);
 
     private:
-        ComPtr<ID3D12Device10> m_device{ nullptr };
+        ComPtr<ID3D12Device9> m_device{ nullptr };
         DWORD m_debugCallbackCookie{};
 
         Owned<QueueD3D12> m_graphicsQueue{ nullptr };

@@ -243,8 +243,8 @@ namespace mill::platform
         m_graphicsQueue->wait_for_idle();
     }
 
-    auto DeviceD3D12::get_device() const -> ID3D12Device10*
-    {
+    auto DeviceD3D12::get_device() const -> ID3D12Device9*
+{
         return m_device.Get();
     }
 
