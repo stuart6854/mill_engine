@@ -107,6 +107,23 @@ namespace mill::platform
         m_cmdList->SetGraphicsRootSignature(root_signature);
     }
 
+    void ContextD3D12::set_vertex_buffer(const BufferD3D12& buffer)
+    {
+        D3D12_VERTEX_BUFFER_VIEW view{};
+        view.BufferLocation = buffer.resource->GetGPUVirtualAddress();
+        view.SizeInBytes = static_cast<u32>(buffer.resource->GetDesc().Width);
+        m_cmdList->IASetVertexBuffers(0, 1, &view);
+    }
+
+    void ContextD3D12::set_index_buffer(const BufferD3D12& buffer)
+    {
+        D3D12_INDEX_BUFFER_VIEW view{};
+        view.BufferLocation = buffer.resource->GetGPUVirtualAddress();
+        view.Format = buffer.resource->GetDesc().Format;
+        view.SizeInBytes = static_cast<u32>(buffer.resource->GetDesc().Width);
+        m_cmdList->IASetIndexBuffer(&view);
+    }
+
     void ContextD3D12::draw(u32 vertex_count, u32 vertex_offset)
     {
         m_cmdList->DrawInstanced(vertex_count, 1, vertex_offset, 0);

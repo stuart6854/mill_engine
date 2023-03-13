@@ -31,6 +31,7 @@ namespace mill::platform
         void remove_surface(HWND hwnd);
 
         auto create_context() -> Owned<ContextD3D12>;
+        auto create_buffer(const BufferCreationInfo& info) -> Owned<BufferD3D12>;
 
         void destroy_context(Owned<ContextD3D12> context);
 

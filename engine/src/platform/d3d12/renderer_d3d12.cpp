@@ -103,22 +103,13 @@ namespace mill::platform
 
             const auto vertex_buffer_size = static_cast<u32>(sizeof(Vertex) * vertices.size());
 
-            CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_UPLOAD);
-            auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(vertex_buffer_size);
-            assert_if_failed(m_device->get_device()->CreateCommittedResource(&heap_props,
-                                                                             D3D12_HEAP_FLAG_NONE,
-                                                                             &resource_desc,
-                                                                             D3D12_RESOURCE_STATE_GENERIC_READ,
-                                                                             nullptr,
-                                                                             IID_PPV_ARGS(&m_vertexBuffer)));
+            BufferCreationInfo buffer_info{};
+            buffer_info.size = vertex_buffer_size;
+            buffer_info.initial_data = vertices.data();
+            buffer_info.is_cpu_accessible = true;
+            m_vertexBuffer = m_device->create_buffer(buffer_info);
 
-            u8* mappedData{ nullptr };
-            CD3DX12_RANGE read_range(0, 0);
-            assert_if_failed(m_vertexBuffer->Map(0, &read_range, reinterpret_cast<void**>(&mappedData)));
-            std::memcpy(mappedData, vertices.data(), vertex_buffer_size);
-            m_vertexBuffer->Unmap(0, nullptr);
-
-            m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
+            m_vertexBufferView.BufferLocation = m_vertexBuffer->resource->GetGPUVirtualAddress();
             m_vertexBufferView.StrideInBytes = sizeof(Vertex);
             m_vertexBufferView.SizeInBytes = vertex_buffer_size;
         }
@@ -128,22 +119,13 @@ namespace mill::platform
 
             const auto index_buffer_size = static_cast<u32>(sizeof(u16) * indices.size());
 
-            auto heap_props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(index_buffer_size);
-            assert_if_failed(m_device->get_device()->CreateCommittedResource(&heap_props,
-                                                                             D3D12_HEAP_FLAG_NONE,
-                                                                             &resource_desc,
-                                                                             D3D12_RESOURCE_STATE_GENERIC_READ,
-                                                                             nullptr,
-                                                                             IID_PPV_ARGS(&m_indexBuffer)));
+            BufferCreationInfo buffer_info{};
+            buffer_info.size = index_buffer_size;
+            buffer_info.initial_data = indices.data();
+            buffer_info.is_cpu_accessible = true;
+            m_indexBuffer = m_device->create_buffer(buffer_info);
 
-            u8* mappedData{ nullptr };
-            auto read_range = CD3DX12_RANGE(0, 0);
-            assert_if_failed(m_indexBuffer->Map(0, &read_range, reinterpret_cast<void**>(&mappedData)));
-            std::memcpy(mappedData, indices.data(), index_buffer_size);
-            m_indexBuffer->Unmap(0, nullptr);
-
-            m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+            m_indexBufferView.BufferLocation = m_indexBuffer->resource->GetGPUVirtualAddress();
             m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
             m_indexBufferView.SizeInBytes = index_buffer_size;
         }
@@ -163,23 +145,14 @@ namespace mill::platform
 
             const auto buffer_size = static_cast<u32>(sizeof(glm::mat4) * uniforms.size());
 
-            auto heap_props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(AlignU32(buffer_size, 256));
-            assert_if_failed(m_device->get_device()->CreateCommittedResource(&heap_props,
-                                                                             D3D12_HEAP_FLAG_NONE,
-                                                                             &resource_desc,
-                                                                             D3D12_RESOURCE_STATE_GENERIC_READ,
-                                                                             nullptr,
-                                                                             IID_PPV_ARGS(&m_constantBuffer)));
-
-            u8* mappedData{ nullptr };
-            auto read_range = CD3DX12_RANGE(0, 0);
-            assert_if_failed(m_constantBuffer->Map(0, &read_range, reinterpret_cast<void**>(&mappedData)));
-            std::memcpy(mappedData, uniforms.data(), buffer_size);
-            m_constantBuffer->Unmap(0, nullptr);
+            BufferCreationInfo buffer_info{};
+            buffer_info.size = AlignU32(buffer_size, 256);
+            buffer_info.initial_data = uniforms.data();
+            buffer_info.is_cpu_accessible = true;
+            m_constantBuffer = m_device->create_buffer(buffer_info);
 
             D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc{};
-            cbv_desc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
+            cbv_desc.BufferLocation = m_constantBuffer->resource->GetGPUVirtualAddress();
             cbv_desc.SizeInBytes = AlignU32(buffer_size, 256);
             m_device->get_device()->CreateConstantBufferView(&cbv_desc, m_cbvHeap->GetCPUDescriptorHandleForHeapStart());
         }

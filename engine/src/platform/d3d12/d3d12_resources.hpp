@@ -35,4 +35,25 @@ namespace mill::platform
 
         DescriptorD3D12 rtvDescriptor{};
     };
+
+    struct BufferCreationInfo
+    {
+        u32 size{};
+        const void* initial_data{ nullptr };
+        bool is_cpu_accessible{ false };
+        D3D12_RESOURCE_STATES state{ D3D12_RESOURCE_STATE_COMMON };
+        D3D12_RESOURCE_FLAGS flags{ D3D12_RESOURCE_FLAG_NONE };
+    };
+
+    struct BufferD3D12 : public ResourceD3D12
+    {
+        BufferD3D12() : ResourceD3D12()
+        {
+            type = ResourceTypeD3D12::eBuffer;
+        }
+
+        bool is_cpu_accessible{ false };
+        u8* mappedMem{ nullptr };
+    };
+
 }

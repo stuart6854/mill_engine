@@ -35,6 +35,8 @@ namespace mill::platform
         void set_render_target(const TextureResourceD3D12& target);
         void set_primitive_topology(D3D_PRIMITIVE_TOPOLOGY topology);
         void set_pipeline(ID3D12PipelineState* pipeline, ID3D12RootSignature* root_signature);
+        void set_vertex_buffer(const BufferD3D12& buffer);
+        void set_index_buffer(const BufferD3D12& buffer);
 
         void draw(u32 vertex_count, u32 vertex_offset);
         void draw_indexed(u32 index_count, u32 index_offset, u32 vertex_offset);

@@ -220,6 +220,48 @@ namespace mill::platform
         return CreateOwned<ContextD3D12>(*this, D3D12_COMMAND_LIST_TYPE_DIRECT);
     }
 
+    auto DeviceD3D12::create_buffer(const BufferCreationInfo& info) -> Owned<BufferD3D12>
+    {
+        auto buffer = CreateOwned<BufferD3D12>();
+
+        auto heap =
+            info.is_cpu_accessible ? CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD) : CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        auto desc = CD3DX12_RESOURCE_DESC::Buffer(info.size, info.flags);
+
+        ASSERT(desc.Flags == D3D12_RESOURCE_FLAG_NONE || desc.Flags == D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+        const auto state = info.is_cpu_accessible ? D3D12_RESOURCE_STATE_GENERIC_READ : info.state;
+
+        assert_if_failed(
+            m_device->CreateCommittedResource(&heap, D3D12_HEAP_FLAG_NONE, &desc, state, nullptr, IID_PPV_ARGS(&buffer->resource)));
+
+        buffer->state = state;
+        buffer->is_cpu_accessible = info.is_cpu_accessible;
+
+        if (info.is_cpu_accessible)
+        {
+            D3D12_RANGE read_range(0, 0);
+            u8* mappedData{ nullptr };
+            buffer->resource->Map(0, &read_range, reinterpret_cast<void**>(&mappedData));
+            std::memcpy(mappedData, info.initial_data, info.size);
+        }
+        else
+        {
+            // Create upload buffer
+            BufferCreationInfo upload_buffer_info{};
+            upload_buffer_info.size = info.size;
+            upload_buffer_info.initial_data = info.initial_data;
+            upload_buffer_info.is_cpu_accessible = true;
+            upload_buffer_info.state = D3D12_RESOURCE_STATE_COPY_SOURCE;
+            auto upload_buffer = create_buffer(upload_buffer_info);
+
+            // Use upload context to upload data from local buffer to gpu buffer
+            m_uploadContext->copy_resource(upload_buffer->resource, buffer->resource);
+        }
+
+        return buffer;
+    }
+
     void DeviceD3D12::destroy_context(Owned<ContextD3D12> context)
     {
         context = nullptr;
@@ -244,7 +286,7 @@ namespace mill::platform
     }
 
     auto DeviceD3D12::get_device() const -> ID3D12Device9*
-{
+    {
         return m_device.Get();
     }
 
