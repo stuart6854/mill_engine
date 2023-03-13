@@ -92,6 +92,10 @@ namespace mill
 
     void Engine::initialise()
     {
+#if MILL_DEBUG
+        spdlog::set_level(spdlog::level::trace);
+#endif
+
         LOG_INFO("Engine - Initialising...");
 
         load_config();
