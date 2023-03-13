@@ -1,5 +1,5 @@
 function use_engine()
-    links "Engine"
+    links {"Engine", "$(VULKAN_SDK)/Lib/vulkan-1"}
     includedirs "%{wks.location}/engine/includes"
 end
 
