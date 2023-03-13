@@ -256,7 +256,7 @@ namespace mill::platform
             auto upload_buffer = create_buffer(upload_buffer_info);
 
             // Use upload context to upload data from local buffer to gpu buffer
-            m_uploadContext->copy_resource(upload_buffer->resource, buffer->resource);
+            //m_uploadContext->copy_resource(upload_buffer->resource, buffer->resource);
         }
 
         return buffer;
