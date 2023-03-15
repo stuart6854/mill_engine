@@ -1,6 +1,10 @@
 function use_engine()
     links {"Engine", "$(VULKAN_SDK)/Lib/vulkan-1"}
     includedirs "%{wks.location}/engine/includes"
+    defines {
+        "GLM_FORCE_DEPTH_ZERO_TO_ONE",        
+        "GLM_FORCE_LEFT_HANDED"        
+    }
 end
 
 project "Engine"
@@ -37,6 +41,11 @@ project "Engine"
         "includes/"
     }
 
+    defines {
+        "GLM_FORCE_DEPTH_ZERO_TO_ONE",        
+        "GLM_FORCE_LEFT_HANDED"        
+    }
+
     filter "platforms:Win64"
         files { 
             "src/platform/glfw/**",
@@ -49,3 +58,5 @@ project "Engine"
             "src/platform/glfw/**",
             "src/platform/vulkan/**"
         }
+
+    filter ""

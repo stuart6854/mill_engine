@@ -28,6 +28,8 @@ workspace "Mill Engine"
         architecture "x64"
         defines { "MILL_LINUX" }
         
+    filter ""
+
     outputdir = "%{cfg.architecture}-%{cfg.system}-%{cfg.buildcfg}"
 
     group "Engine"
