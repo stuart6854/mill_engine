@@ -193,6 +193,11 @@ namespace mill::platform::vulkan
         m_boundVertexBuffer = &vertex_buffer;
     }
 
+    void ContextVulkan::set_constants(vk::ShaderStageFlags stages, u32 offset_bytes, u32 size_bytes, const void* data)
+    {
+        get_current_cmd().pushConstants(m_boundPipeline->layout, stages, offset_bytes, size_bytes, data);
+    }
+
     void ContextVulkan::draw(u32 vertex_count, u32 vertex_offset)
     {
         ASSERT(m_boundIndexBuffer != nullptr);

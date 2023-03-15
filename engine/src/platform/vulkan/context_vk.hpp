@@ -40,6 +40,7 @@ namespace mill::platform::vulkan
         void set_default_viewport_and_scissor(const glm::uvec2& screen_size);
         void set_index_buffer(BufferVulkan& index_buffer, vk::IndexType index_type);
         void set_vertex_buffer(BufferVulkan& vertex_buffer);
+        void set_constants(vk::ShaderStageFlags stages, u32 offset_bytes, u32 size_bytes, const void* data);
         void draw(u32 vertex_count, u32 vertex_offset);
         void draw_indexed(u32 index_count, u32 index_offset, u32 vertex_offset);
 
@@ -61,7 +62,7 @@ namespace mill::platform::vulkan
         };
         std::array<Frame, g_FrameBufferCount> m_frames{};
         u32 m_frameIndex{};
-        
+
         PipelineVulkan* m_boundPipeline{ nullptr };
         BufferVulkan* m_boundIndexBuffer{ nullptr };
         BufferVulkan* m_boundVertexBuffer{ nullptr };
