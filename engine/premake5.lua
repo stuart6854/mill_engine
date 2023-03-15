@@ -27,6 +27,8 @@ project "Engine"
         "src/**.h",
         "includes/**"
     }
+    removefiles { "src/platform/**" }
+    files { "src/platform/*.hpp" }
 
     includedirs {        
         "src/",
@@ -34,3 +36,16 @@ project "Engine"
         "src/directx-headers/include/directx",
         "includes/"
     }
+
+    filter "platforms:Win64"
+        files { 
+            "src/platform/glfw/**",
+            "src/platform/vulkan/**"
+            -- "src/platform/d3d12/**"
+        }
+
+    filter "platforms:Linux"
+        files { 
+            "src/platform/glfw/**",
+            "src/platform/vulkan/**"
+        }
