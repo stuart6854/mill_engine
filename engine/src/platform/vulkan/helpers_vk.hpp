@@ -60,8 +60,66 @@ namespace mill::platform::vulkan
 
 #pragma endregion
 
+#pragma region Pipeline Helpers
+
+    class DescriptorSetLayout
     {
+    public:
+        explicit DescriptorSetLayout(vk::Device device);
+
+        ~DescriptorSetLayout();
+
+        void reset();
+
+        void add_binding(u32 binding, vk::DescriptorType descriptor_type, vk::ShaderStageFlags shader_stages, u32 count = 1);
+
+        void build();
+
+        auto get_hash() const -> hasht;
+        auto get_layout() const -> vk::DescriptorSetLayout;
+
+    private:
+        auto calculate_hash() const -> hasht;
+
+    private:
+        vk::Device m_device{};
+
+        std::vector<vk::DescriptorSetLayoutBinding> m_bindings{};
+        vk::DescriptorSetLayoutCreateInfo m_layoutInfo{};
+
+        hasht m_hash{};
+        vk::DescriptorSetLayout m_layout{};
+    };
+
+    class PipelineLayout
     {
+    public:
+        explicit PipelineLayout(vk::Device device);
+        ~PipelineLayout();
+
+        void reset();
+
+        void add_push_constant_range(vk::ShaderStageFlags stages, u32 offset_bytes, u32 size_bytes);
+
+        void add_descriptor_set_layout(u32 set, const DescriptorSetLayout& descriptor_layout);
+
+        void build();
+
+        auto get_hash() const -> u64;
+        auto get_layout() const -> vk::PipelineLayout;
+
+    private:
+        auto calculate_hash() const -> hasht;
+
+    private:
+        vk::Device m_device{};
+
+        std::vector<vk::PushConstantRange> m_pushConstantRanges{};
+        std::vector<const DescriptorSetLayout*> m_descriptorSetLayouts{};
+        vk::PipelineLayoutCreateInfo m_layoutInfo{};
+
+        vk::PipelineLayout m_layout{};
+    };
 
 #pragma endregion
 

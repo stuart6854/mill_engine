@@ -249,4 +249,160 @@ namespace mill::platform::vulkan
         range.setLayerCount(1);
         return range;
     }
+
+    DescriptorSetLayout::DescriptorSetLayout(vk::Device device) : m_device(device) {}
+
+    DescriptorSetLayout::~DescriptorSetLayout()
+    {
+        reset();
+    }
+
+    void DescriptorSetLayout::reset()
+    {
+        m_layoutInfo = vk::DescriptorSetLayoutCreateInfo();
+        m_bindings.clear();
+        if (m_layout)
+        {
+            m_device.destroy(m_layout);
+        }
+    }
+
+    void DescriptorSetLayout::add_binding(u32 binding, vk::DescriptorType descriptor_type, vk::ShaderStageFlags shader_stages, u32 count)
+    {
+        if (m_bindings.size() < binding + 1)
+        {
+            m_bindings.resize(binding + 1);
+        }
+
+        auto& set_binding = m_bindings[binding];
+        set_binding.setBinding(binding);
+        set_binding.setDescriptorCount(count);
+        set_binding.setDescriptorType(descriptor_type);
+        set_binding.setStageFlags(shader_stages);
+    }
+
+    void DescriptorSetLayout::build()
+    {
+        if (m_layout)
+        {
+            m_device.destroy(m_layout);
+        }
+
+        m_layoutInfo.setBindings(m_bindings);
+        m_layout = m_device.createDescriptorSetLayout(m_layoutInfo);
+    }
+
+    auto DescriptorSetLayout::get_hash() const -> hasht
+    {
+        return calculate_hash();
+    }
+
+    auto DescriptorSetLayout::get_layout() const -> vk::DescriptorSetLayout
+    {
+        return m_layout;
+    }
+
+    auto DescriptorSetLayout::calculate_hash() const -> hasht
+    {
+        hasht final_hash{ 0 };
+
+        for (auto& binding : m_bindings)
+        {
+            hasht hash{ 0 };
+            hash_combine(hash, binding.binding);
+            hash_combine(hash, binding.descriptorType);
+            hash_combine(hash, binding.descriptorCount);
+            hash_combine(hash, static_cast<u32>(binding.stageFlags));
+
+            hash_combine(final_hash, hash);
+        }
+
+        return final_hash;
+    }
+
+    PipelineLayout::PipelineLayout(vk::Device device) : m_device(device) {}
+
+    PipelineLayout::~PipelineLayout()
+    {
+        reset();
+    }
+
+    void PipelineLayout::reset()
+    {
+        m_layoutInfo = vk::PipelineLayoutCreateInfo();
+        m_pushConstantRanges.clear();
+        m_descriptorSetLayouts.clear();
+        if (m_layout)
+        {
+            m_device.destroy(m_layout);
+        }
+    }
+
+    void PipelineLayout::add_push_constant_range(vk::ShaderStageFlags stages, u32 offset_bytes, u32 size_bytes)
+    {
+        auto& push_range = m_pushConstantRanges.emplace_back();
+        push_range.setStageFlags(stages);
+        push_range.setOffset(offset_bytes);
+        push_range.setSize(size_bytes);
+    }
+
+    void PipelineLayout::add_descriptor_set_layout(u32 set, const DescriptorSetLayout& descriptor_layout)
+    {
+        if (m_descriptorSetLayouts.size() < set + 1)
+        {
+            m_descriptorSetLayouts.resize(set + 1);
+        }
+
+        m_descriptorSetLayouts[set] = &descriptor_layout;
+    }
+
+    void PipelineLayout::build()
+    {
+        if (m_layout)
+        {
+            m_device.destroy(m_layout);
+        }
+
+        std::vector<vk::DescriptorSetLayout> set_layouts{};
+        for (auto* set_layout : m_descriptorSetLayouts)
+        {
+            set_layouts.push_back(set_layout->get_layout());
+        }
+
+        m_layoutInfo.setPushConstantRanges(m_pushConstantRanges);
+        m_layoutInfo.setSetLayouts(set_layouts);
+        m_layout = m_device.createPipelineLayout(m_layoutInfo);
+    }
+
+    auto PipelineLayout::get_hash() const -> u64
+    {
+        return calculate_hash();
+    }
+
+    auto PipelineLayout::get_layout() const -> vk::PipelineLayout
+    {
+        return m_layout;
+    }
+
+    auto PipelineLayout::calculate_hash() const -> hasht
+    {
+        hasht final_hash{ 0 };
+        for (auto& push_range : m_pushConstantRanges)
+        {
+            hasht hash{ 0 };
+            hash_combine(hash, static_cast<u32>(push_range.stageFlags));
+            hash_combine(hash, push_range.offset);
+            hash_combine(hash, push_range.size);
+
+            hash_combine(final_hash, hash);
+        }
+
+        for (auto* set_layout : m_descriptorSetLayouts)
+        {
+            hash_combine(final_hash, set_layout->get_hash());
+        }
+
+        return final_hash;
+    }
+
 }

@@ -3,6 +3,7 @@
 #include "device_vk.hpp"
 #include "context_vk.hpp"
 #include "resources_vk.hpp"
+#include "helpers_vk.hpp"
 #include "builtin_spirv_shaders.hpp"
 
 #include <glm/ext/vector_float3.hpp>
@@ -64,6 +65,40 @@ namespace mill::platform::vulkan
             index_buffer_init.usage = vk::BufferUsageFlagBits::eIndexBuffer;
             index_buffer_init.initial_data = indices.data();
             m_indexBuffer = m_device->create_buffer(index_buffer_init);
+        }
+
+        {
+            // Global set
+            DescriptorSetLayout global_layout(m_device->get_device());
+            // Buffer for global data eg. time
+            global_layout.add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex);
+            // Array of images for bindless image rendering
+            global_layout.add_binding(1, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment, 256);
+            LOG_DEBUG("Global Layout hash = {}", global_layout.get_hash());
+
+            // Scene Set
+            DescriptorSetLayout scene_layout(m_device->get_device());
+            // Buffer for scene data eg. lighting
+            scene_layout.add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
+            LOG_DEBUG("Scene Layout hash = {}", scene_layout.get_hash());
+
+            // Material Set
+            DescriptorSetLayout material_layout(m_device->get_device());
+            // Buffer for material data eg. default material data + material instance data
+            material_layout.add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
+            LOG_DEBUG("Material Layout hash = {}", material_layout.get_hash());
+
+            PipelineLayout default_pipeline_layout(m_device->get_device());
+            default_pipeline_layout.add_push_constant_range(vk::ShaderStageFlagBits::eVertex, 0, 32);
+            default_pipeline_layout.add_descriptor_set_layout(0, global_layout);
+            default_pipeline_layout.add_descriptor_set_layout(1, scene_layout);
+            default_pipeline_layout.add_descriptor_set_layout(2, material_layout);
+            LOG_DEBUG("Default Pipeline hash = {}", default_pipeline_layout.get_hash());
+
+            PipelineLayout example_pipeline_layout(m_device->get_device());
+            example_pipeline_layout.add_push_constant_range(vk::ShaderStageFlagBits::eVertex, 0, 32);
+            example_pipeline_layout.add_descriptor_set_layout(0, global_layout);
+            LOG_DEBUG("Example Pipeline hash = {}", example_pipeline_layout.get_hash());
         }
     }
 
