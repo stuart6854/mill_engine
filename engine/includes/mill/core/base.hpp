@@ -26,7 +26,16 @@ namespace mill
     using f32 = float;
     using f64 = double;
 
-    template<typename T>
+    using hasht = u64;
+
+    template <typename T>
+    inline void hash_combine(hasht& seed, const T& value)
+    {
+        std::hash<T> h;
+        seed ^= h(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+
+    template <typename T>
     inline auto vec_data_size(const std::vector<T>& vec) -> sizet
     {
         return sizeof(T) * vec.size();
