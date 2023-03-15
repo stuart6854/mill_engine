@@ -8,6 +8,8 @@
 
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_float4.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 
 namespace mill::platform::vulkan
 {
@@ -33,12 +35,6 @@ namespace mill::platform::vulkan
         }
 
         m_graphicsContext = m_device->create_context();
-
-        PipelineInit pipeline_info{};
-        pipeline_info.vertexSrc = g_ShaderTriangleSrc_Vertex;
-        pipeline_info.fragmentSrc = g_ShaderTriangleSrc_Fragment;
-        pipeline_info.state.cullMode = vk::CullModeFlagBits::eNone;
-        m_pipeline = m_device->create_pipeline(pipeline_info);
 
         {
             struct Vertex
@@ -75,31 +71,42 @@ namespace mill::platform::vulkan
             // Array of images for bindless image rendering
             global_layout.add_binding(1, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment, 256);
             LOG_DEBUG("Global Layout hash = {}", global_layout.get_hash());
+            global_layout.build();
 
             // Scene Set
             DescriptorSetLayout scene_layout(m_device->get_device());
             // Buffer for scene data eg. lighting
             scene_layout.add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
             LOG_DEBUG("Scene Layout hash = {}", scene_layout.get_hash());
+            scene_layout.build();
 
             // Material Set
             DescriptorSetLayout material_layout(m_device->get_device());
             // Buffer for material data eg. default material data + material instance data
             material_layout.add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
             LOG_DEBUG("Material Layout hash = {}", material_layout.get_hash());
+            material_layout.build();
 
-            PipelineLayout default_pipeline_layout(m_device->get_device());
-            default_pipeline_layout.add_push_constant_range(vk::ShaderStageFlagBits::eVertex, 0, 32);
-            default_pipeline_layout.add_descriptor_set_layout(0, global_layout);
-            default_pipeline_layout.add_descriptor_set_layout(1, scene_layout);
-            default_pipeline_layout.add_descriptor_set_layout(2, material_layout);
-            LOG_DEBUG("Default Pipeline hash = {}", default_pipeline_layout.get_hash());
+            m_pipelineLayout = CreateOwned<PipelineLayout>(m_device->get_device());
+            m_pipelineLayout->add_push_constant_range(vk::ShaderStageFlagBits::eVertex, 0, sizeof(CameraData));
+            m_pipelineLayout->add_descriptor_set_layout(0, global_layout);
+            m_pipelineLayout->add_descriptor_set_layout(1, scene_layout);
+            m_pipelineLayout->add_descriptor_set_layout(2, material_layout);
+            LOG_DEBUG("Pipeline hash = {}", m_pipelineLayout->get_hash());
+            m_pipelineLayout->build();
 
-            PipelineLayout example_pipeline_layout(m_device->get_device());
-            example_pipeline_layout.add_push_constant_range(vk::ShaderStageFlagBits::eVertex, 0, 32);
-            example_pipeline_layout.add_descriptor_set_layout(0, global_layout);
-            LOG_DEBUG("Example Pipeline hash = {}", example_pipeline_layout.get_hash());
+            PipelineInit pipeline_info{};
+            pipeline_info.layout = m_pipelineLayout.get();
+            pipeline_info.vertexSrc = g_ShaderDefaultSrc_Vertex;
+            pipeline_info.fragmentSrc = g_ShaderDefaultSrc_Fragment;
+            pipeline_info.state.cullMode = vk::CullModeFlagBits::eNone;
+            m_pipeline = m_device->create_pipeline(pipeline_info);
         }
+
+        const f32 aspect_ratio = static_cast<f32>(m_displaySize.x) / static_cast<f32>(m_displaySize.y);
+        m_cameraData.projection = glm::perspective(glm::radians(60.0f), aspect_ratio, 0.1f, 100.0f);
+        m_cameraData.view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 5.0f));
+        m_cameraData.view = glm::inverse(m_cameraData.view);
     }
 
     void RendererVulkan::shutdown()
@@ -133,6 +140,7 @@ namespace mill::platform::vulkan
         m_graphicsContext->set_pipeline(*m_pipeline);
         m_graphicsContext->set_index_buffer(*m_indexBuffer, vk::IndexType::eUint16);
         m_graphicsContext->set_vertex_buffer(*m_vertexBuffer);
+        m_graphicsContext->set_constants(vk::ShaderStageFlagBits::eVertex, 0, sizeof(CameraData), &m_cameraData);
         m_graphicsContext->draw_indexed(3, 0, 0);
         m_graphicsContext->end_render_pass();
 

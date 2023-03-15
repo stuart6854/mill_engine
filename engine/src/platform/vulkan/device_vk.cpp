@@ -404,9 +404,6 @@ namespace mill::platform::vulkan
 
     auto DeviceVulkan::create_pipeline(const PipelineInit& pipeline_init) -> Owned<PipelineVulkan>
     {
-        vk::PipelineLayoutCreateInfo layout_info{};
-        auto layout = m_device.createPipelineLayout(layout_info);
-
         vk::ShaderModuleCreateInfo vertex_module_info{};
         vertex_module_info.setCode(pipeline_init.vertexSrc);
         auto vertex_module = m_device.createShaderModule(vertex_module_info);
@@ -492,12 +489,12 @@ namespace mill::platform::vulkan
         pipeline_info.setPDepthStencilState(&depth_stencil_state);
         pipeline_info.setPColorBlendState(&color_blend_state);
         pipeline_info.setPDynamicState(&dynamic_state);
-        pipeline_info.setLayout(layout);
+        pipeline_info.setLayout(pipeline_init.layout->get_layout());
 
         auto pipeline = m_device.createGraphicsPipeline({}, pipeline_info).value;
 
         auto pipeline_resource = CreateOwned<PipelineVulkan>();
-        pipeline_resource->layout = layout;
+        pipeline_resource->layout = pipeline_init.layout->get_layout();
         pipeline_resource->pipeline = pipeline;
         pipeline_resource->state = pipeline_init.state;
 

@@ -4,6 +4,7 @@
 #include "mill/graphics/renderer.hpp"
 
 #include <glm/ext/vector_uint2.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
 
 namespace mill::platform::vulkan
 {
@@ -11,6 +12,7 @@ namespace mill::platform::vulkan
     class ContextVulkan;
     struct PipelineVulkan;
     struct BufferVulkan;
+    class PipelineLayout;
 
     class RendererVulkan : public RendererInterface
     {
@@ -31,9 +33,18 @@ namespace mill::platform::vulkan
         glm::uvec2 m_displaySize{};
 
         Owned<vulkan::ContextVulkan> m_graphicsContext{ nullptr };
-        Owned<vulkan::PipelineVulkan> m_pipeline{ nullptr };
         vulkan::BufferVulkan* m_vertexBuffer{};
         vulkan::BufferVulkan* m_indexBuffer{};
+
+        Owned<vulkan::PipelineLayout> m_pipelineLayout{ nullptr };
+        Owned<vulkan::PipelineVulkan> m_pipeline{ nullptr };
+
+        struct CameraData
+        {
+            glm::mat4 projection{ 1.0f };
+            glm::mat4 view{ 1.0f };
+        };
+        CameraData m_cameraData{};
     };
 
 }

@@ -2,6 +2,7 @@
 
 #include "mill/core/base.hpp"
 #include "common_headers_vk.hpp"
+#include "helpers_vk.hpp"
 
 namespace mill::platform::vulkan
 {
@@ -28,9 +29,9 @@ namespace mill::platform::vulkan
 
     struct PipelineInit
     {
-        std::vector<u32> vertexSrc;
-        std::vector<u32> fragmentSrc;
-
+        std::vector<u32> vertexSrc{};
+        std::vector<u32> fragmentSrc{};
+        PipelineLayout* layout{ nullptr };
         PipelineState state{};
     };
 
