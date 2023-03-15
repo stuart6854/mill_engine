@@ -26,6 +26,12 @@ namespace mill
     using f32 = float;
     using f64 = double;
 
+    template<typename T>
+    inline auto vec_data_size(const std::vector<T>& vec) -> sizet
+    {
+        return sizeof(T) * vec.size();
+    }
+
     template <typename T>
     using Shared = std::shared_ptr<T>;
 
