@@ -54,7 +54,6 @@ namespace mill::platform::vulkan
             BufferInit vertex_buffer_init{};
             vertex_buffer_init.size = vec_data_size(vertices);
             vertex_buffer_init.usage = vk::BufferUsageFlagBits::eVertexBuffer;
-            vertex_buffer_init.isCPUVisible = true;
             vertex_buffer_init.initial_data = vertices.data();
             m_vertexBuffer = m_device->create_buffer(vertex_buffer_init);
 
@@ -63,7 +62,6 @@ namespace mill::platform::vulkan
             BufferInit index_buffer_init{};
             index_buffer_init.size = vec_data_size(indices);
             index_buffer_init.usage = vk::BufferUsageFlagBits::eIndexBuffer;
-            index_buffer_init.isCPUVisible = true;
             index_buffer_init.initial_data = indices.data();
             m_indexBuffer = m_device->create_buffer(index_buffer_init);
         }

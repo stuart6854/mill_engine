@@ -2,6 +2,7 @@
 
 #include "mill/core/base.hpp"
 #include "common_headers_vk.hpp"
+#include "upload_context_vk.hpp"
 #include "resources_vk.hpp"
 
 namespace mill::platform::vulkan
@@ -90,6 +91,9 @@ namespace mill::platform::vulkan
 
         i32 m_transferQueueFamily{ -1 };
         vk::Queue m_transferQueue{};
+
+        Owned<UploadContextVulkan> m_uploadContext{ nullptr };
+
         // std::array<vk::Fence, g_FrameBufferCount> m_endOfFrameFences{};
         std::array<Receipt, g_FrameBufferCount> m_endOfFrameRecipts{};
         u32 m_frameIndex{};

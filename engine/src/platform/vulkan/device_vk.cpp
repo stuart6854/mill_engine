@@ -5,6 +5,7 @@
 
 #include "common_headers_vk.hpp"
 #include "context_vk.hpp"
+#include "upload_context_vk.hpp"
 #include "helpers_vk.hpp"
 #include "resources_vk.hpp"
 
@@ -239,11 +240,15 @@ namespace mill::platform::vulkan
             m_allocator = vma::createAllocator(alloc_info);
         }
 
+        m_uploadContext = CreateOwned<UploadContextVulkan>(*this, 81920);
+
         return true;
     }
 
     bool DeviceVulkan::shutdown()
     {
+        m_uploadContext = nullptr;
+
         wait_idle();
 
         for (auto& surface : m_surfaces)
@@ -514,13 +519,29 @@ namespace mill::platform::vulkan
         buffer.usage = buffer_init.usage;
         buffer.isCPUVisible = buffer_init.isCPUVisible;
 
+        if (!buffer_init.isCPUVisible)
+        {
+            buffer.usage |= vk::BufferUsageFlagBits::eTransferDst;
+        }
+
         create_buffer(buffer);
 
-        if (buffer.isCPUVisible)
+        if (buffer_init.isCPUVisible)
         {
-            auto* mappedPtr = m_allocator.mapMemory(buffer.allocation);
-            std::memcpy(mappedPtr, buffer_init.initial_data, buffer_init.size);
-            m_allocator.unmapMemory(buffer.allocation);
+            buffer.mappedPtr = m_allocator.mapMemory(buffer.allocation);
+        }
+
+        if (buffer_init.initial_data != nullptr)
+        {
+            if (buffer.isCPUVisible)
+            {
+                std::memcpy(buffer.mappedPtr, buffer_init.initial_data, buffer_init.size);
+            }
+            else
+            {
+                m_uploadContext->add_buffer_upload(buffer, buffer_init.size, buffer_init.initial_data);
+                m_uploadContext->flush();
+            }
         }
 
         return &buffer;
@@ -577,6 +598,12 @@ namespace mill::platform::vulkan
     {
         return m_transferQueue;
     }
+
+    auto DeviceVulkan::get_upload_context() const -> UploadContextVulkan&
+    {
+        return *m_uploadContext;
+    }
+
     auto DeviceVulkan::get_current_back_buffer(void* surface_handle) -> ImageVulkan*
     {
         auto* surface = get_surface_from_handle(surface_handle);
@@ -720,6 +747,11 @@ namespace mill::platform::vulkan
 
     void DeviceVulkan::destroy_buffer(BufferVulkan& buffer)
     {
+        if (buffer.mappedPtr != nullptr)
+        {
+            m_allocator.unmapMemory(buffer.allocation);
+        }
+
         m_allocator.destroyBuffer(buffer.buffer, buffer.allocation);
         buffer.buffer = nullptr;
         buffer.allocation = nullptr;

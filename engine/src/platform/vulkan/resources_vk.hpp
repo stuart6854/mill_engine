@@ -52,6 +52,8 @@ namespace mill::platform::vulkan
 
     struct BufferVulkan
     {
+        bool is_ready{ false };
+
         u64 id{};
         u64 size{};
         vk::BufferUsageFlags usage{};
@@ -59,5 +61,6 @@ namespace mill::platform::vulkan
 
         vk::Buffer buffer{};
         VmaAllocation allocation{};
+        void* mappedPtr{ nullptr };
     };
 }
