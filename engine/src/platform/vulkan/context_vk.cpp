@@ -150,7 +150,10 @@ namespace mill::platform::vulkan
 
     void ContextVulkan::set_viewport(const vk::Viewport& viewport)
     {
-        get_current_cmd().setViewport(0, viewport);
+        vk::Viewport vp = viewport;
+        vp.setY(viewport.height);
+        vp.setHeight(-viewport.height);
+        get_current_cmd().setViewport(0, vp);
     }
 
     void ContextVulkan::set_scissor(const vk::Rect2D& scissor)
