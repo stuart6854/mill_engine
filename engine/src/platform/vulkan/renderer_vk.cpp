@@ -43,9 +43,10 @@ namespace mill::platform::vulkan
                 glm::vec4 color{};
             };
             std::vector<Vertex> vertices{
-                { { 0.5f, 0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-                { { -0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-                { { 0.0f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+                { { 0.0f, 0.0f, -0.5f }, { 1.0f, 0.0f, .0f, 1.0f } },
+                { { -0.5f, 0.0f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+                { { 0.5f, 0.0f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+                { { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
             };
 
             BufferInit vertex_buffer_init{};
@@ -54,7 +55,7 @@ namespace mill::platform::vulkan
             vertex_buffer_init.initial_data = vertices.data();
             m_vertexBuffer = m_device->create_buffer(vertex_buffer_init);
 
-            std::vector<u16> indices{ 0, 1, 2 };
+            std::vector<u16> indices{ 0, 1, 2, 0, 1, 3, 1, 2, 3, 2, 0, 3 };
 
             BufferInit index_buffer_init{};
             index_buffer_init.size = vec_data_size(indices);
@@ -105,7 +106,7 @@ namespace mill::platform::vulkan
 
         const f32 aspect_ratio = static_cast<f32>(m_displaySize.x) / static_cast<f32>(m_displaySize.y);
         m_cameraData.projection = glm::perspective(glm::radians(60.0f), aspect_ratio, 0.1f, 100.0f);
-        m_cameraData.view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 5.0f));
+        m_cameraData.view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
         m_cameraData.view = glm::inverse(m_cameraData.view);
     }
 
@@ -141,7 +142,7 @@ namespace mill::platform::vulkan
         m_graphicsContext->set_index_buffer(*m_indexBuffer, vk::IndexType::eUint16);
         m_graphicsContext->set_vertex_buffer(*m_vertexBuffer);
         m_graphicsContext->set_constants(vk::ShaderStageFlagBits::eVertex, 0, sizeof(CameraData), &m_cameraData);
-        m_graphicsContext->draw_indexed(3, 0, 0);
+        m_graphicsContext->draw_indexed(3 * 4, 0, 0);
         m_graphicsContext->end_render_pass();
 
         m_graphicsContext->add_barrier(back_buffer, vk::ImageLayout::ePresentSrcKHR);
