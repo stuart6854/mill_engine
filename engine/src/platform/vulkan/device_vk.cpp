@@ -173,13 +173,21 @@ namespace mill::platform::vulkan
             dyn_rendering_features.setPNext(&sync2_features);
 
             m_graphicsQueueFamily = find_graphics_queue_family(m_physicalDevice);
+            m_transferQueueFamily = find_transfer_queue_family(m_physicalDevice);
 
             std::vector<vk::DeviceQueueCreateInfo> queue_infos{};
+            const f32 queue_priority = 1.0f;
             if (m_graphicsQueueFamily != -1)
             {
-                const f32 queue_priority = 1.0f;
                 auto& queue_info = queue_infos.emplace_back();
                 queue_info.setQueueFamilyIndex(m_graphicsQueueFamily);
+                queue_info.setQueueCount(1);
+                queue_info.setQueuePriorities(queue_priority);
+            }
+            if (m_transferQueueFamily != -1)
+            {
+                auto& queue_info = queue_infos.emplace_back();
+                queue_info.setQueueFamilyIndex(m_transferQueueFamily);
                 queue_info.setQueueCount(1);
                 queue_info.setQueuePriorities(queue_priority);
             }
@@ -213,6 +221,11 @@ namespace mill::platform::vulkan
             {
                 m_graphicsQueue = m_device.getQueue(m_graphicsQueueFamily, 0);
                 SET_VK_OBJECT_NAME(m_device, VkQueue, m_graphicsQueue, "Main Queue (Graphics)");
+            }
+            if (m_transferQueueFamily != -1)
+            {
+                m_transferQueue = m_device.getQueue(m_transferQueueFamily, 0);
+                SET_VK_OBJECT_NAME(m_device, VkQueue, m_transferQueue, "Main Queue (Transfer)");
             }
         }
 
@@ -550,6 +563,20 @@ namespace mill::platform::vulkan
         return m_graphicsQueueFamily;
     }
 
+    auto DeviceVulkan::get_graphics_queue() const -> vk::Queue
+    {
+        return m_graphicsQueue;
+    }
+
+    auto DeviceVulkan::get_transfer_queue_family() const -> i32
+    {
+        return m_transferQueueFamily;
+    }
+
+    auto DeviceVulkan::get_transfer_queue() const -> vk::Queue
+    {
+        return m_transferQueue;
+    }
     auto DeviceVulkan::get_current_back_buffer(void* surface_handle) -> ImageVulkan*
     {
         auto* surface = get_surface_from_handle(surface_handle);

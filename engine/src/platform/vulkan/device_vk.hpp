@@ -55,6 +55,11 @@ namespace mill::platform::vulkan
         auto get_device() const -> vk::Device;
 
         auto get_graphics_queue_family() const -> i32;
+        auto get_graphics_queue() const -> vk::Queue;
+        auto get_transfer_queue_family() const -> i32;
+        auto get_transfer_queue() const -> vk::Queue;
+
+        auto get_upload_context() const -> UploadContextVulkan&;
 
         auto get_current_back_buffer(void* surface_handle) -> ImageVulkan*;
 
@@ -83,6 +88,8 @@ namespace mill::platform::vulkan
         i32 m_graphicsQueueFamily{ -1 };
         vk::Queue m_graphicsQueue{};
 
+        i32 m_transferQueueFamily{ -1 };
+        vk::Queue m_transferQueue{};
         // std::array<vk::Fence, g_FrameBufferCount> m_endOfFrameFences{};
         std::array<Receipt, g_FrameBufferCount> m_endOfFrameRecipts{};
         u32 m_frameIndex{};
