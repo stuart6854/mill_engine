@@ -63,5 +63,7 @@ namespace mill::platform::vulkan
         u32 m_frameIndex{};
         
         PipelineVulkan* m_boundPipeline{ nullptr };
+        BufferVulkan* m_boundIndexBuffer{ nullptr };
+        BufferVulkan* m_boundVertexBuffer{ nullptr };
     };
 }

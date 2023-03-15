@@ -181,6 +181,7 @@ namespace mill::platform::vulkan
         ASSERT(index_buffer.usage & vk::BufferUsageFlagBits::eIndexBuffer);
 
         get_current_cmd().bindIndexBuffer(index_buffer.buffer, { 0 }, index_type);
+        m_boundIndexBuffer = &index_buffer;
     }
 
     void ContextVulkan::set_vertex_buffer(BufferVulkan& vertex_buffer)
@@ -189,15 +190,29 @@ namespace mill::platform::vulkan
         ASSERT(vertex_buffer.usage & vk::BufferUsageFlagBits::eVertexBuffer);
 
         get_current_cmd().bindVertexBuffers(0, vertex_buffer.buffer, { 0 });
+        m_boundVertexBuffer = &vertex_buffer;
     }
 
     void ContextVulkan::draw(u32 vertex_count, u32 vertex_offset)
     {
+        ASSERT(m_boundIndexBuffer != nullptr);
+        if (!m_boundIndexBuffer->is_ready)
+        {
+            LOG_DEBUG("ContextVulkan - Index buffer is not ready.");
+            return;
+        }
+
         get_current_cmd().draw(vertex_count, 1, vertex_offset, 0);
     }
 
     void ContextVulkan::draw_indexed(u32 index_count, u32 index_offset, u32 vertex_offset)
     {
+        if (!m_boundIndexBuffer->is_ready || !m_boundVertexBuffer->is_ready)
+        {
+            LOG_DEBUG("ContextVulkan - Index/Vertex buffers are not ready.");
+            return;
+        }
+
         get_current_cmd().drawIndexed(index_count, 1, index_offset, vertex_offset, 0);
     }
 
