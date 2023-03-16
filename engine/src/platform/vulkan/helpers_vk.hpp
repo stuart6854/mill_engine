@@ -56,6 +56,8 @@ namespace mill::platform::vulkan
     auto get_image_view_create_info_2d(vk::Image image, vk::Format format, u32 base_mip_lvl = 0, u32 mip_lvl_count = 1)
         -> vk::ImageViewCreateInfo;
 
+    auto get_image_subresource_layers_2d(vk::Format format, u32 mip_lvl) -> vk::ImageSubresourceLayers;
+
     auto get_image_subresource_range_2d(vk::Format format, u32 base_mip_lvl = 0, u32 mip_lvl_count = 1) -> vk::ImageSubresourceRange;
 
 #pragma endregion

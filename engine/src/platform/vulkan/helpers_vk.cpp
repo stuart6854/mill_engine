@@ -239,6 +239,16 @@ namespace mill::platform::vulkan
         return view_info;
     }
 
+    auto get_image_subresource_layers_2d(vk::Format format, u32 mip_lvl) -> vk::ImageSubresourceLayers 
+    {
+        vk::ImageSubresourceLayers layer{};
+        layer.setAspectMask(get_image_aspect_from_format(format));
+        layer.setMipLevel(mip_lvl);
+        layer.setBaseArrayLayer(0);
+        layer.setLayerCount(1);
+        return layer;
+    }
+
     auto get_image_subresource_range_2d(vk::Format format, u32 base_mip_lvl, u32 mip_lvl_count) -> vk::ImageSubresourceRange
     {
         vk::ImageSubresourceRange range{};
@@ -492,5 +502,6 @@ namespace mill::platform::vulkan
 
         return aspect;
     }
+
 
 }
