@@ -28,6 +28,7 @@ namespace mill::platform::vulkan
         vk::Extent3D extent{};
         vk::ImageLayout layout{ vk::ImageLayout::eUndefined };
         vk::ImageSubresourceRange range{};
+        u32 boundIndex{ 0 };
     };
 
     struct PipelineState

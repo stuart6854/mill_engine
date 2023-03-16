@@ -21,6 +21,7 @@ layout(set = 1, binding = 0) uniform SceneData
 layout(push_constant) uniform PushBlock
 {
     mat4 transform;
+    uint textureId;
 } u_pushConsts;
 
 void main()

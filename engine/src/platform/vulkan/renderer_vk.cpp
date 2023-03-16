@@ -16,6 +16,8 @@
 
 namespace mill::platform::vulkan
 {
+    constexpr u32 g_MaxBindlessTextures = 128;
+
     void RendererVulkan::inititialise(const RendererInit& init)
     {
         AppInfo app_info{};
@@ -96,7 +98,11 @@ namespace mill::platform::vulkan
             // Buffer for global data eg. time
             m_globalSetLayout->add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex);
             // Array of images for bindless image rendering
-            m_globalSetLayout->add_binding(1, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment, 256);
+            m_globalSetLayout->add_binding(1,
+                                           vk::DescriptorType::eCombinedImageSampler,
+                                           vk::ShaderStageFlagBits::eFragment,
+                                           g_MaxBindlessTextures,
+                                           vk::DescriptorBindingFlagBits::ePartiallyBound);
             LOG_DEBUG("Global Set Layout hash = {}", m_globalSetLayout->get_hash());
             m_globalSetLayout->build();
 
@@ -119,7 +125,8 @@ namespace mill::platform::vulkan
             material_layout.build();
 
             m_pipelineLayout = CreateOwned<PipelineLayout>(m_device->get_device());
-            m_pipelineLayout->add_push_constant_range(vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstants));
+            m_pipelineLayout->add_push_constant_range(
+                vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants));
             m_pipelineLayout->add_descriptor_set_layout(0, *m_globalSetLayout);
             m_pipelineLayout->add_descriptor_set_layout(1, *m_sceneSetLayout);
             m_pipelineLayout->add_descriptor_set_layout(2, material_layout);
@@ -164,6 +171,7 @@ namespace mill::platform::vulkan
             frame.sceneSet->bind_buffer(0, frame.sceneUBO->buffer, sizeof(SceneData));
             frame.sceneSet->flush_writes();
         }
+        bind_texture_bindless(*m_whiteImage, m_nextTextureBindIndex++);
 
         // Texture
         {
@@ -180,6 +188,7 @@ namespace mill::platform::vulkan
             m_texture = m_device->create_image(image_init, data_size, data);
 
             STBI_FREE(data);
+            bind_texture_bindless(*m_texture, m_nextTextureBindIndex++);
         }
     }
 
@@ -228,6 +237,9 @@ namespace mill::platform::vulkan
         frame.globalUBO->write(0, sizeof(GlobalData), &m_globalData);
         frame.sceneUBO->write(0, sizeof(SceneData), &m_sceneData);
 
+        frame.globalSet->flush_writes();
+        frame.sceneSet->flush_writes();
+
         m_graphicsContext->begin_frame();
 
         m_graphicsContext->set_default_viewport_and_scissor({ 1600, 900 });
@@ -247,7 +259,9 @@ namespace mill::platform::vulkan
         m_graphicsContext->set_vertex_buffer(*m_vertexBuffer);
 
         m_pushConstants.transform = glm::rotate(m_pushConstants.transform, (1.0f / 240.0f) * glm ::radians(5.0f), glm::vec3(0, 1, 0));
-        m_graphicsContext->set_constants(vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstants), &m_pushConstants);
+        m_pushConstants.textureId = 1;
+        m_graphicsContext->set_constants(
+            vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &m_pushConstants);
         m_graphicsContext->draw_indexed(3 * 4, 0, 0);
 
         m_graphicsContext->end_render_pass();
@@ -263,6 +277,15 @@ namespace mill::platform::vulkan
     auto RendererVulkan::get_frame() -> Frame&
     {
         return m_frames[m_frameIndex];
+    }
+
+    void RendererVulkan::bind_texture_bindless(ImageVulkan& image, u32 index)
+    {
+        for (auto& frame : m_frames)
+        {
+            frame.globalSet->bind_image(1, image.view, m_device->get_default_sampler(), index);
+        }
+        image.boundIndex = index;
     }
 
 }

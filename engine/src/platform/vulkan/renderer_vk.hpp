@@ -34,6 +34,8 @@ namespace mill::platform::vulkan
         struct Frame;
         auto get_frame() -> Frame&;
 
+        void bind_texture_bindless(ImageVulkan& image, u32 index);
+
     private:
         Owned<vulkan::DeviceVulkan> m_device{ nullptr };
         void* m_surfaceHandle{ nullptr };
@@ -50,7 +52,10 @@ namespace mill::platform::vulkan
         Owned<vulkan::PipelineVulkan> m_pipeline{ nullptr };
 
         ImageVulkan* m_whiteImage{ nullptr };
+
         Owned<vulkan::DescriptorSetLayout> m_globalSetLayout{ nullptr };
+        u32 m_nextTextureBindIndex{};
+
         Owned<vulkan::DescriptorSetLayout> m_sceneSetLayout{ nullptr };
 
         struct GlobalData
@@ -80,6 +85,7 @@ namespace mill::platform::vulkan
         struct PushConstants
         {
             glm::mat4 transform{ 1.0f };
+            u32 textureId{};
         };
         PushConstants m_pushConstants{};
 
