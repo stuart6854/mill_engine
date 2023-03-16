@@ -562,6 +562,7 @@ namespace mill::platform::vulkan
             }
         }
 
+        ASSERT(buffer.id != 0);
         return &buffer;
     }
 
@@ -583,6 +584,7 @@ namespace mill::platform::vulkan
         if (m_buffers.find(id) == m_buffers.end())
         {
             LOG_ERROR("DeviceVulkan - Could not destroy unknown buffer (id = {})!", buffer->id);
+            ASSERT(false);
             return;
         }
 
