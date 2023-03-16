@@ -164,7 +164,10 @@ namespace mill::platform::vulkan
             }
         }
 
+#define MILL_VULKAN_ENABLE_MAILBOX 0
+#if MILL_VULKAN_ENABLE_MAILBOX
         // Try to return eMailbox, if supported.
+        // Mailbox will render as fast as possible without screen tearing
         for (auto mode : present_modes)
         {
             if (mode == vk::PresentModeKHR::eMailbox)
@@ -172,6 +175,7 @@ namespace mill::platform::vulkan
                 return vk::PresentModeKHR::eMailbox;
             }
         }
+#endif
 
         // FIFO is required to be supported, according to Vulkan specs.
         return vk::PresentModeKHR::eFifo;
