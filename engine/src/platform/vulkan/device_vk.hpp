@@ -67,6 +67,8 @@ namespace mill::platform::vulkan
 
         auto get_current_back_buffer(void* surface_handle) -> ImageVulkan*;
 
+        auto get_default_sampler() const -> vk::Sampler;
+
     private:
         bool setup_per_frame_resource();
 
@@ -120,6 +122,8 @@ namespace mill::platform::vulkan
             vk::Semaphore imageReadySemaphore{};
         };
         std::vector<Owned<Surface>> m_surfaces{};
+
+        vk::Sampler m_defaultSampler{};
 
         std::unordered_map<u64, BufferVulkan> m_buffers{};
         u64 m_nextBufferId{ 1 };

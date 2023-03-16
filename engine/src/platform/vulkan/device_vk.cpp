@@ -257,6 +257,16 @@ namespace mill::platform::vulkan
 
         m_uploadContext = CreateOwned<UploadContextVulkan>(*this);
 
+        {
+            vk::SamplerCreateInfo sampler_info{};
+            sampler_info.setAddressModeU(vk::SamplerAddressMode::eRepeat);
+            sampler_info.setAddressModeV(vk::SamplerAddressMode::eRepeat);
+            sampler_info.setAddressModeW(vk::SamplerAddressMode::eRepeat);
+            sampler_info.setMinFilter(vk::Filter::eLinear);
+            sampler_info.setMagFilter(vk::Filter::eLinear);
+            m_defaultSampler = m_device.createSampler(sampler_info);
+        }
+
         return true;
     }
 
@@ -265,6 +275,8 @@ namespace mill::platform::vulkan
         m_uploadContext = nullptr;
 
         wait_idle();
+
+        m_device.destroy(m_defaultSampler);
 
         for (auto& surface : m_surfaces)
         {
@@ -685,6 +697,11 @@ namespace mill::platform::vulkan
     auto DeviceVulkan::get_upload_context() const -> UploadContextVulkan&
     {
         return *m_uploadContext;
+    }
+
+    auto DeviceVulkan::get_default_sampler() const -> vk::Sampler
+    {
+        return m_defaultSampler;
     }
 
     auto DeviceVulkan::get_current_back_buffer(void* surface_handle) -> ImageVulkan*
