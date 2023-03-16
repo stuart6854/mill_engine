@@ -13,6 +13,8 @@ namespace mill::platform::vulkan
     struct PipelineVulkan;
     struct BufferVulkan;
     class PipelineLayout;
+    class DescriptorSetLayout;
+    class DescriptorSet;
 
     class RendererVulkan : public RendererInterface
     {
@@ -28,6 +30,10 @@ namespace mill::platform::vulkan
         void render(const SceneInfo& scene_info) override;
 
     private:
+        struct Frame;
+        auto get_frame() -> Frame&;
+
+    private:
         Owned<vulkan::DeviceVulkan> m_device{ nullptr };
         void* m_surfaceHandle{ nullptr };
         glm::uvec2 m_displaySize{};
@@ -39,12 +45,38 @@ namespace mill::platform::vulkan
         Owned<vulkan::PipelineLayout> m_pipelineLayout{ nullptr };
         Owned<vulkan::PipelineVulkan> m_pipeline{ nullptr };
 
-        struct CameraData
+        Owned<vulkan::DescriptorSetLayout> m_globalSetLayout{ nullptr };
+        Owned<vulkan::DescriptorSetLayout> m_sceneSetLayout{ nullptr };
+
+        struct GlobalData
         {
-            glm::mat4 projection{ 1.0f };
-            glm::mat4 view{ 1.0f };
+            f32 time{};
         };
-        CameraData m_cameraData{};
+        GlobalData m_globalData{};
+
+        struct SceneData
+        {
+            glm::mat4 camera_proj{ 1.0f };
+            glm::mat4 camera_view{ 1.0f };
+        };
+        SceneData m_sceneData{};
+
+        struct Frame
+        {
+            vulkan::BufferVulkan* globalUBO{ nullptr };
+            Owned<vulkan::DescriptorSet> globalSet{ nullptr };
+
+            vulkan::BufferVulkan* sceneUBO{ nullptr };
+            Owned<vulkan::DescriptorSet> sceneSet{ nullptr };
+        };
+        std::array<Frame, 2> m_frames{};
+        u32 m_frameIndex{};
+
+        struct PushConstants
+        {
+            glm::mat4 transform{ 1.0f };
+        };
+        PushConstants m_pushConstants{};
     };
 
 }

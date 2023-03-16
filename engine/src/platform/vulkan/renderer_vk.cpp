@@ -66,21 +66,25 @@ namespace mill::platform::vulkan
 
         {
             // Global set
-            DescriptorSetLayout global_layout(m_device->get_device());
+            m_globalSetLayout = CreateOwned<vulkan::DescriptorSetLayout>(m_device->get_device());
             // Buffer for global data eg. time
-            global_layout.add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex);
+            m_globalSetLayout->add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex);
             // Array of images for bindless image rendering
-            global_layout.add_binding(1, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment, 256);
-            LOG_DEBUG("Global Layout hash = {}", global_layout.get_hash());
-            global_layout.build();
+            m_globalSetLayout->add_binding(1, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment, 256);
+            LOG_DEBUG("Global Set Layout hash = {}", m_globalSetLayout->get_hash());
+            m_globalSetLayout->build();
 
             // Scene Set
-            DescriptorSetLayout scene_layout(m_device->get_device());
-            // Buffer for scene data eg. lighting
-            scene_layout.add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
-            LOG_DEBUG("Scene Layout hash = {}", scene_layout.get_hash());
-            scene_layout.build();
+            m_sceneSetLayout = CreateOwned<DescriptorSetLayout>(m_device->get_device());
+            // Buffer for scene vertex data eg. camera matrices
+            m_sceneSetLayout->add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex);
+            // Buffer for scene fragment data eg. lighting
+            m_sceneSetLayout->add_binding(1, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
+            LOG_DEBUG("Scene Set Layout hash = {}", m_sceneSetLayout->get_hash());
+            m_sceneSetLayout->build();
+        }
 
+        {
             // Material Set
             DescriptorSetLayout material_layout(m_device->get_device());
             // Buffer for material data eg. default material data + material instance data
@@ -89,9 +93,9 @@ namespace mill::platform::vulkan
             material_layout.build();
 
             m_pipelineLayout = CreateOwned<PipelineLayout>(m_device->get_device());
-            m_pipelineLayout->add_push_constant_range(vk::ShaderStageFlagBits::eVertex, 0, sizeof(CameraData));
-            m_pipelineLayout->add_descriptor_set_layout(0, global_layout);
-            m_pipelineLayout->add_descriptor_set_layout(1, scene_layout);
+            m_pipelineLayout->add_push_constant_range(vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstants));
+            m_pipelineLayout->add_descriptor_set_layout(0, *m_globalSetLayout);
+            m_pipelineLayout->add_descriptor_set_layout(1, *m_sceneSetLayout);
             m_pipelineLayout->add_descriptor_set_layout(2, material_layout);
             LOG_DEBUG("Pipeline hash = {}", m_pipelineLayout->get_hash());
             m_pipelineLayout->build();
@@ -105,14 +109,51 @@ namespace mill::platform::vulkan
         }
 
         const f32 aspect_ratio = static_cast<f32>(m_displaySize.x) / static_cast<f32>(m_displaySize.y);
-        m_cameraData.projection = glm::perspective(glm::radians(60.0f), aspect_ratio, 0.1f, 100.0f);
-        m_cameraData.view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-        m_cameraData.view = glm::inverse(m_cameraData.view);
+        m_sceneData.camera_proj = glm::perspective(glm::radians(60.0f), aspect_ratio, 0.1f, 100.0f);
+        m_sceneData.camera_view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+        m_sceneData.camera_view = glm::inverse(m_sceneData.camera_view);
+
+        // Setup frames
+        for (auto& frame : m_frames)
+        {
+            BufferInit global_ubo_info{};
+            global_ubo_info.size = sizeof(GlobalData);
+            global_ubo_info.usage = vk::BufferUsageFlagBits::eUniformBuffer;
+            global_ubo_info.isCPUVisible = true;
+            global_ubo_info.initial_data = &m_globalData;
+            frame.globalUBO = m_device->create_buffer(global_ubo_info);
+
+            frame.globalSet = m_device->create_descriptor_set(*m_globalSetLayout);
+            frame.globalSet->bind_buffer(0, frame.globalUBO->buffer, sizeof(GlobalData));
+            frame.globalSet->flush_writes();
+
+            BufferInit scene_ubo_info{};
+            scene_ubo_info.size = sizeof(SceneData);
+            scene_ubo_info.usage = vk::BufferUsageFlagBits::eUniformBuffer;
+            scene_ubo_info.isCPUVisible = true;
+            scene_ubo_info.initial_data = &m_sceneData;
+            frame.sceneUBO = m_device->create_buffer(scene_ubo_info);
+
+            frame.sceneSet = m_device->create_descriptor_set(*m_sceneSetLayout);
+            frame.sceneSet->bind_buffer(0, frame.sceneUBO->buffer, sizeof(SceneData));
+            frame.sceneSet->flush_writes();
+        }
     }
 
     void RendererVulkan::shutdown()
     {
         m_device->wait_idle();
+
+        for (auto& frame : m_frames)
+        {
+            m_device->destroy_buffer(frame.globalUBO);
+            frame.globalSet = nullptr;
+            m_device->destroy_buffer(frame.sceneUBO);
+            frame.sceneSet = nullptr;
+        }
+
+        m_globalSetLayout = nullptr;
+        m_sceneSetLayout = nullptr;
 
         m_device->destroy_buffer(m_indexBuffer);
         m_device->destroy_buffer(m_vertexBuffer);
@@ -129,20 +170,30 @@ namespace mill::platform::vulkan
             return;
         }
 
+        m_frameIndex = (m_frameIndex + 1) % g_FrameBufferCount;
+        const auto& frame = m_frames[m_frameIndex];
+
         m_device->begin_frame();
         m_graphicsContext->begin_frame();
+
+        m_graphicsContext->set_default_viewport_and_scissor({ 1600, 900 });
 
         auto& back_buffer = *m_device->get_current_back_buffer(m_surfaceHandle);
         m_graphicsContext->add_barrier(back_buffer, vk::ImageLayout::eAttachmentOptimal);
 
         glm::vec4 clear_color = { 0.36f, 0.54f, 0.86f, 1.0f };
-        m_graphicsContext->set_default_viewport_and_scissor({ 1600, 900 });
         m_graphicsContext->begin_render_pass(back_buffer, &clear_color);
+
         m_graphicsContext->set_pipeline(*m_pipeline);
+        m_graphicsContext->set_descriptor_set(0, *frame.globalSet);
+        m_graphicsContext->set_descriptor_set(1, *frame.sceneSet);
+
         m_graphicsContext->set_index_buffer(*m_indexBuffer, vk::IndexType::eUint16);
         m_graphicsContext->set_vertex_buffer(*m_vertexBuffer);
-        m_graphicsContext->set_constants(vk::ShaderStageFlagBits::eVertex, 0, sizeof(CameraData), &m_cameraData);
+
+        m_graphicsContext->set_constants(vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstants), &m_pushConstants);
         m_graphicsContext->draw_indexed(3 * 4, 0, 0);
+
         m_graphicsContext->end_render_pass();
 
         m_graphicsContext->add_barrier(back_buffer, vk::ImageLayout::ePresentSrcKHR);
@@ -151,6 +202,11 @@ namespace mill::platform::vulkan
         auto receipt = m_device->submit_context(*m_graphicsContext, nullptr);
         m_device->end_frame();
         m_device->present(&receipt);
+    }
+
+    auto RendererVulkan::get_frame() -> Frame&
+    {
+        return m_frames[m_frameIndex];
     }
 
 }
