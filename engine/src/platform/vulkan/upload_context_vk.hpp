@@ -16,7 +16,7 @@ namespace mill::platform::vulkan
     class UploadContextVulkan
     {
     public:
-        UploadContextVulkan(DeviceVulkan& device, u64 heap_size);
+        UploadContextVulkan(DeviceVulkan& device);
         ~UploadContextVulkan();
 
         void add_buffer_upload(BufferVulkan& dst_buffer, u64 size_bytes, const void* data);

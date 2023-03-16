@@ -5,7 +5,9 @@
 
 namespace mill::platform::vulkan
 {
-    UploadContextVulkan::UploadContextVulkan(DeviceVulkan& device, u64 heap_size) : m_device(device), m_heapSize(heap_size)
+    constexpr u64 g_DefaultHeapSize = 10 << 20;  // 1MB
+
+    UploadContextVulkan::UploadContextVulkan(DeviceVulkan& device) : m_device(device), m_heapSize(g_DefaultHeapSize)
     {
         m_transferQueue = m_device.get_transfer_queue();
 
