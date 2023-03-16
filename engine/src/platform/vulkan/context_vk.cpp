@@ -114,25 +114,43 @@ namespace mill::platform::vulkan
         image_resource.layout = new_layout;
     }
 
-    void ContextVulkan::begin_render_pass(ImageVulkan& image_resource, const glm::vec4* clear_color)
+    void ContextVulkan::begin_render_pass(ImageVulkan& target_color,
+                                          const glm::vec4* clear_color,
+                                          ImageVulkan* target_depth,
+                                          f32 clear_depth)
     {
-        vk::RenderingAttachmentInfo attachment_info{};
-        attachment_info.setImageLayout(image_resource.layout);
-        attachment_info.setImageView(image_resource.view);
-        attachment_info.setLoadOp(clear_color == nullptr ? vk::AttachmentLoadOp::eDontCare : vk::AttachmentLoadOp::eClear);
-        attachment_info.setStoreOp(vk::AttachmentStoreOp::eStore);
-
-        std::array<f32, 4> clear_value{};
+        vk::RenderingAttachmentInfo color_attachment_info{};
+        color_attachment_info.setImageLayout(target_color.layout);
+        color_attachment_info.setImageView(target_color.view);
+        color_attachment_info.setLoadOp(clear_color == nullptr ? vk::AttachmentLoadOp::eDontCare : vk::AttachmentLoadOp::eClear);
+        color_attachment_info.setStoreOp(vk::AttachmentStoreOp::eStore);
+        std::array<f32, 4> clear_color_value{};
         if (clear_color != nullptr)
         {
-            clear_value = { clear_color->x, clear_color->y, clear_color->z, clear_color->w };
-            attachment_info.setClearValue(vk::ClearColorValue(clear_value));
+            clear_color_value = { clear_color->x, clear_color->y, clear_color->z, clear_color->w };
+            color_attachment_info.setClearValue(vk::ClearColorValue(clear_color_value));
+        }
+
+        vk::RenderingAttachmentInfo depth_attachment_info{};
+        vk::ClearDepthStencilValue clear_depth_value{};
+        if (target_depth != nullptr)
+        {
+            clear_depth_value.setDepth(clear_depth);
+            depth_attachment_info.setImageLayout(target_depth->layout);
+            depth_attachment_info.setImageView(target_depth->view);
+            depth_attachment_info.setLoadOp(vk::AttachmentLoadOp::eClear);
+            depth_attachment_info.setStoreOp(vk::AttachmentStoreOp::eDontCare);
+            depth_attachment_info.setClearValue(clear_depth_value);
         }
 
         vk::RenderingInfo rendering_info{};
-        rendering_info.setColorAttachments(attachment_info);
+        rendering_info.setColorAttachments(color_attachment_info);
         rendering_info.setLayerCount(1);
-        rendering_info.setRenderArea(vk::Rect2D({ 0, 0 }, vk::Extent2D(image_resource.extent.width, image_resource.extent.height)));
+        rendering_info.setRenderArea(vk::Rect2D({ 0, 0 }, vk::Extent2D(target_color.extent.width, target_color.extent.height)));
+        if (target_depth != nullptr)
+        {
+            rendering_info.setPDepthAttachment(&depth_attachment_info);
+        }
 
         get_current_cmd().beginRendering(rendering_info);
     }

@@ -31,7 +31,10 @@ namespace mill::platform::vulkan
 
         /* Graphics Operations */
 
-        void begin_render_pass(ImageVulkan& target_image, const glm::vec4* clear_color);
+        void begin_render_pass(ImageVulkan& target_color,
+                               const glm::vec4* clear_color,
+                               ImageVulkan* target_depth = nullptr,
+                               f32 clear_depth = 1.0f);
         void end_render_pass();
 
         void set_pipeline(PipelineVulkan& pipeline);

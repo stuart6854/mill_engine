@@ -41,7 +41,7 @@ namespace mill::platform::vulkan
             ImageInit image_init{};
             image_init.width = 1600;
             image_init.height = 900;
-            image_init.format = vk::Format::eD24UnormS8Uint;
+            image_init.format = vk::Format::eD32Sfloat;
             image_init.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
             m_depthImage = m_device->create_image(image_init);
         }
@@ -198,9 +198,10 @@ namespace mill::platform::vulkan
 
         auto& back_buffer = *m_device->get_current_back_buffer(m_surfaceHandle);
         m_graphicsContext->add_barrier(back_buffer, vk::ImageLayout::eAttachmentOptimal);
+        m_graphicsContext->add_barrier(*m_depthImage, vk::ImageLayout::eAttachmentOptimal);
 
         glm::vec4 clear_color = { 0.36f, 0.54f, 0.86f, 1.0f };
-        m_graphicsContext->begin_render_pass(back_buffer, &clear_color);
+        m_graphicsContext->begin_render_pass(back_buffer, &clear_color, m_depthImage);
 
         m_graphicsContext->set_pipeline(*m_pipeline);
         m_graphicsContext->set_descriptor_set(0, *frame.globalSet);

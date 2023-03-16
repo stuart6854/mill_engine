@@ -481,6 +481,10 @@ namespace mill::platform::vulkan
         multisample_state.setRasterizationSamples(vk::SampleCountFlagBits::e1);
 
         vk::PipelineDepthStencilStateCreateInfo depth_stencil_state{};
+        depth_stencil_state.setDepthTestEnable(true);
+        depth_stencil_state.setDepthWriteEnable(true);
+        depth_stencil_state.setDepthCompareOp(vk::CompareOp::eLess);
+        depth_stencil_state.setStencilTestEnable(false);
 
         std::vector<vk::PipelineColorBlendAttachmentState> color_blends{ 1 };
         color_blends[0].setBlendEnable(false);
@@ -506,6 +510,13 @@ namespace mill::platform::vulkan
         pipeline_info.setPColorBlendState(&color_blend_state);
         pipeline_info.setPDynamicState(&dynamic_state);
         pipeline_info.setLayout(pipeline_init.layout->get_layout());
+
+        std::vector<vk::Format> color_formats{ vk::Format::eB8G8R8A8Srgb };
+        vk::Format depth_format = vk::Format::eD32Sfloat;
+        vk::PipelineRenderingCreateInfo rendering_info{};
+        rendering_info.setColorAttachmentFormats(color_formats);
+        rendering_info.setDepthAttachmentFormat(depth_format);
+        pipeline_info.setPNext(&rendering_info);
 
         auto pipeline = m_device.createGraphicsPipeline({}, pipeline_info).value;
 
