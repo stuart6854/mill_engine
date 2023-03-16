@@ -63,5 +63,15 @@ namespace mill::platform::vulkan
         vk::Buffer buffer{};
         VmaAllocation allocation{};
         void* mappedPtr{ nullptr };
+
+        void write(u64 offset_bytes, u64 size_bytes, const void* data)
+        {
+            ASSERT(isCPUVisible && mappedPtr != nullptr);
+            ASSERT(size_bytes <= size);
+            ASSERT(offset_bytes + size_bytes<= size);
+
+            u8* offset_ptr = static_cast<u8*>(mappedPtr) + offset_bytes;
+            std::memcpy(offset_ptr, data, size_bytes);
+        }
     };
 }

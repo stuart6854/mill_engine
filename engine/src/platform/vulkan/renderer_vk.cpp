@@ -174,6 +174,11 @@ namespace mill::platform::vulkan
         const auto& frame = m_frames[m_frameIndex];
 
         m_device->begin_frame();
+
+        m_globalData.time += 1.0f / 240.0f;
+        frame.globalUBO->write(0, sizeof(GlobalData), &m_globalData);
+        frame.sceneUBO->write(0, sizeof(SceneData), &m_sceneData);
+
         m_graphicsContext->begin_frame();
 
         m_graphicsContext->set_default_viewport_and_scissor({ 1600, 900 });
