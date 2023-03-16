@@ -49,6 +49,18 @@ namespace mill::platform::vulkan
             m_depthImage = m_device->create_image(image_init);
         }
 
+        // White Image
+        {
+            u32 pixel = 0xFFFFFFFF;
+
+            ImageInit image_init{};
+            image_init.width = 1;
+            image_init.height = 1;
+            image_init.format = vk::Format::eR8G8B8A8Srgb;
+            image_init.usage = vk::ImageUsageFlagBits::eSampled;
+            m_whiteImage = m_device->create_image(image_init, sizeof(u32), &pixel);
+        }
+
         {
             struct Vertex
             {
@@ -192,6 +204,7 @@ namespace mill::platform::vulkan
         m_device->destroy_buffer(m_vertexBuffer);
         m_device->destroy_pipeline(std::move(m_pipeline));
 
+        m_device->destroy_image(m_whiteImage);
         m_device->destroy_image(m_depthImage);
 
         m_device->destroy_context(std::move(m_graphicsContext));

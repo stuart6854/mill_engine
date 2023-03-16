@@ -49,6 +49,7 @@ namespace mill::platform::vulkan
         Owned<vulkan::PipelineLayout> m_pipelineLayout{ nullptr };
         Owned<vulkan::PipelineVulkan> m_pipeline{ nullptr };
 
+        ImageVulkan* m_whiteImage{ nullptr };
         Owned<vulkan::DescriptorSetLayout> m_globalSetLayout{ nullptr };
         Owned<vulkan::DescriptorSetLayout> m_sceneSetLayout{ nullptr };
 
