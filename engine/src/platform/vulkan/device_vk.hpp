@@ -47,10 +47,12 @@ namespace mill::platform::vulkan
         auto create_pipeline(const PipelineInit& pipeline_init) -> Owned<PipelineVulkan>;
         auto create_descriptor_set(DescriptorSetLayout& layout) -> Owned<DescriptorSet>;
         auto create_buffer(const BufferInit& buffer_init) -> BufferVulkan*;
+        auto create_image(const ImageInit& image_init, const void* initial_data = nullptr) -> ImageVulkan*;
 
         void destroy_context(Owned<ContextVulkan> context);
         void destroy_pipeline(Owned<PipelineVulkan> pipeline);
         void destroy_buffer(BufferVulkan* buffer);
+        void destroy_image(ImageVulkan* image);
 
         /* Getters */
 
@@ -78,6 +80,9 @@ namespace mill::platform::vulkan
 
         void create_buffer(BufferVulkan& buffer);
         void destroy_buffer(BufferVulkan& buffer);
+
+        void internal_create_image(ImageVulkan& image);
+        void internal_destroy_image(ImageVulkan& image);
 
     private:
         vk::DynamicLoader m_loader{};
@@ -118,5 +123,8 @@ namespace mill::platform::vulkan
 
         std::unordered_map<u64, BufferVulkan> m_buffers{};
         u64 m_nextBufferId{ 1 };
+
+        std::unordered_map<u64, ImageVulkan> m_images{};
+        u64 m_nextImageId{ 1 };
     };
 }

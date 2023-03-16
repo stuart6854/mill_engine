@@ -566,6 +566,30 @@ namespace mill::platform::vulkan
         return &buffer;
     }
 
+    auto DeviceVulkan::create_image(const ImageInit& image_init, const void* initial_data) -> ImageVulkan*
+    {
+        const auto id = m_nextImageId++;
+        auto [it, result] = m_images.try_emplace(id, ImageVulkan());
+        ASSERT(result);
+
+        auto& image = (*it).second;
+        image.id = id;
+        image.init = image_init;
+        image.extent = vk::Extent3D(image_init.width, image_init.height, image_init.depth);
+        image.range = get_image_subresource_range_2d();
+
+        internal_create_image(image);
+
+        if (initial_data != nullptr)
+        {
+            // #TODO: m_uploadContext->add_image_upload();
+            m_uploadContext->flush();
+        }
+
+        ASSERT(image.id != 0);
+        return &image;
+    }
+
     void DeviceVulkan::destroy_context(Owned<ContextVulkan> context)
     {
         context = nullptr;
@@ -592,6 +616,22 @@ namespace mill::platform::vulkan
         destroy_buffer(*buffer);
 
         m_buffers.erase(id);
+    }
+
+    void DeviceVulkan::destroy_image(ImageVulkan* image)
+    {
+        const auto id = image->id;
+        if (m_images.find(id) == m_images.end())
+        {
+            LOG_ERROR("DeviceVulkan - Could not destroy unknown image (id = {})!", image->id);
+            ASSERT(false);
+            return;
+        }
+
+        // #TODO: Add to frame destruction queue
+        internal_destroy_image(*image);
+
+        m_images.erase(id);
     }
 
     auto DeviceVulkan::get_device() const -> vk::Device
@@ -714,7 +754,7 @@ namespace mill::platform::vulkan
             image_resource->view = m_device.createImageView(view_info);
             SET_VK_OBJECT_NAME_INDEXED(m_device, VkImageView, image_resource->view, "Swapchain Image View", i);
 
-            image_resource->extent = extent;
+            image_resource->extent = vk::Extent3D(extent, 0);
             image_resource->layout = vk::ImageLayout::eUndefined;
             image_resource->range = get_image_subresource_range_2d();
 
@@ -777,6 +817,43 @@ namespace mill::platform::vulkan
         buffer.allocation = nullptr;
 
         LOG_DEBUG("DeviceVulkan - Buffer deallocated. Size = {}", buffer.size);
+    }
+
+    void DeviceVulkan::internal_create_image(ImageVulkan& image)
+    {
+        vk::ImageCreateInfo image_info{};
+        image_info.setImageType(vk::ImageType::e2D);
+        image_info.setExtent(image.extent);
+        image_info.setFormat(image.init.format);
+        image_info.setArrayLayers(1);
+        image_info.setMipLevels(1);
+        image_info.setUsage(image.init.usage);
+
+        vma::AllocationCreateInfo alloc_info{};
+        alloc_info.setUsage(vma::MemoryUsage::eAuto);
+
+        auto image_allocation = m_allocator.createImage(image_info, alloc_info);
+        if (!image_allocation.first || !image_allocation.second)
+        {
+            LOG_ERROR("DeviceVulkan - Failed to create/allocate image!");
+            return;
+        }
+
+        image.image = image_allocation.first;
+        image.allocation = image_allocation.second;
+
+        auto view_info = get_image_view_create_info_2d(image.image, image.init.format);
+        image.view = m_device.createImageView(view_info);
+
+        LOG_DEBUG("DeviceVulkan - Image allocated.");
+    }
+
+    void DeviceVulkan::internal_destroy_image(ImageVulkan& image)
+    {
+        m_device.destroy(image.view);
+        m_allocator.destroyImage(image.image, image.allocation);
+
+        LOG_DEBUG("DeviceVulkan - Image deallocated.");
     }
 
 }

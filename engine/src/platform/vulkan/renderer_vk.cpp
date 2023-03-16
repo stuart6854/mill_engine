@@ -36,6 +36,16 @@ namespace mill::platform::vulkan
 
         m_graphicsContext = m_device->create_context();
 
+        // Depth Image
+        {
+            ImageInit image_init{};
+            image_init.width = 1600;
+            image_init.height = 900;
+            image_init.format = vk::Format::eD24UnormS8Uint;
+            image_init.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
+            m_depthImage = m_device->create_image(image_init);
+        }
+
         {
             struct Vertex
             {
@@ -158,6 +168,9 @@ namespace mill::platform::vulkan
         m_device->destroy_buffer(m_indexBuffer);
         m_device->destroy_buffer(m_vertexBuffer);
         m_device->destroy_pipeline(std::move(m_pipeline));
+
+        m_device->destroy_image(m_depthImage);
+
         m_device->destroy_context(std::move(m_graphicsContext));
         m_device->shutdown();
         m_device = nullptr;

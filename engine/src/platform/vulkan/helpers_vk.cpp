@@ -227,11 +227,21 @@ namespace mill::platform::vulkan
 
     auto get_image_view_create_info_2d(vk::Image image, vk::Format format, u32 base_mip_lvl, u32 mip_lvl_count) -> vk::ImageViewCreateInfo
     {
+        vk::ImageAspectFlags aspect{};
+        if (is_depth_format(format))
+        {
+            aspect = vk::ImageAspectFlagBits::eDepth;
+        }
+        else
+        {
+            aspect = vk::ImageAspectFlagBits::eColor;
+        }
+
         vk::ImageViewCreateInfo view_info{};
         view_info.setImage(image);
         view_info.setFormat(format);
         view_info.setViewType(vk::ImageViewType::e2D);
-        view_info.subresourceRange.setAspectMask(vk::ImageAspectFlagBits::eColor);
+        view_info.subresourceRange.setAspectMask(aspect);
         view_info.subresourceRange.setBaseMipLevel(base_mip_lvl);
         view_info.subresourceRange.setLevelCount(mip_lvl_count);
         view_info.subresourceRange.setBaseArrayLayer(0);
@@ -448,6 +458,16 @@ namespace mill::platform::vulkan
     auto DescriptorSet::get_set() const -> vk::DescriptorSet
     {
         return m_set;
+    }
+
+    bool is_depth_format(vk::Format format)
+    {
+        constexpr vk::Format depth_formats[]{ vk::Format::eD32Sfloat,
+                                              vk::Format::eD32SfloatS8Uint,
+                                              vk::Format::eD24UnormS8Uint,
+                                              vk::Format::eD16Unorm,
+                                              vk::Format::eD16UnormS8Uint };
+        return std::ranges::find(depth_formats, format) != std::end(depth_formats);
     }
 
 }

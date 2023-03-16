@@ -146,4 +146,10 @@ namespace mill::platform::vulkan
 
 #pragma endregion
 
+#pragma region Miscellaneous
+
+    bool is_depth_format(vk::Format format);
+
+#pragma endregion
+
 }

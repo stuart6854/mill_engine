@@ -11,6 +11,7 @@ namespace mill::platform::vulkan
     class DeviceVulkan;
     class ContextVulkan;
     struct PipelineVulkan;
+    struct ImageVulkan;
     struct BufferVulkan;
     class PipelineLayout;
     class DescriptorSetLayout;
@@ -39,6 +40,9 @@ namespace mill::platform::vulkan
         glm::uvec2 m_displaySize{};
 
         Owned<vulkan::ContextVulkan> m_graphicsContext{ nullptr };
+
+        vulkan::ImageVulkan* m_depthImage{ nullptr };
+
         vulkan::BufferVulkan* m_vertexBuffer{};
         vulkan::BufferVulkan* m_indexBuffer{};
 

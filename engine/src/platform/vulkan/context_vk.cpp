@@ -132,7 +132,7 @@ namespace mill::platform::vulkan
         vk::RenderingInfo rendering_info{};
         rendering_info.setColorAttachments(attachment_info);
         rendering_info.setLayerCount(1);
-        rendering_info.setRenderArea(vk::Rect2D({ 0, 0 }, image_resource.extent));
+        rendering_info.setRenderArea(vk::Rect2D({ 0, 0 }, vk::Extent2D(image_resource.extent.width, image_resource.extent.height)));
 
         get_current_cmd().beginRendering(rendering_info);
     }

@@ -6,12 +6,27 @@
 
 namespace mill::platform::vulkan
 {
+    struct ImageInit
+    {
+        u32 width{};
+        u32 height{};
+        u32 depth{ 1 };
+        vk::ImageUsageFlags usage{};
+        vk::Format format{};
+    };
+
     struct ImageVulkan
     {
+        bool is_ready{ false };
+
+        u64 id{};
+        ImageInit init{};
+
         vk::Image image{};
+        vma::Allocation allocation{};
         vk::ImageView view{};
-        vk::Extent2D extent{};
-        vk::ImageLayout layout{};
+        vk::Extent3D extent{};
+        vk::ImageLayout layout{ vk::ImageLayout::eUndefined };
         vk::ImageSubresourceRange range{};
     };
 
