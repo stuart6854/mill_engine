@@ -2,6 +2,8 @@
 
 #include "mill/core/base.hpp"
 
+#include <glm/ext/matrix_float4x4.hpp>
+
 namespace mill
 {
     struct RendererInit
@@ -23,6 +25,9 @@ namespace mill
     struct SceneInfo
     {
         // Camera - View, Proj
+        glm::mat4 cameraProj{ 1.0f };
+        glm::mat4 cameraView{ 1.0f };
+
         // MeshInstance[]
         // Lighting Info - Lights, Skybox, etc.
         // UI

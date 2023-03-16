@@ -9,7 +9,6 @@
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_float4.hpp>
 #include <glm/ext/matrix_transform.hpp>
-#include <glm/ext/matrix_clip_space.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -141,11 +140,6 @@ namespace mill::platform::vulkan
             m_pipeline = m_device->create_pipeline(pipeline_info);
         }
 
-        const f32 aspect_ratio = static_cast<f32>(m_displaySize.x) / static_cast<f32>(m_displaySize.y);
-        m_sceneData.camera_proj = glm::perspective(glm::radians(60.0f), aspect_ratio, 0.1f, 100.0f);
-        m_sceneData.camera_view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-        m_sceneData.camera_view = glm::inverse(m_sceneData.camera_view);
-
         // Setup frames
         for (auto& frame : m_frames)
         {
@@ -221,7 +215,7 @@ namespace mill::platform::vulkan
         m_device = nullptr;
     }
 
-    void RendererVulkan::render(const SceneInfo& /*scene_info*/)
+    void RendererVulkan::render(const SceneInfo& scene_info)
     {
         if (m_device == nullptr)
         {
@@ -235,6 +229,9 @@ namespace mill::platform::vulkan
 
         m_globalData.time += 1.0f / 240.0f;
         frame.globalUBO->write(0, sizeof(GlobalData), &m_globalData);
+
+        m_sceneData.camera_proj = scene_info.cameraProj;
+        m_sceneData.camera_view = scene_info.cameraView;
         frame.sceneUBO->write(0, sizeof(SceneData), &m_sceneData);
 
         frame.globalSet->flush_writes();

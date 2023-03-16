@@ -5,6 +5,10 @@
 #include "platform/graphics.hpp"
 #include "mill/input/input.hpp"
 
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+
 #include <toml.hpp>
 
 #include <chrono>
@@ -47,6 +51,9 @@ namespace mill
         Owned<WindowInterface> window = nullptr;
         Owned<RendererInterface> renderer = nullptr;
         Owned<InputInterface> input = nullptr;
+
+        glm::vec3 cameraPosition{ 0, 0, -5.0f };
+        glm::vec3 cameraDirection{ 0, 0, 1 };
     };
 
     auto Engine::get() -> Engine*
@@ -90,7 +97,62 @@ namespace mill
                 LOG_DEBUG("Delta Time - {}ms / {:.3f}s", ms, m_pimpl->deltaTime);
             }
 
+            // Camera Controls
+            if (m_pimpl->input->on_mouse_btn_held(MouseButtonCodes::MouseRight))
+            {
+                static const glm::vec3 world_up_dir = { 0, 1, 0 };
+                static const f32 s_CameraSpeed = 5.0f;
+
+                glm::vec3 movement{};
+                if (m_pimpl->input->on_key_held(KeyCodes::W))
+                {
+                    movement += m_pimpl->cameraDirection;
+                }
+                if (m_pimpl->input->on_key_held(KeyCodes::S))
+                {
+                    movement += -m_pimpl->cameraDirection;
+                }
+                const glm::vec3 rel_right_dir = -glm::cross(m_pimpl->cameraDirection, world_up_dir);
+                if (m_pimpl->input->on_key_held(KeyCodes::D))
+                {
+                    movement += rel_right_dir;
+                }
+                if (m_pimpl->input->on_key_held(KeyCodes::A))
+                {
+                    movement += -rel_right_dir;
+                }
+                const auto rel_up_dir = -glm::cross(rel_right_dir, m_pimpl->cameraDirection);
+                if (m_pimpl->input->on_key_held(KeyCodes::Space))
+                {
+                    movement += rel_up_dir;
+                }
+                if (m_pimpl->input->on_key_held(KeyCodes::LeftAlt))
+                {
+                    movement += -rel_up_dir;
+                }
+                if (glm::length(movement) > 0.0f)
+                {
+                    m_pimpl->cameraPosition += glm::normalize(movement) * s_CameraSpeed * m_pimpl->deltaTime;
+                    // LOG_DEBUG("{}, {}, {}", m_pimpl->cameraPosition.x, m_pimpl->cameraPosition.y, m_pimpl->cameraPosition.z);
+                }
+
+                static const f32 s_CameraSensitivity = 1.0f;
+                const auto cursor_delta = m_pimpl->input->get_cursor_delta();
+                if (glm::length(cursor_delta) > 0.0f)
+                {
+                    const f32 speed = s_CameraSensitivity * m_pimpl->deltaTime;
+                    m_pimpl->cameraDirection = glm::rotate(m_pimpl->cameraDirection, cursor_delta.y * speed, rel_right_dir);
+                    m_pimpl->cameraDirection = glm::rotate(m_pimpl->cameraDirection, cursor_delta.x * speed, rel_up_dir);
+                }
+            }
+
+            const f32 aspect_ratio =
+                static_cast<f32>(m_pimpl->window->get_resolution().x) / static_cast<f32>(m_pimpl->window->get_resolution().y);
             SceneInfo scene_info{};
+            scene_info.cameraProj = glm::perspective(glm::radians(60.0f), aspect_ratio, 0.1f, 100.0f);
+            scene_info.cameraView =
+                glm::lookAt(m_pimpl->cameraPosition, m_pimpl->cameraPosition + m_pimpl->cameraDirection, glm::vec3(0, 1, 0));
+
             m_pimpl->renderer->render(scene_info);
         }
 
@@ -175,5 +237,4 @@ namespace mill
             file.close();
         }
     }
-
 }
