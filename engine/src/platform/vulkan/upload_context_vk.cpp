@@ -40,6 +40,12 @@ namespace mill::platform::vulkan
 
     void UploadContextVulkan::add_buffer_upload(BufferVulkan& dst_buffer, u64 size_bytes, const void* data)
     {
+        // Have we actually tried to upload anything?
+        if (size_bytes == 0)
+        {
+            return;
+        }
+
         ASSERT(size_bytes <= m_heapSize);
 
         if (m_currentPendingUpload.heapOffset + size_bytes > m_currentPendingUpload.uploadHeap->size)
@@ -67,6 +73,12 @@ namespace mill::platform::vulkan
 
     void UploadContextVulkan::flush()
     {
+        // Have we actually tried to upload anything?
+        if (m_currentPendingUpload.heapOffset == 0)
+        {
+            return;
+        }
+
         LOG_DEBUG("UploadContextVulkan - Flushing upload (size = {})...", m_currentPendingUpload.heapOffset);
 
         m_currentPendingUpload.cmdBuffer.end();
