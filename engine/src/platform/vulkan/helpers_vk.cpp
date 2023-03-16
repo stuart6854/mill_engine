@@ -227,21 +227,11 @@ namespace mill::platform::vulkan
 
     auto get_image_view_create_info_2d(vk::Image image, vk::Format format, u32 base_mip_lvl, u32 mip_lvl_count) -> vk::ImageViewCreateInfo
     {
-        vk::ImageAspectFlags aspect{};
-        if (is_depth_format(format))
-        {
-            aspect = vk::ImageAspectFlagBits::eDepth;
-        }
-        else
-        {
-            aspect = vk::ImageAspectFlagBits::eColor;
-        }
-
         vk::ImageViewCreateInfo view_info{};
         view_info.setImage(image);
         view_info.setFormat(format);
         view_info.setViewType(vk::ImageViewType::e2D);
-        view_info.subresourceRange.setAspectMask(aspect);
+        view_info.subresourceRange.setAspectMask(get_image_aspect_from_format(format));
         view_info.subresourceRange.setBaseMipLevel(base_mip_lvl);
         view_info.subresourceRange.setLevelCount(mip_lvl_count);
         view_info.subresourceRange.setBaseArrayLayer(0);
@@ -249,10 +239,10 @@ namespace mill::platform::vulkan
         return view_info;
     }
 
-    auto get_image_subresource_range_2d(u32 base_mip_lvl, u32 mip_lvl_count) -> vk::ImageSubresourceRange
+    auto get_image_subresource_range_2d(vk::Format format, u32 base_mip_lvl, u32 mip_lvl_count) -> vk::ImageSubresourceRange
     {
         vk::ImageSubresourceRange range{};
-        range.setAspectMask(vk::ImageAspectFlagBits::eColor);
+        range.setAspectMask(get_image_aspect_from_format(format));
         range.setBaseMipLevel(base_mip_lvl);
         range.setLevelCount(mip_lvl_count);
         range.setBaseArrayLayer(0);
@@ -462,12 +452,45 @@ namespace mill::platform::vulkan
 
     bool is_depth_format(vk::Format format)
     {
-        constexpr vk::Format depth_formats[]{ vk::Format::eD32Sfloat,
-                                              vk::Format::eD32SfloatS8Uint,
-                                              vk::Format::eD24UnormS8Uint,
-                                              vk::Format::eD16Unorm,
-                                              vk::Format::eD16UnormS8Uint };
+        constexpr vk::Format depth_formats[]{
+            vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint,
+            vk::Format::eD16Unorm,  vk::Format::eD16UnormS8Uint,
+        };
         return std::ranges::find(depth_formats, format) != std::end(depth_formats);
+    }
+
+    bool is_stencil_format(vk::Format format)
+    {
+        constexpr vk::Format stencil_formats[]{
+            vk::Format::eD32SfloatS8Uint,
+            vk::Format::eD24UnormS8Uint,
+            vk::Format::eD16UnormS8Uint,
+            vk::Format::eS8Uint,
+        };
+        return std::ranges::find(stencil_formats, format) != std::end(stencil_formats);
+    }
+
+    auto get_image_aspect_from_format(vk::Format format) -> vk::ImageAspectFlags
+    {
+        vk::ImageAspectFlags aspect{};
+
+        if (is_depth_format(format) || is_stencil_format(format))
+        {
+            if (is_depth_format(format))
+            {
+                aspect |= vk::ImageAspectFlagBits::eDepth;
+            }
+            if (is_stencil_format(format))
+            {
+                aspect |= vk::ImageAspectFlagBits::eStencil;
+            }
+        }
+        else
+        {
+            aspect |= vk::ImageAspectFlagBits::eColor;
+        }
+
+        return aspect;
     }
 
 }

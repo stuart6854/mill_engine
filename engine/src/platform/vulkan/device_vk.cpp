@@ -576,7 +576,7 @@ namespace mill::platform::vulkan
         image.id = id;
         image.init = image_init;
         image.extent = vk::Extent3D(image_init.width, image_init.height, image_init.depth);
-        image.range = get_image_subresource_range_2d();
+        image.range = get_image_subresource_range_2d(image.init.format);
 
         internal_create_image(image);
 
@@ -756,7 +756,7 @@ namespace mill::platform::vulkan
 
             image_resource->extent = vk::Extent3D(extent, 0);
             image_resource->layout = vk::ImageLayout::eUndefined;
-            image_resource->range = get_image_subresource_range_2d();
+            image_resource->range = get_image_subresource_range_2d(surface_format.format);
 
             surface.backBufferImages.push_back(std::move(image_resource));
             ++i;

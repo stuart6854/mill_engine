@@ -56,7 +56,7 @@ namespace mill::platform::vulkan
     auto get_image_view_create_info_2d(vk::Image image, vk::Format format, u32 base_mip_lvl = 0, u32 mip_lvl_count = 1)
         -> vk::ImageViewCreateInfo;
 
-    auto get_image_subresource_range_2d(u32 base_mip_lvl = 0, u32 mip_lvl_count = 1) -> vk::ImageSubresourceRange;
+    auto get_image_subresource_range_2d(vk::Format format, u32 base_mip_lvl = 0, u32 mip_lvl_count = 1) -> vk::ImageSubresourceRange;
 
 #pragma endregion
 
@@ -149,6 +149,10 @@ namespace mill::platform::vulkan
 #pragma region Miscellaneous
 
     bool is_depth_format(vk::Format format);
+
+    bool is_stencil_format(vk::Format format);
+
+    auto get_image_aspect_from_format(vk::Format format) -> vk::ImageAspectFlags;
 
 #pragma endregion
 
