@@ -72,11 +72,13 @@ namespace mill
 
         initialise();
 
-        auto lastFrameTime = high_resolution_clock::now();
+        using clock = high_resolution_clock;
+        auto lastFrameTime = clock::now();
         while (m_pimpl->isRunning)
         {
-            auto now = high_resolution_clock::now();
-            m_pimpl->deltaTime = duration_cast<milliseconds>(now - lastFrameTime).count() / 1000.0f;
+            auto now = clock::now();
+            u64 ms = duration_cast<milliseconds>(now - lastFrameTime).count();
+            m_pimpl->deltaTime = static_cast<f32>(static_cast<f64>(ms) / 1000.0f);
             lastFrameTime = now;
 
             m_pimpl->input->new_frame();
@@ -85,7 +87,7 @@ namespace mill
             // Print delta time
             if (m_pimpl->input->on_key_held(KeyCodes::F1))
             {
-                LOG_INFO("{}", m_pimpl->deltaTime);
+                LOG_DEBUG("Delta Time - {}ms / {:.3f}s", ms, m_pimpl->deltaTime);
             }
 
             SceneInfo scene_info{};
