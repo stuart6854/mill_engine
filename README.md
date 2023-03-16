@@ -30,3 +30,7 @@ Simply download/clone the repository and run the setup_win32.bat (on Windows) to
 ## Screenshots
 
 ![Pyramid](screenshots/pyramid.png)
+*Hello Pyramid*
+
+![Textured Pyramid (Bindless Descriptors)](screenshots/pyramid_textured_bindless.png)
+*Textured Pyramid with Bindless Descriptors*
