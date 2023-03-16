@@ -239,7 +239,7 @@ namespace mill::platform::vulkan
         return view_info;
     }
 
-    auto get_image_subresource_layers_2d(vk::Format format, u32 mip_lvl) -> vk::ImageSubresourceLayers 
+    auto get_image_subresource_layers_2d(vk::Format format, u32 mip_lvl) -> vk::ImageSubresourceLayers
     {
         vk::ImageSubresourceLayers layer{};
         layer.setAspectMask(get_image_aspect_from_format(format));
@@ -448,11 +448,29 @@ namespace mill::platform::vulkan
         write.setBufferInfo(buffer_info);
     }
 
+    void DescriptorSet::bind_image(u32 binding, vk::ImageView image_view, vk::Sampler sampler, u32 array_index)
+    {
+        auto image_info = CreateOwned<vk::DescriptorImageInfo>();
+        image_info->setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
+        image_info->setImageView(image_view);
+        image_info->setSampler(sampler);
+        m_imageInfos.push_back(std::move(image_info));
+
+        auto& write = m_pendingWrites.emplace_back();
+        write.setDstSet(m_set);
+        write.setDstBinding(binding);
+        write.setDescriptorCount(1);
+        write.setDescriptorType(vk::DescriptorType::eCombinedImageSampler);
+        write.setDstArrayElement(array_index);
+        write.setPImageInfo(m_imageInfos.back().get());
+    }
+
     void DescriptorSet::flush_writes()
     {
         m_device.updateDescriptorSets(m_pendingWrites, {});
         m_pendingWrites.clear();
         m_bufferInfos.clear();
+        m_imageInfos.clear();
     }
 
     auto DescriptorSet::get_set() const -> vk::DescriptorSet
@@ -502,6 +520,5 @@ namespace mill::platform::vulkan
 
         return aspect;
     }
-
 
 }

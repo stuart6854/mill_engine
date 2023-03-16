@@ -130,6 +130,7 @@ namespace mill::platform::vulkan
         ~DescriptorSet();
 
         void bind_buffer(u32 binding, vk::Buffer buffer, u64 range_bytes);
+        void bind_image(u32 binding, vk::ImageView image_view, vk::Sampler sampler, u32 array_index = 0);
 
         void flush_writes();
 
@@ -143,6 +144,8 @@ namespace mill::platform::vulkan
         vk::DescriptorSet m_set{};
 
         std::vector<vk::DescriptorBufferInfo> m_bufferInfos{};
+        // #TODO: Try figure out (and fix) the reason that these (DescriptorImageInfo) become invalid if not Owned<>
+        std::vector<Owned<vk::DescriptorImageInfo>> m_imageInfos{};
         std::vector<vk::WriteDescriptorSet> m_pendingWrites{};
     };
 
