@@ -37,26 +37,26 @@ namespace mill::platform::vulkan
         void bind_texture_bindless(ImageVulkan& image, u32 index);
 
     private:
-        Owned<vulkan::DeviceVulkan> m_device{ nullptr };
+        Owned<DeviceVulkan> m_device{ nullptr };
         void* m_surfaceHandle{ nullptr };
         glm::uvec2 m_displaySize{};
 
-        Owned<vulkan::ContextVulkan> m_graphicsContext{ nullptr };
+        Owned<ContextVulkan> m_graphicsContext{ nullptr };
 
-        vulkan::ImageVulkan* m_depthImage{ nullptr };
+        ImageVulkan* m_depthImage{ nullptr };
 
-        vulkan::BufferVulkan* m_vertexBuffer{};
-        vulkan::BufferVulkan* m_indexBuffer{};
+        BufferVulkan* m_vertexBuffer{};
+        BufferVulkan* m_indexBuffer{};
 
-        Owned<vulkan::PipelineLayout> m_pipelineLayout{ nullptr };
-        Owned<vulkan::PipelineVulkan> m_pipeline{ nullptr };
+        Owned<PipelineLayout> m_pipelineLayout{ nullptr };
+        Owned<PipelineVulkan> m_pipeline{ nullptr };
 
         ImageVulkan* m_whiteImage{ nullptr };
 
-        Owned<vulkan::DescriptorSetLayout> m_globalSetLayout{ nullptr };
+        Owned<DescriptorSetLayout> m_globalSetLayout{ nullptr };
         u32 m_nextTextureBindIndex{};
 
-        Owned<vulkan::DescriptorSetLayout> m_sceneSetLayout{ nullptr };
+        Owned<DescriptorSetLayout> m_sceneSetLayout{ nullptr };
 
         struct GlobalData
         {
@@ -73,11 +73,11 @@ namespace mill::platform::vulkan
 
         struct Frame
         {
-            vulkan::BufferVulkan* globalUBO{ nullptr };
-            Owned<vulkan::DescriptorSet> globalSet{ nullptr };
+            BufferVulkan* globalUBO{ nullptr };
+            Owned<DescriptorSet> globalSet{ nullptr };
 
-            vulkan::BufferVulkan* sceneUBO{ nullptr };
-            Owned<vulkan::DescriptorSet> sceneSet{ nullptr };
+            BufferVulkan* sceneUBO{ nullptr };
+            Owned<DescriptorSet> sceneSet{ nullptr };
         };
         std::array<Frame, 2> m_frames{};
         u32 m_frameIndex{};

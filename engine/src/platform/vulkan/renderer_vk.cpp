@@ -94,7 +94,7 @@ namespace mill::platform::vulkan
 
         {
             // Global set
-            m_globalSetLayout = CreateOwned<vulkan::DescriptorSetLayout>(m_device->get_device());
+            m_globalSetLayout = CreateOwned<DescriptorSetLayout>(m_device->get_device());
             // Buffer for global data eg. time
             m_globalSetLayout->add_binding(0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex);
             // Array of images for bindless image rendering
