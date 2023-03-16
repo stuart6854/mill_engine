@@ -22,12 +22,12 @@
     #define MILL_DEBUG_BREAK()
 #endif
 
-#define ASSERT(_expr)                                                                  \
-    do                                                                                 \
-    {                                                                                  \
-        if (!(_expr))                                                                  \
-        {                                                                              \
-            LOG_CRITICAL("Assert Failed: {} at {}:{}", "##_expr", __FILE__, __LINE__); \
-            MILL_DEBUG_BREAK();                                                        \
-        }                                                                              \
+#define ASSERT(_expr)                                                                              \
+    do                                                                                             \
+    {                                                                                              \
+        if (!(_expr))                                                                              \
+        {                                                                                          \
+            LOG_CRITICAL("Assert Failed: '{}' at {}:{}", #_expr, __FILE__, __LINE__); \
+            MILL_DEBUG_BREAK();                                                                    \
+        }                                                                                          \
     } while (false)
