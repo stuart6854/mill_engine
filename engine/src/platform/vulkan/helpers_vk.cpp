@@ -405,4 +405,49 @@ namespace mill::platform::vulkan
         return final_hash;
     }
 
+    DescriptorSet::DescriptorSet(vk::Device device, vk::DescriptorPool descriptor_pool, DescriptorSetLayout& layout)
+        : m_device(device), m_pool(descriptor_pool), m_layout(layout)
+    {
+        auto set_layout = m_layout.get_layout();
+
+        vk::DescriptorSetAllocateInfo alloc_info{};
+        alloc_info.setDescriptorPool(m_pool);
+        alloc_info.setDescriptorSetCount(1);
+        alloc_info.setSetLayouts(set_layout);
+        m_set = m_device.allocateDescriptorSets(alloc_info)[0];
+    }
+
+    DescriptorSet::~DescriptorSet()
+    {
+        m_device.freeDescriptorSets(m_pool, m_set);
+    }
+
+    void DescriptorSet::bind_buffer(u32 binding, vk::Buffer buffer, u64 range_bytes)
+    {
+        auto& buffer_info = m_bufferInfos.emplace_back();
+        buffer_info.setBuffer(buffer);
+        buffer_info.setOffset(0);
+        buffer_info.setRange(range_bytes);
+
+        auto& write = m_pendingWrites.emplace_back();
+        write.setDstSet(m_set);
+        write.setDstBinding(binding);
+        write.setDescriptorCount(1);
+        write.setDescriptorType(vk::DescriptorType::eUniformBuffer);
+        write.setDstArrayElement(0);
+        write.setBufferInfo(buffer_info);
+    }
+
+    void DescriptorSet::flush_writes()
+    {
+        m_device.updateDescriptorSets(m_pendingWrites, {});
+        m_pendingWrites.clear();
+        m_bufferInfos.clear();
+    }
+
+    auto DescriptorSet::get_set() const -> vk::DescriptorSet
+    {
+        return m_set;
+    }
+
 }

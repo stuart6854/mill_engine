@@ -240,6 +240,21 @@ namespace mill::platform::vulkan
             m_allocator = vma::createAllocator(alloc_info);
         }
 
+        // Descriptor Pool
+        {
+            std::vector<vk::DescriptorPoolSize> pool_sizes{
+                { vk::DescriptorType::eUniformBuffer, 100 },
+                { vk::DescriptorType::eStorageBuffer, 100 },
+                { vk::DescriptorType::eCombinedImageSampler, 100 },
+            };
+
+            vk::DescriptorPoolCreateInfo pool_info{};
+            pool_info.setMaxSets(100);
+            pool_info.setPoolSizes(pool_sizes);
+            pool_info.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
+            m_descriptorPool = m_device.createDescriptorPool(pool_info);
+        }
+
         m_uploadContext = CreateOwned<UploadContextVulkan>(*this, 81920);
 
         return true;
@@ -263,6 +278,7 @@ namespace mill::platform::vulkan
             // m_device.destroy(m_endOfFrameFences[i]);
         }
 
+        m_device.destroy(m_descriptorPool);
         m_allocator.destroy();
         m_device.destroy();
         m_instance.destroy(m_debugMessenger);
@@ -502,6 +518,11 @@ namespace mill::platform::vulkan
         m_device.destroy(fragment_module);
 
         return pipeline_resource;
+    }
+
+    auto DeviceVulkan::create_descriptor_set(DescriptorSetLayout& layout) -> Owned<DescriptorSet>
+    {
+        return CreateOwned<DescriptorSet>(m_device, m_descriptorPool, layout);
     }
 
     auto DeviceVulkan::create_buffer(const BufferInit& buffer_init) -> BufferVulkan*

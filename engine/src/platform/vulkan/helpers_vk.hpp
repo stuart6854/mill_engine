@@ -121,6 +121,29 @@ namespace mill::platform::vulkan
         vk::PipelineLayout m_layout{};
     };
 
+    class DescriptorSet
+    {
+    public:
+        explicit DescriptorSet(vk::Device device, vk::DescriptorPool descriptor_pool, DescriptorSetLayout& layout);
+        ~DescriptorSet();
+
+        void bind_buffer(u32 binding, vk::Buffer buffer, u64 range_bytes);
+
+        void flush_writes();
+
+        auto get_set() const -> vk::DescriptorSet;
+
+    private:
+        vk::Device m_device{};
+        vk::DescriptorPool m_pool{};
+        DescriptorSetLayout& m_layout;
+
+        vk::DescriptorSet m_set{};
+
+        std::vector<vk::DescriptorBufferInfo> m_bufferInfos{};
+        std::vector<vk::WriteDescriptorSet> m_pendingWrites{};
+    };
+
 #pragma endregion
 
 }

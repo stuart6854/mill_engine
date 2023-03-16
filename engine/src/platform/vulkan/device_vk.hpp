@@ -45,6 +45,7 @@ namespace mill::platform::vulkan
 
         auto create_context() -> Owned<ContextVulkan>;
         auto create_pipeline(const PipelineInit& pipeline_init) -> Owned<PipelineVulkan>;
+        auto create_descriptor_set(DescriptorSetLayout& layout) -> Owned<DescriptorSet>;
         auto create_buffer(const BufferInit& buffer_init) -> BufferVulkan*;
 
         void destroy_context(Owned<ContextVulkan> context);
@@ -91,6 +92,8 @@ namespace mill::platform::vulkan
 
         i32 m_transferQueueFamily{ -1 };
         vk::Queue m_transferQueue{};
+
+        vk::DescriptorPool m_descriptorPool{};
 
         Owned<UploadContextVulkan> m_uploadContext{ nullptr };
 
