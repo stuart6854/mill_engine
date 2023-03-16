@@ -148,6 +148,14 @@ namespace mill::platform::vulkan
         m_boundPipeline = &pipeline;
     }
 
+    void ContextVulkan::set_descriptor_set(u32 set, DescriptorSet& descriptor_set)
+    {
+        ASSERT(m_boundPipeline != nullptr);
+        ASSERT(descriptor_set.get_set());
+
+        get_current_cmd().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_boundPipeline->layout, set, descriptor_set.get_set(), {});
+    }
+
     void ContextVulkan::set_viewport(const vk::Viewport& viewport)
     {
         vk::Viewport vp = viewport;

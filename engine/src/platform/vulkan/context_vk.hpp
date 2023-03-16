@@ -35,6 +35,7 @@ namespace mill::platform::vulkan
         void end_render_pass();
 
         void set_pipeline(PipelineVulkan& pipeline);
+        void set_descriptor_set(u32 set, DescriptorSet& descriptor_set);
         void set_viewport(const vk::Viewport& viewport);
         void set_scissor(const vk::Rect2D& scissor);
         void set_default_viewport_and_scissor(const glm::uvec2& screen_size);
