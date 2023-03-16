@@ -75,6 +75,7 @@ namespace mill
         {
             auto now = high_resolution_clock::now();
             m_pimpl->deltaTime = duration_cast<milliseconds>(now - lastFrameTime).count() / 1000.0f;
+            lastFrameTime = now;
 
             m_pimpl->window->poll_events();
 
