@@ -73,7 +73,11 @@ namespace mill::platform::vulkan
 
         void reset();
 
-        void add_binding(u32 binding, vk::DescriptorType descriptor_type, vk::ShaderStageFlags shader_stages, u32 count = 1);
+        void add_binding(u32 binding,
+                         vk::DescriptorType descriptor_type,
+                         vk::ShaderStageFlags shader_stages,
+                         u32 count = 1,
+                         vk::DescriptorBindingFlags binding_flags = {});
 
         void build();
 
@@ -87,6 +91,7 @@ namespace mill::platform::vulkan
         vk::Device m_device{};
 
         std::vector<vk::DescriptorSetLayoutBinding> m_bindings{};
+        std::vector<vk::DescriptorBindingFlags> m_bindingFlags{};
         vk::DescriptorSetLayoutCreateInfo m_layoutInfo{};
 
         hasht m_hash{};

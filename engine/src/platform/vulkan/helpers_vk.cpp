@@ -277,11 +277,16 @@ namespace mill::platform::vulkan
         }
     }
 
-    void DescriptorSetLayout::add_binding(u32 binding, vk::DescriptorType descriptor_type, vk::ShaderStageFlags shader_stages, u32 count)
+    void DescriptorSetLayout::add_binding(u32 binding,
+                                          vk::DescriptorType descriptor_type,
+                                          vk::ShaderStageFlags shader_stages,
+                                          u32 count,
+                                          vk::DescriptorBindingFlags binding_flags)
     {
         if (m_bindings.size() < binding + 1)
         {
             m_bindings.resize(binding + 1);
+            m_bindingFlags.resize(binding + 1);
         }
 
         auto& set_binding = m_bindings[binding];
@@ -289,6 +294,8 @@ namespace mill::platform::vulkan
         set_binding.setDescriptorCount(count);
         set_binding.setDescriptorType(descriptor_type);
         set_binding.setStageFlags(shader_stages);
+
+        m_bindingFlags[binding] = binding_flags;
     }
 
     void DescriptorSetLayout::build()
@@ -298,7 +305,11 @@ namespace mill::platform::vulkan
             m_device.destroy(m_layout);
         }
 
+        vk::DescriptorSetLayoutBindingFlagsCreateInfo binding_flags_info{};
+        binding_flags_info.setBindingFlags(m_bindingFlags);
+
         m_layoutInfo.setBindings(m_bindings);
+        m_layoutInfo.setPNext(&binding_flags_info);
         m_layout = m_device.createDescriptorSetLayout(m_layoutInfo);
     }
 
