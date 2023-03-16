@@ -26,3 +26,7 @@ The following libraries are used:
     - 
 
 Simply download/clone the repository and run the setup_win32.bat (on Windows) to download the dependencies and generate the Visual Studio project files. It should just be a simple matter of opening the solution in Visual Studio and building/running the application.
+
+## Screenshots
+
+![Pyramid](screenshots/pyramid.png)
