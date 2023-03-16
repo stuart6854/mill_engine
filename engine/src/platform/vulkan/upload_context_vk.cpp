@@ -73,6 +73,45 @@ namespace mill::platform::vulkan
         m_currentPendingUpload.cmdBuffer.copyBuffer(m_currentPendingUpload.uploadHeap->buffer, dst_buffer.buffer, copy_region);
     }
 
+    void UploadContextVulkan::add_image_upload(ImageVulkan& dst_image, u64 size_bytes, const void* data, u32 mip_level)
+    {
+        // Have we actually tried to upload anything?
+        if (size_bytes == 0)
+        {
+            return;
+        }
+
+        ASSERT(size_bytes <= m_heapSize);
+
+        if (m_currentPendingUpload.heapOffset + size_bytes > m_currentPendingUpload.uploadHeap->size)
+        {
+            flush();
+        }
+
+        auto& upload = m_currentPendingUpload.imageUploads.emplace_back();
+        upload.dst_image = &dst_image;
+        upload.heap_offset = m_currentPendingUpload.heapOffset;
+        upload.size_bytes = size_bytes;
+
+        // Copy data to heap
+        u8* offset_mapped_ptr = static_cast<u8*>(m_currentPendingUpload.uploadHeap->mappedPtr) + m_currentPendingUpload.heapOffset;
+        std::memcpy(offset_mapped_ptr, data, size_bytes);
+
+        vk::BufferImageCopy copy_region{};
+        copy_region.setBufferOffset(upload.heap_offset);
+        copy_region.setImageExtent(dst_image.extent);
+        copy_region.setImageSubresource(get_image_subresource_layers_2d(dst_image.init.format, mip_level));
+
+        add_barrier(dst_image, vk::ImageLayout::eTransferDstOptimal);
+
+        m_currentPendingUpload.cmdBuffer.copyBufferToImage(
+            m_currentPendingUpload.uploadHeap->buffer, dst_image.image, dst_image.layout, copy_region);
+
+        add_barrier(dst_image, vk::ImageLayout::eShaderReadOnlyOptimal);
+
+        m_currentPendingUpload.heapOffset += size_bytes;
+    }
+
     void UploadContextVulkan::flush()
     {
         // Have we actually tried to upload anything?
@@ -97,6 +136,45 @@ namespace mill::platform::vulkan
         m_condVar.notify_one();  // Tell worker queue to wake up
 
         m_currentPendingUpload = prepare_pending_upload();
+    }
+
+    void UploadContextVulkan::add_barrier(ImageVulkan& image_resource, vk::ImageLayout new_layout)
+    {
+        auto old_layout = image_resource.layout;
+
+        vk::PipelineStageFlags2 srcStage{};
+        vk::AccessFlags2 srcAccess{};
+        vk::PipelineStageFlags2 dstStage{};
+        vk::AccessFlags2 dstAccess{};
+        if (new_layout == vk::ImageLayout::eTransferDstOptimal)
+        {
+            srcStage = vk::PipelineStageFlagBits2::eTopOfPipe;
+
+            dstStage = vk::PipelineStageFlagBits2::eTransfer;
+            dstAccess = vk::AccessFlagBits2::eTransferWrite;
+        }
+        else if (new_layout == vk::ImageLayout::eShaderReadOnlyOptimal)
+        {
+            srcStage = vk::PipelineStageFlagBits2::eTransfer;
+            srcAccess = vk::AccessFlagBits2::eTransferWrite;
+
+            dstStage = vk::PipelineStageFlagBits2::eBottomOfPipe;
+            dstAccess = vk::AccessFlagBits2::eShaderRead;
+        }
+
+        vk::ImageMemoryBarrier2 image_barrier{};
+        image_barrier.setSrcStageMask(srcStage);
+        image_barrier.setDstStageMask(dstStage);
+        image_barrier.setOldLayout(old_layout);
+        image_barrier.setNewLayout(new_layout);
+        image_barrier.setImage(image_resource.image);
+        image_barrier.setSubresourceRange(image_resource.range);
+
+        vk::DependencyInfo dep_info{};
+        dep_info.setImageMemoryBarriers(image_barrier);
+        m_currentPendingUpload.cmdBuffer.pipelineBarrier2(dep_info);
+
+        image_resource.layout = new_layout;
     }
 
     auto UploadContextVulkan::prepare_pending_upload() -> PendingUpload
@@ -160,6 +238,10 @@ namespace mill::platform::vulkan
             for (auto& upload : pending_upload.bufferUploads)
             {
                 upload.dst_buffer->is_ready = true;
+            }
+            for (auto& upload : pending_upload.imageUploads)
+            {
+                upload.dst_image->is_ready = true;
             }
 
             destroy_pending_upload(pending_upload);

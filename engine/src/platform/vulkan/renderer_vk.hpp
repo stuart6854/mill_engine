@@ -81,6 +81,8 @@ namespace mill::platform::vulkan
             glm::mat4 transform{ 1.0f };
         };
         PushConstants m_pushConstants{};
+
+        ImageVulkan* m_texture{ nullptr };
     };
 
 }

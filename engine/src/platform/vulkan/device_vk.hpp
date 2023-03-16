@@ -47,7 +47,7 @@ namespace mill::platform::vulkan
         auto create_pipeline(const PipelineInit& pipeline_init) -> Owned<PipelineVulkan>;
         auto create_descriptor_set(DescriptorSetLayout& layout) -> Owned<DescriptorSet>;
         auto create_buffer(const BufferInit& buffer_init) -> BufferVulkan*;
-        auto create_image(const ImageInit& image_init, const void* initial_data = nullptr) -> ImageVulkan*;
+        auto create_image(const ImageInit& image_init, u64 initial_data_size = 0, const void* initial_data = nullptr) -> ImageVulkan*;
 
         void destroy_context(Owned<ContextVulkan> context);
         void destroy_pipeline(Owned<PipelineVulkan> pipeline);

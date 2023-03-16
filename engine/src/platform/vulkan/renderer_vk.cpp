@@ -11,6 +11,9 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 namespace mill::platform::vulkan
 {
     void RendererVulkan::inititialise(const RendererInit& init)
@@ -148,11 +151,30 @@ namespace mill::platform::vulkan
             frame.sceneSet->bind_buffer(0, frame.sceneUBO->buffer, sizeof(SceneData));
             frame.sceneSet->flush_writes();
         }
+
+        // Texture
+        {
+            const auto* texture_filename = "../../assets/textures/uv_map.png";
+            i32 w, h, c;
+            u8* data = stbi_load(texture_filename, &w, &h, &c, 4);
+            u64 data_size = w * h * (sizeof(u8) * 4);
+
+            ImageInit image_init{};
+            image_init.width = w;
+            image_init.height = h;
+            image_init.format = vk::Format::eR8G8B8A8Srgb;
+            image_init.usage = vk::ImageUsageFlagBits::eSampled;
+            m_texture = m_device->create_image(image_init, data_size, data);
+
+            STBI_FREE(data);
+        }
     }
 
     void RendererVulkan::shutdown()
     {
         m_device->wait_idle();
+
+        m_device->destroy_image(m_texture);
 
         for (auto& frame : m_frames)
         {

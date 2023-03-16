@@ -12,6 +12,7 @@ namespace mill::platform::vulkan
 
     class DeviceVulkan;
     struct BufferVulkan;
+    struct ImageVulkan;
 
     class UploadContextVulkan
     {
@@ -20,10 +21,13 @@ namespace mill::platform::vulkan
         ~UploadContextVulkan();
 
         void add_buffer_upload(BufferVulkan& dst_buffer, u64 size_bytes, const void* data);
+        void add_image_upload(ImageVulkan& dst_image, u64 size_bytes, const void* data, u32 mip_level = 0);
 
         void flush();
 
     private:
+        void add_barrier(ImageVulkan& image_resource, vk::ImageLayout new_layout);
+
         struct PendingUpload;
         auto prepare_pending_upload() -> PendingUpload;
         void destroy_pending_upload(PendingUpload& pending_upload);
@@ -46,6 +50,12 @@ namespace mill::platform::vulkan
             u64 size_bytes{};
             u64 heap_offset{};
         };
+        struct ImageUpload
+        {
+            ImageVulkan* dst_image{ nullptr };
+            u64 size_bytes{};
+            u64 heap_offset{};
+        };
 
         struct PendingUpload
         {
@@ -56,6 +66,7 @@ namespace mill::platform::vulkan
             u64 heapOffset{};
 
             std::vector<BufferUpload> bufferUploads{};
+            std::vector<ImageUpload> imageUploads{};
         };
         PendingUpload m_currentPendingUpload{};
 

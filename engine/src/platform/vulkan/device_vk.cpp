@@ -255,7 +255,7 @@ namespace mill::platform::vulkan
             m_descriptorPool = m_device.createDescriptorPool(pool_info);
         }
 
-        m_uploadContext = CreateOwned<UploadContextVulkan>(*this, 81920);
+        m_uploadContext = CreateOwned<UploadContextVulkan>(*this);
 
         return true;
     }
@@ -577,7 +577,7 @@ namespace mill::platform::vulkan
         return &buffer;
     }
 
-    auto DeviceVulkan::create_image(const ImageInit& image_init, const void* initial_data) -> ImageVulkan*
+    auto DeviceVulkan::create_image(const ImageInit& image_init, u64 initial_data_size, const void* initial_data) -> ImageVulkan*
     {
         const auto id = m_nextImageId++;
         auto [it, result] = m_images.try_emplace(id, ImageVulkan());
@@ -589,11 +589,18 @@ namespace mill::platform::vulkan
         image.extent = vk::Extent3D(image_init.width, image_init.height, image_init.depth);
         image.range = get_image_subresource_range_2d(image.init.format);
 
+        // If image to to be sampled, assume that it will be uploaded to
+        if (image.init.usage & vk::ImageUsageFlagBits::eSampled)
+        {
+            image.init.usage |= vk::ImageUsageFlagBits::eTransferDst;
+        }
+
         internal_create_image(image);
 
         if (initial_data != nullptr)
         {
-            // #TODO: m_uploadContext->add_image_upload();
+            // We are upload to original image, so upload to the first miplevel
+            m_uploadContext->add_image_upload(image, initial_data_size, initial_data, 0);
             m_uploadContext->flush();
         }
 
@@ -856,7 +863,11 @@ namespace mill::platform::vulkan
         auto view_info = get_image_view_create_info_2d(image.image, image.init.format);
         image.view = m_device.createImageView(view_info);
 
-        LOG_DEBUG("DeviceVulkan - Image allocated.");
+        LOG_DEBUG("DeviceVulkan - Image allocated. Width = {}, Height = {}, Depth = {}, Format = {}",
+                  image.init.width,
+                  image.init.height,
+                  image.init.depth,
+                  vk::to_string(image.init.format));
     }
 
     void DeviceVulkan::internal_destroy_image(ImageVulkan& image)
@@ -864,7 +875,11 @@ namespace mill::platform::vulkan
         m_device.destroy(image.view);
         m_allocator.destroyImage(image.image, image.allocation);
 
-        LOG_DEBUG("DeviceVulkan - Image deallocated.");
+        LOG_DEBUG("DeviceVulkan - Image deallocated. Width = {}, Height = {}, Depth = {}, Format = {}",
+                  image.init.width,
+                  image.init.height,
+                  image.init.depth,
+                  vk::to_string(image.init.format));
     }
 
 }
