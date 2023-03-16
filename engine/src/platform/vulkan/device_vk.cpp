@@ -437,7 +437,7 @@ namespace mill::platform::vulkan
         stage_infos[1].setModule(fragment_module);
         stage_infos[1].setPName("main");
 
-        std::vector<vk::VertexInputAttributeDescription> attribute_descs(2);
+        std::vector<vk::VertexInputAttributeDescription> attribute_descs(3);
         attribute_descs[0].setBinding(0);
         attribute_descs[0].setLocation(0);
         attribute_descs[0].setFormat(vk::Format::eR32G32B32Sfloat);
@@ -445,13 +445,18 @@ namespace mill::platform::vulkan
 
         attribute_descs[1].setBinding(0);
         attribute_descs[1].setLocation(1);
-        attribute_descs[1].setFormat(vk::Format::eR32G32B32A32Sfloat);
+        attribute_descs[1].setFormat(vk::Format::eR32G32Sfloat);
         attribute_descs[1].setOffset(12);
+
+        attribute_descs[2].setBinding(0);
+        attribute_descs[2].setLocation(2);
+        attribute_descs[2].setFormat(vk::Format::eR32G32B32A32Sfloat);
+        attribute_descs[2].setOffset(20);
 
         vk::VertexInputBindingDescription binding_desc{};
         binding_desc.setBinding(0);
         binding_desc.setInputRate(vk::VertexInputRate::eVertex);
-        binding_desc.setStride(28);
+        binding_desc.setStride(36);
 
         vk::PipelineVertexInputStateCreateInfo vertex_input_state{};
         vertex_input_state.setVertexAttributeDescriptions(attribute_descs);

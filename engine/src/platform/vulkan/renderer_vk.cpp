@@ -53,13 +53,14 @@ namespace mill::platform::vulkan
             struct Vertex
             {
                 glm::vec3 position{};
+                glm::vec2 uv{};
                 glm::vec4 color{};
             };
             std::vector<Vertex> vertices{
-                { { 0.0f, 0.0f, -0.5f }, { 1.0f, 0.0f, .0f, 1.0f } },
-                { { -0.5f, 0.0f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-                { { 0.5f, 0.0f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-                { { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+                { { 0.0f, 0.0f, -0.5f }, { 0.0f, 0.0f }, { 1.0f, 0.0f, .0f, 1.0f } },
+                { { -0.5f, 0.0f, 0.5f }, { 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+                { { 0.5f, 0.0f, 0.5f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+                { { 0.0f, 1.0f, 0.0f }, { 0.5f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
             };
 
             BufferInit vertex_buffer_init{};
