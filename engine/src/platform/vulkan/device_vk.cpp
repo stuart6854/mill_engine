@@ -173,6 +173,12 @@ namespace mill::platform::vulkan
             dyn_rendering_features.setDynamicRendering(true);
             dyn_rendering_features.setPNext(&sync2_features);
 
+            // #TODO: Check if descriptor indexing is supported
+            vk::PhysicalDeviceDescriptorIndexingFeatures descriptor_indexing_features{};
+            descriptor_indexing_features.setDescriptorBindingPartiallyBound(true);
+            descriptor_indexing_features.setRuntimeDescriptorArray(true);
+            descriptor_indexing_features.setPNext(&dyn_rendering_features);
+
             m_graphicsQueueFamily = find_graphics_queue_family(m_physicalDevice);
             m_transferQueueFamily = find_transfer_queue_family(m_physicalDevice);
 
@@ -197,7 +203,7 @@ namespace mill::platform::vulkan
             device_info.setPEnabledExtensionNames(device_exts);
             device_info.setPEnabledFeatures(&features);
             device_info.setQueueCreateInfos(queue_infos);
-            device_info.setPNext(&dyn_rendering_features);
+            device_info.setPNext(&descriptor_indexing_features);
 
             m_device = m_physicalDevice.createDevice(device_info);
             if (!m_device)
