@@ -14,7 +14,7 @@ namespace mill::platform
 
         /* Commands */
 
-        void init(const WindowInit& init) override;
+        void initialise(const WindowInit& init) override;
         void shutdown() override;
 
         void poll_events() override;

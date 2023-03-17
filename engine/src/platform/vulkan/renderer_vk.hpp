@@ -25,7 +25,7 @@ namespace mill::platform::vulkan
 
         DISABLE_COPY_AND_MOVE(RendererVulkan);
 
-        void inititialise(const RendererInit& init) override;
+        void initialise(const RendererInit& init) override;
         void shutdown() override;
 
         void render(const SceneInfo& scene_info) override;

@@ -18,6 +18,14 @@ using namespace std::chrono;
 
 namespace mill
 {
+#define INIT_SYSTEM(_system, _assign_value, ...) \
+    m_pimpl->_system = _assign_value;            \
+    m_pimpl->_system->initialise(__VA_ARGS__)
+
+#define SHUTDOWN_SYSTEM(_system)  \
+    m_pimpl->_system->shutdown(); \
+    m_pimpl->_system = nullptr
+
     namespace
     {
         auto create_default_config() -> toml::table
@@ -183,8 +191,7 @@ namespace mill
             window_height,
             "Mill Engine",
         };
-        m_pimpl->window = platform::create_window();
-        m_pimpl->window->init(window_init);
+        INIT_SYSTEM(window, platform::create_window(), window_init);
         m_pimpl->window->cb_on_window_close_requested.connect_member(this, &Engine::quit);
 
         RendererInit renderer_init{
@@ -192,11 +199,9 @@ namespace mill
             window_width,
             window_height,
         };
-        m_pimpl->renderer = platform::create_renderer();
-        m_pimpl->renderer->inititialise(renderer_init);
+        INIT_SYSTEM(renderer, platform::create_renderer(), renderer_init);
 
-        m_pimpl->input = CreateOwned<InputDefault>();
-        m_pimpl->input->init();
+        INIT_SYSTEM(input, CreateOwned<InputDefault>());
         m_pimpl->window->cb_on_input_keyboard_key.connect([this](i32 key, bool is_down)
                                                           { m_pimpl->input->set_key(static_cast<KeyCodes>(key), is_down); });
         m_pimpl->window->cb_on_input_mouse_btn.connect([this](i32 btn, bool is_down)
@@ -208,14 +213,9 @@ namespace mill
     {
         LOG_INFO("Engine - Shutting down...");
 
-        m_pimpl->input->shutdown();
-        m_pimpl->input = nullptr;
-
-        m_pimpl->renderer->shutdown();
-        m_pimpl->renderer = nullptr;
-
-        m_pimpl->window->shutdown();
-        m_pimpl->window = nullptr;
+        SHUTDOWN_SYSTEM(input);
+        SHUTDOWN_SYSTEM(renderer);
+        SHUTDOWN_SYSTEM(window);
     }
 
     void Engine::load_config()

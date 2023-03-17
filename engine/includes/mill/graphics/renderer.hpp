@@ -42,7 +42,7 @@ namespace mill
 
         /* Commands */
 
-        virtual void inititialise(const RendererInit& init) = 0;
+        virtual void initialise(const RendererInit& init) = 0;
         virtual void shutdown() = 0;
 
         virtual void render(const SceneInfo& scene_info) = 0;

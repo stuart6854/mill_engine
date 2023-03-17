@@ -2,7 +2,7 @@
 
 namespace mill
 {
-    void InputDefault::init() {}
+    void InputDefault::initialise() {}
 
     void InputDefault::shutdown() {}
 

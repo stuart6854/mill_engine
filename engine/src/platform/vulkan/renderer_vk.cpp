@@ -17,7 +17,7 @@ namespace mill::platform::vulkan
 {
     constexpr u32 g_MaxBindlessTextures = 128;
 
-    void RendererVulkan::inititialise(const RendererInit& init)
+    void RendererVulkan::initialise(const RendererInit& init)
     {
         AppInfo app_info{};
         app_info.appName = "app_name";

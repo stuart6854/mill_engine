@@ -17,7 +17,7 @@ namespace mill
 
         /* Commands */
 
-        virtual void init() = 0;
+        virtual void initialise() = 0;
         virtual void shutdown() = 0;
 
         /* This sets the last state to the current state. This should be called *before* whatever sets input state is called. */
@@ -52,7 +52,7 @@ namespace mill
 
         /* Commands */
 
-        void init() override;
+        void initialise() override;
         void shutdown() override;
 
         void new_frame() override;

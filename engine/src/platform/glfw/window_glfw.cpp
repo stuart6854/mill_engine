@@ -10,7 +10,7 @@
 
 namespace mill::platform
 {
-    void WindowGLFW::init(const WindowInit& init)
+    void WindowGLFW::initialise(const WindowInit& init)
     {
         if (!glfwInit())
         {

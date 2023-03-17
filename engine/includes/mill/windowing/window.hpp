@@ -31,7 +31,7 @@ namespace mill
 
         /* Commands */
 
-        virtual void init(const WindowInit& init) = 0;
+        virtual void initialise(const WindowInit& init) = 0;
         virtual void shutdown() = 0;
 
         virtual void poll_events() = 0;
