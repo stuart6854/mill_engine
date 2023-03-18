@@ -4,6 +4,7 @@
 #include "platform/windowing.hpp"
 #include "platform/graphics.hpp"
 #include "mill/input/input.hpp"
+#include "mill/resources/resource_manager.hpp"
 
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -59,6 +60,7 @@ namespace mill
         Owned<WindowInterface> window = nullptr;
         Owned<RendererInterface> renderer = nullptr;
         Owned<InputInterface> input = nullptr;
+        Owned<ResourceManager> resources = nullptr;
 
         glm::vec3 cameraPosition{ 0, 0, -5.0f };
         glm::vec3 cameraDirection{ 0, 0, 1 };
@@ -207,12 +209,16 @@ namespace mill
         m_pimpl->window->cb_on_input_mouse_btn.connect([this](i32 btn, bool is_down)
                                                        { m_pimpl->input->set_mouse_btn(static_cast<MouseButtonCodes>(btn), is_down); });
         m_pimpl->window->cb_on_input_cursor_pos.connect([this](glm::vec2 pos) { m_pimpl->input->set_cursor_pos(pos); });
+
+        ResourceManagerInit resource_manager_init{};
+        INIT_SYSTEM(resources, CreateOwned<ResourceManager>(), resource_manager_init);
     }
 
     void Engine::shutdown()
     {
         LOG_INFO("Engine - Shutting down...");
 
+        SHUTDOWN_SYSTEM(resources);
         SHUTDOWN_SYSTEM(input);
         SHUTDOWN_SYSTEM(renderer);
         SHUTDOWN_SYSTEM(window);
