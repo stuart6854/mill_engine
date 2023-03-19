@@ -4,6 +4,10 @@
 
 namespace mill
 {
+    class WindowInterface;
+    class RendererInterface;
+    class InputInterface;
+    class ResourceManager;
     class Application;
 
     class Engine
@@ -17,6 +21,13 @@ namespace mill
         void run(Application* app);
 
         void quit();
+
+        /* Getters */
+
+        auto get_window() const -> WindowInterface*;
+        auto get_renderer() const -> RendererInterface*;
+        auto get_input() const -> InputInterface*;
+        auto get_resources() const -> ResourceManager*;
 
     private:
         void initialise();

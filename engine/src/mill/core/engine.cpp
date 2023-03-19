@@ -175,6 +175,26 @@ namespace mill
         m_pimpl->isRunning = false;
     }
 
+    auto Engine::get_window() const -> WindowInterface*
+    {
+        return m_pimpl->window.get();
+    }
+
+    auto Engine::get_renderer() const -> RendererInterface*
+    {
+        return m_pimpl->renderer.get();
+    }
+
+    auto Engine::get_input() const -> InputInterface*
+    {
+        return m_pimpl->input.get();
+    }
+
+    auto Engine::get_resources() const -> ResourceManager*
+    {
+        return m_pimpl->resources.get();
+    }
+
     void Engine::initialise()
     {
 #if MILL_DEBUG
