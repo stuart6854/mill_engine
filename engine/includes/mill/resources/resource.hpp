@@ -8,6 +8,8 @@
 
 namespace mill
 {
+    using ResourceId = u64;
+
     using ResourceTypeId = u32;
     constexpr ResourceTypeId eNone = 0;
     constexpr ResourceTypeId eStaticMesh = 1;
