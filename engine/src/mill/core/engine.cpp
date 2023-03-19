@@ -1,6 +1,7 @@
 #include "mill/core/engine.hpp"
 
 #include "mill/core/base.hpp"
+#include "mill/core/application.hpp"
 #include "platform/windowing.hpp"
 #include "platform/graphics.hpp"
 #include "mill/input/input.hpp"
@@ -214,11 +215,15 @@ namespace mill
         INIT_SYSTEM(resources, CreateOwned<ResourceManager>(), resource_manager_init);
 
         m_pimpl->resources->register_resource_type<StaticMesh>(ResourceType_StaticMesh, std::move(CreateOwned<StaticMeshFactory>()));
+
+        m_pimpl->app->initialise(init.args);
     }
 
     void Engine::shutdown()
     {
         LOG_INFO("Engine - Shutting down...");
+
+        m_pimpl->app->shutdown();
 
         SHUTDOWN_SYSTEM(resources);
         SHUTDOWN_SYSTEM(input);
