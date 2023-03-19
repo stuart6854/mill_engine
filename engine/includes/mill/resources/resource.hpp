@@ -8,13 +8,13 @@
 
 namespace mill
 {
-    enum class ResourceType : u8
-    {
-        eNone,
-        eStaticMesh,
-        eSkeletalMesh,
-        eAudio,
-    };
+    using ResourceTypeId = u32;
+    constexpr ResourceTypeId eNone = 0;
+    constexpr ResourceTypeId eStaticMesh = 1;
+    constexpr ResourceTypeId eSkeletalMesh = 2;
+    constexpr ResourceTypeId eMaterial = 3;
+    constexpr ResourceTypeId eAudio = 4;
+    constexpr ResourceTypeId eScene = 5;
 
     enum class ResourceFlagBits : u8
     {
@@ -23,15 +23,13 @@ namespace mill
     };
     using ResourceFlags = Flags<ResourceFlagBits>;
 
-    using ResourceId = u64;
-
     struct ResourceMetadata
     {
         ResourceId id{};
         std::string binaryFile{};  // The binary file the resource is loaded from
         u64 binaryOffset{};
         u64 binarySize{};
-        ResourceType type{};
+        ResourceTypeId typeId{};
         ResourceFlags flags{};
 
         bool isLoaded{ false };
