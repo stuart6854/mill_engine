@@ -20,7 +20,7 @@ project "Sandbox"
     linkoptions { conan_exelinkflags }
 
     files {
-        "src/**.cpp"
+        "src/**"
     }
 
     use_engine()
