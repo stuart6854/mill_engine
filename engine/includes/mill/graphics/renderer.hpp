@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mill/core/base.hpp"
+#include "static_mesh.hpp"
 
 #include <glm/ext/matrix_float4x4.hpp>
 
@@ -46,6 +47,9 @@ namespace mill
         virtual void shutdown() = 0;
 
         virtual void render(const SceneInfo& scene_info) = 0;
+
+        virtual auto create_static_mesh() -> Owned<StaticMesh> = 0;
+        virtual void destroy_static_mesh(StaticMesh* static_mesh) = 0;
     };
 
     namespace platform

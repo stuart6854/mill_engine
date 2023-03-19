@@ -271,9 +271,46 @@ namespace mill::platform::vulkan
         m_device->present(&receipt);
     }
 
+    auto RendererVulkan::create_static_mesh() -> Owned<StaticMesh>
+    {
+        auto static_mesh = CreateOwned<StaticMesh>();
+        static_mesh->cb_on_data_changed.connect_member(this, &RendererVulkan::update_static_mesh);
+        static_mesh->cb_on_destroyed.connect_member(this, &RendererVulkan::destroy_static_mesh);
+
+        // Create the internal static mesh
+        m_internalStaticMeshes.emplace(static_mesh.get(), StaticMeshInternal());
+
+        return static_mesh;
+    }
+
+    void RendererVulkan::destroy_static_mesh(StaticMesh* static_mesh)
+    {
+        auto& internal_static_mesh = m_internalStaticMeshes[static_mesh];
+        UNUSED(internal_static_mesh);  // #TODO: Destroy buffers
+        m_internalStaticMeshes.erase(static_mesh);
+    }
+
     auto RendererVulkan::get_frame() -> Frame&
     {
         return m_frames[m_frameIndex];
+    }
+
+    void RendererVulkan::update_static_mesh(StaticMesh* static_mesh)
+    {
+        auto& internal_static_mesh = m_internalStaticMeshes[static_mesh];
+        const auto& vertices = static_mesh->get_vertices();
+        const auto& indices = static_mesh->get_indices();
+
+        {
+            const u64 size_bytes = sizeof(StaticVertex) * vertices.size();
+            UNUSED(size_bytes);  // #TODO: Create vertex buffer if the size is different
+
+            // #TODO: Write to buffer
+        }
+
+        // #TODO: Same with index buffer
+
+        internal_static_mesh.indexCount = static_cast<u32>(indices.size());
     }
 
     void RendererVulkan::bind_texture_bindless(ImageVulkan& image, u32 index)

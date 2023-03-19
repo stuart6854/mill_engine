@@ -30,9 +30,14 @@ namespace mill::platform::vulkan
 
         void render(const SceneInfo& scene_info) override;
 
+        auto create_static_mesh() -> Owned<StaticMesh> override;
+        void destroy_static_mesh(StaticMesh* static_mesh) override;
+
     private:
         struct Frame;
         auto get_frame() -> Frame&;
+
+        void update_static_mesh(StaticMesh* static_mesh);
 
         void bind_texture_bindless(ImageVulkan& image, u32 index);
 
@@ -90,6 +95,14 @@ namespace mill::platform::vulkan
         PushConstants m_pushConstants{};
 
         ImageVulkan* m_texture{ nullptr };
+
+        struct StaticMeshInternal
+        {
+            BufferVulkan* vertexBuffer{ nullptr };
+            BufferVulkan* indexBuffer{ nullptr };
+            u32 indexCount{};
+        };
+        std::unordered_map<StaticMesh*, StaticMeshInternal> m_internalStaticMeshes{};
     };
 
 }
