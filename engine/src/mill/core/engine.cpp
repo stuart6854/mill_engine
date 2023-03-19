@@ -212,6 +212,8 @@ namespace mill
 
         ResourceManagerInit resource_manager_init{};
         INIT_SYSTEM(resources, CreateOwned<ResourceManager>(), resource_manager_init);
+
+        m_pimpl->resources->register_resource_type<StaticMesh>(ResourceType_StaticMesh, std::move(CreateOwned<StaticMeshFactory>()));
     }
 
     void Engine::shutdown()
