@@ -99,9 +99,13 @@ namespace mill
     auto ResourceManager::get_resource(ResourceId id) -> Resource*
     {
         ASSERT(id);
-        ASSERT(m_metadataMap.find(id) != m_metadataMap.end());
+        ASSERT(m_metadataMap.contains(id));
 
-        return nullptr;
+        const auto& metadata = get_metadata(id);
+        ASSERT(m_resourceCaches.contains(metadata.typeId));
+
+        auto* cache = m_resourceCaches[metadata.typeId].get();
+        return cache->get(id);
     }
 
     void ResourceManager::load_all_metadata()

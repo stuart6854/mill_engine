@@ -2,6 +2,8 @@
 
 #include "mill/core/base.hpp"
 #include "resource.hpp"
+#include "resource_cache.hpp"
+#include "resource_factory.hpp"
 
 #include <set>
 #include <queue>
@@ -61,6 +63,10 @@ namespace mill
         void initialise(const ResourceManagerInit& init);
         void shutdown();
 
+        template <typename ResourceType>
+        void register_resource_type(ResourceTypeId resource_type_id, Owned<ResourceFactory> factory);
+        // void register_factory(ResourceType resource_type, );
+
         /* Getters */
 
         auto get_metadata(ResourceId id) -> ResourceMetadata&;
@@ -72,22 +78,43 @@ namespace mill
         void load_all_metadata();
         void load_metadata_file(const fs::path& filename);
 
+        /* Adds resource to queue to be loaded by worker thread. */
         void load_resource(ResourceId id);
+
+        /* Loads immediately on current thread. */
+        void force_load_resource();
 
     private:
         fs::path m_resourcePath;
 
         std::unordered_map<ResourceId, ResourceMetadata> m_metadataMap{};
-        std::unordered_map<ResourceId, Owned<Resource>> m_resourceMap{};
+        std::unordered_map<ResourceTypeId, Owned<ResourceCacheBase>> m_resourceCaches{};
+        std::unordered_map<ResourceTypeId, Owned<ResourceFactory>> m_resourceFactories{};
 
         std::set<ResourceId> m_pendingResources{};
         std::queue<ResourceId> m_resourceLoadQueue{};
     };
 
+    template <typename ResourceType>
+    void mill::ResourceManager::register_resource_type(ResourceTypeId resource_type_id, Owned<ResourceFactory> factory)
+    {
+        m_resourceCaches[resource_type_id] = CreateOwned<ResourceCache<ResourceType>>();
+        m_resourceFactories[resource_type_id] = std::move(factory);
+    }
+
     template <typename T>
     inline auto ResourceHandle::As() -> T*
     {
         Resource* resource{ nullptr };
+        if (m_manager && m_id)
+        {
+            resource = m_manager->get_resource(m_id);
+        }
+        else if (m_resource != nullptr)
+        {
+            resource = m_resource;
+        }
+
         const auto* cast_resource = static_cast<T*>(resource);
         return cast_resource;
     }
