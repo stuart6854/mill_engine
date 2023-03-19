@@ -41,17 +41,7 @@ namespace mill
     class Resource
     {
     public:
-        Resource() = default;
-        explicit Resource(ResourceId id, const ResourceMetadata& metadata) : m_id(id), m_metadata(metadata) {}
-        ~Resource() = default;
-
-        DISABLE_COPY_AND_MOVE(Resource);
-
-        auto get_id() const -> ResourceId;
-        auto get_metadata() -> ResourceMetadata&;
-
-    private:
-        const ResourceId m_id{};
-        const ResourceMetadata m_metadata{};
+        virtual ~Resource() = default;
     };
+
 }

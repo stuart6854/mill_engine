@@ -14,8 +14,11 @@ namespace mill
     ResourceHandle::ResourceHandle(ResourceManager& manager, ResourceId id) : m_manager(&manager), m_id(id)
     {
         m_metadata = &m_manager->get_metadata(m_id);
+        m_resource = m_manager->get_resource(m_id);
         m_refCount = m_metadata->refCount;
     }
+
+    ResourceHandle::ResourceHandle(Resource* resource) : m_resource(resource) {}
 
     ResourceHandle::ResourceHandle(const ResourceHandle& other)
     {
@@ -93,7 +96,7 @@ namespace mill
         return ResourceHandle(*this, id);
     }
 
-    auto ResourceManager::get_resource(ResourceId id) -> void*
+    auto ResourceManager::get_resource(ResourceId id) -> Resource*
     {
         ASSERT(id);
         ASSERT(m_metadataMap.find(id) != m_metadataMap.end());

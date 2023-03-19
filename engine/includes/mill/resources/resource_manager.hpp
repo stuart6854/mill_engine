@@ -18,6 +18,7 @@ namespace mill
     public:
         explicit ResourceHandle() = default;
         explicit ResourceHandle(ResourceManager& manager, ResourceId id);
+        explicit ResourceHandle(Resource* resource);
         ResourceHandle(const ResourceHandle& other);
         ResourceHandle(ResourceHandle&& other) noexcept;
         ~ResourceHandle() = default;
@@ -38,6 +39,7 @@ namespace mill
         ResourceManager* m_manager{ nullptr };
         ResourceId m_id{};
         ResourceMetadata* m_metadata{ nullptr };
+        Resource* m_resource{ nullptr };
         RefCount m_refCount{};
     };
 
@@ -64,7 +66,7 @@ namespace mill
         auto get_metadata(ResourceId id) -> ResourceMetadata&;
 
         auto get_handle(ResourceId id) -> ResourceHandle;
-        auto get_resource(ResourceId id) -> void*;
+        auto get_resource(ResourceId id) -> Resource*;
 
     private:
         void load_all_metadata();
@@ -85,7 +87,7 @@ namespace mill
     template <typename T>
     inline auto ResourceHandle::As() -> T*
     {
-        const auto* resource = m_manager->get_resource(m_id);
+        Resource* resource{ nullptr };
         const auto* cast_resource = static_cast<T*>(resource);
         return cast_resource;
     }
