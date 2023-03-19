@@ -11,12 +11,11 @@ namespace mill
     using ResourceId = u64;
 
     using ResourceTypeId = u32;
-    constexpr ResourceTypeId eNone = 0;
-    constexpr ResourceTypeId eStaticMesh = 1;
-    constexpr ResourceTypeId eSkeletalMesh = 2;
-    constexpr ResourceTypeId eMaterial = 3;
-    constexpr ResourceTypeId eAudio = 4;
-    constexpr ResourceTypeId eScene = 5;
+    constexpr ResourceTypeId ResourceType_StaticMesh = 0;
+    constexpr ResourceTypeId ResourceType_SkeletalMesh = 1;
+    constexpr ResourceTypeId ResourceType_Material = 2;
+    constexpr ResourceTypeId ResourceType_Audio = 3;
+    constexpr ResourceTypeId ResourceType_Scene = 4;
 
     enum class ResourceFlagBits : u8
     {
