@@ -216,7 +216,7 @@ namespace mill
 
         m_pimpl->resources->register_resource_type<StaticMesh>(ResourceType_StaticMesh, std::move(CreateOwned<StaticMeshFactory>()));
 
-        m_pimpl->app->initialise(init.args);
+        m_pimpl->app->initialise();
     }
 
     void Engine::shutdown()
