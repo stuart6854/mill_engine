@@ -286,7 +286,8 @@ namespace mill::platform::vulkan
     void RendererVulkan::destroy_static_mesh(StaticMesh* static_mesh)
     {
         auto& internal_static_mesh = m_internalStaticMeshes[static_mesh];
-        UNUSED(internal_static_mesh);  // #TODO: Destroy buffers
+        m_device->destroy_buffer(internal_static_mesh.indexBuffer);
+        m_device->destroy_buffer(internal_static_mesh.vertexBuffer);
         m_internalStaticMeshes.erase(static_mesh);
     }
 
@@ -308,12 +309,33 @@ namespace mill::platform::vulkan
 
         {
             const u64 size_bytes = sizeof(StaticVertex) * vertices.size();
-            UNUSED(size_bytes);  // #TODO: Create vertex buffer if the size is different
+            // if (internal_static_mesh.vertexBuffer == nullptr || internal_static_mesh.vertexBuffer->size < size_bytes)
+            {
+                m_device->destroy_buffer(internal_static_mesh.vertexBuffer);
+
+                BufferInit buffer_init{};
+                buffer_init.size = size_bytes;
+                buffer_init.usage = vk::BufferUsageFlagBits::eVertexBuffer;
+                buffer_init.initial_data = vertices.data();
+                internal_static_mesh.vertexBuffer = m_device->create_buffer(buffer_init);
+            }
 
             // #TODO: Write to buffer
         }
 
-        // #TODO: Same with index buffer
+        {
+            const u64 size_bytes = sizeof(u16) * indices.size();
+            // if (internal_static_mesh.vertexBuffer == nullptr || internal_static_mesh.vertexBuffer->size < size_bytes)
+            {
+                m_device->destroy_buffer(internal_static_mesh.indexBuffer);
+
+                BufferInit buffer_init{};
+                buffer_init.size = size_bytes;
+                buffer_init.usage = vk::BufferUsageFlagBits::eIndexBuffer;
+                buffer_init.initial_data = indices.data();
+                internal_static_mesh.indexBuffer = m_device->create_buffer(buffer_init);
+            }
+        }
 
         internal_static_mesh.indexCount = static_cast<u32>(indices.size());
     }
