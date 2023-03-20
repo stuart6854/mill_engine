@@ -14,7 +14,6 @@ namespace mill
     ResourceHandle::ResourceHandle(ResourceManager& manager, ResourceId id) : m_manager(&manager), m_id(id)
     {
         m_metadata = &m_manager->get_metadata(m_id);
-        m_resource = m_manager->get_resource(m_id);
         m_refCount = m_metadata->refCount;
     }
 
@@ -82,7 +81,7 @@ namespace mill
         return m_metadataMap[id];
     }
 
-    auto ResourceManager::get_handle(ResourceId id) -> ResourceHandle
+    auto ResourceManager::get_handle(ResourceId id, bool force_load) -> ResourceHandle
     {
         ASSERT(id);
         ASSERT(m_metadataMap.find(id) != m_metadataMap.end());
@@ -90,7 +89,14 @@ namespace mill
         const auto& metadata = get_metadata(id);
         if (!metadata.isLoaded)
         {
-            load_resource(id);
+            if (!force_load)
+            {
+                load_resource(id);
+            }
+            else
+            {
+                force_load_resource(id);
+            }
         }
 
         return ResourceHandle(*this, id);
@@ -102,6 +108,20 @@ namespace mill
         ASSERT(m_metadataMap.contains(id));
 
         const auto& metadata = get_metadata(id);
+        if (!metadata.isLoaded)
+        {
+            if (m_pendingResources.contains(id))
+            {
+                return nullptr;
+            }
+
+            force_load_resource(id);
+            if (!metadata.isLoaded)
+            {
+                return nullptr;
+            }
+        }
+
         ASSERT(m_resourceCaches.contains(metadata.typeId));
 
         auto* cache = m_resourceCaches[metadata.typeId].get();
@@ -172,7 +192,7 @@ namespace mill
 
             auto& metadata = m_metadataMap[id];
             metadata.id = id;
-            metadata.binaryFile = metadataNode["data_bank"].as<std::string>();
+            metadata.binaryFile = (filename.parent_path() / metadataNode["data_bank"].as<std::string>()).string();
             metadata.binaryOffset = metadataNode["data_offset"].as<u64>();
             metadata.binarySize = metadataNode["data_size"].as<u64>();
             metadata.flags = ResourceFlags(metadataNode["flags"].as<ResourceFlags::MaskType>());
@@ -196,8 +216,33 @@ namespace mill
             return;
         }
 
+        m_pendingResources.emplace(id);
         m_resourceLoadQueue.push(id);
         LOG_DEBUG("ResourceManager - Resource <{}> marked for loading.", id);
+    }
+
+    void ResourceManager::force_load_resource(ResourceId id)
+    {
+        ASSERT(id);
+        ASSERT(m_metadataMap.contains(id));
+
+        LOG_DEBUG("ResourceManager - Force loading <{}>.", id);
+
+        auto& metadata = get_metadata(id);
+        auto* factory = m_resourceFactories[metadata.typeId].get();
+        auto resource = factory->load(metadata);
+        if (resource == nullptr)
+        {
+            metadata.isLoaded = false;
+            LOG_ERROR("ResourceManager - Failed to loaded resource <id = {}>!", id);
+            return;
+        }
+
+        auto* cache = m_resourceCaches[metadata.typeId].get();
+        cache->add(id, std::move(resource));
+
+        metadata.isLoaded = true;
+        m_pendingResources.erase(id);
     }
 
 }

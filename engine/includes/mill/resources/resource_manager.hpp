@@ -71,7 +71,7 @@ namespace mill
 
         auto get_metadata(ResourceId id) -> ResourceMetadata&;
 
-        auto get_handle(ResourceId id) -> ResourceHandle;
+        auto get_handle(ResourceId id, bool force_load = false) -> ResourceHandle;
         auto get_resource(ResourceId id) -> Resource*;
 
     private:
@@ -82,23 +82,23 @@ namespace mill
         void load_resource(ResourceId id);
 
         /* Loads immediately on current thread. */
-        void force_load_resource();
+        void force_load_resource(ResourceId id);
 
     private:
         fs::path m_resourcePath;
 
         std::unordered_map<ResourceId, ResourceMetadata> m_metadataMap{};
-        std::unordered_map<ResourceTypeId, Owned<ResourceCacheBase>> m_resourceCaches{};
+        std::unordered_map<ResourceTypeId, Owned<ResourceCache>> m_resourceCaches{};
         std::unordered_map<ResourceTypeId, Owned<ResourceFactory>> m_resourceFactories{};
 
-        std::set<ResourceId> m_pendingResources{};
+        std::set<ResourceId> m_pendingResources{};  // ResourceIds of any resource waiting to load or in the process of being loaded.
         std::queue<ResourceId> m_resourceLoadQueue{};
     };
 
     template <typename ResourceType>
     void mill::ResourceManager::register_resource_type(ResourceTypeId resource_type_id, Owned<ResourceFactory> factory)
     {
-        m_resourceCaches[resource_type_id] = CreateOwned<ResourceCache<ResourceType>>();
+        m_resourceCaches[resource_type_id] = CreateOwned<ResourceCache>();
         m_resourceFactories[resource_type_id] = std::move(factory);
     }
 
@@ -106,7 +106,7 @@ namespace mill
     inline auto ResourceHandle::As() -> T*
     {
         Resource* resource{ nullptr };
-        if (m_manager && m_id)
+        if (m_manager != nullptr && m_id)
         {
             resource = m_manager->get_resource(m_id);
         }
@@ -115,7 +115,7 @@ namespace mill
             resource = m_resource;
         }
 
-        const auto* cast_resource = static_cast<T*>(resource);
+        auto* cast_resource = static_cast<T*>(resource);
         return cast_resource;
     }
 }
