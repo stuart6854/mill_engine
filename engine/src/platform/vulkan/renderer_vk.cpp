@@ -252,14 +252,21 @@ namespace mill::platform::vulkan
         m_graphicsContext->set_descriptor_set(0, *frame.globalSet);
         m_graphicsContext->set_descriptor_set(1, *frame.sceneSet);
 
-        m_graphicsContext->set_index_buffer(*m_indexBuffer, vk::IndexType::eUint16);
-        m_graphicsContext->set_vertex_buffer(*m_vertexBuffer);
+        for (const auto& instance : scene_info.meshInstances)
+        {
+            const auto& internal_mesh = m_internalStaticMeshes.at(instance.mesh);
 
-        m_pushConstants.transform = glm::rotate(m_pushConstants.transform, (1.0f / 240.0f) * glm ::radians(5.0f), glm::vec3(0, 1, 0));
-        m_pushConstants.textureId = 1;
-        m_graphicsContext->set_constants(
-            vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &m_pushConstants);
-        m_graphicsContext->draw_indexed(3 * 4, 0, 0);
+            m_graphicsContext->set_index_buffer(*internal_mesh.indexBuffer, vk::IndexType::eUint16);
+            m_graphicsContext->set_vertex_buffer(*internal_mesh.vertexBuffer);
+
+            m_pushConstants.transform = instance.transform;
+            // m_pushConstants.transform = glm::rotate(m_pushConstants.transform, (1.0f / 240.0f) * glm ::radians(5.0f), glm::vec3(0, 1,
+            // 0));
+            m_pushConstants.textureId = 1;
+            m_graphicsContext->set_constants(
+                vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0, sizeof(PushConstants), &m_pushConstants);
+            m_graphicsContext->draw_indexed(internal_mesh.indexCount, 0, 0);
+        }
 
         m_graphicsContext->end_render_pass();
 
