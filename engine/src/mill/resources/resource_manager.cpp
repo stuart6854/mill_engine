@@ -70,6 +70,9 @@ namespace mill
     {
         LOG_INFO("ResourceManager - Shutting down...");
         m_resourceLoadQueue = {};
+        m_pendingResources.clear();
+        m_resourceFactories.clear();
+        m_resourceCaches.clear();
         m_metadataMap.clear();
     }
 
