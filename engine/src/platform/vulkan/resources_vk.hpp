@@ -64,7 +64,7 @@ namespace mill::platform::vulkan
         u64 size{};
         vk::BufferUsageFlags usage{};
         bool isCPUVisible{ false };
-        void* initial_data = nullptr;
+        const void* initial_data = nullptr;
     };
 
     struct BufferVulkan
