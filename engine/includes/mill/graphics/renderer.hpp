@@ -17,9 +17,9 @@ namespace mill
 
     struct MeshInstance
     {
-        // Mesh
+        StaticMesh* mesh{ nullptr };  // Mesh
         // Material
-        // Transform
+        glm::mat4 transform{ 1.0f };  // Transform
         // Render Flags - eg. AffectsShadows,
     };
 
@@ -29,7 +29,7 @@ namespace mill
         glm::mat4 cameraProj{ 1.0f };
         glm::mat4 cameraView{ 1.0f };
 
-        // MeshInstance[]
+        std::vector<MeshInstance> meshInstances{};  // MeshInstance[]
         // Lighting Info - Lights, Skybox, etc.
         // UI
     };

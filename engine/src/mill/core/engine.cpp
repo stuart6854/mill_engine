@@ -90,6 +90,10 @@ namespace mill
 
         initialise();
 
+        auto handle = m_pimpl->resources->get_handle(1998, true);
+        auto* mesh = handle.As<StaticMesh>();
+        UNUSED(mesh);
+
         using clock = high_resolution_clock;
         auto lastFrameTime = clock::now();
         while (m_pimpl->isRunning)
@@ -163,6 +167,10 @@ namespace mill
             scene_info.cameraProj = glm::perspective(glm::radians(60.0f), aspect_ratio, 0.1f, 100.0f);
             scene_info.cameraView =
                 glm::lookAt(m_pimpl->cameraPosition, m_pimpl->cameraPosition + m_pimpl->cameraDirection, glm::vec3(0, 1, 0));
+
+            auto& mesh_instance = scene_info.meshInstances.emplace_back();
+            mesh_instance.mesh = handle.As<StaticMesh>();
+            mesh_instance.transform = glm::mat4(1.0f);
 
             m_pimpl->renderer->render(scene_info);
         }
@@ -238,10 +246,6 @@ namespace mill
                                                                std::move(CreateOwned<StaticMeshFactory>(m_pimpl->renderer.get())));
 
         m_pimpl->app->initialise();
-
-        auto handle = m_pimpl->resources->get_handle(1998, true);
-        auto* mesh = handle.As<StaticMesh>();
-        UNUSED(mesh);
     }
 
     void Engine::shutdown()
