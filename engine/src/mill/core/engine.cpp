@@ -248,6 +248,8 @@ namespace mill
     {
         LOG_INFO("Engine - Shutting down...");
 
+        m_pimpl->renderer->wait_idle();
+
         m_pimpl->app->shutdown();
 
         SHUTDOWN_SYSTEM(resources);

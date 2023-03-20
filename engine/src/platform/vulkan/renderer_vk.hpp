@@ -33,6 +33,8 @@ namespace mill::platform::vulkan
         auto create_static_mesh() -> Owned<StaticMesh> override;
         void destroy_static_mesh(StaticMesh* static_mesh) override;
 
+        void wait_idle() override;
+
     private:
         struct Frame;
         auto get_frame() -> Frame&;

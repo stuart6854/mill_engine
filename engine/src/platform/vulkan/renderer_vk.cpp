@@ -290,6 +290,11 @@ namespace mill::platform::vulkan
         m_internalStaticMeshes.erase(static_mesh);
     }
 
+    void RendererVulkan::wait_idle()
+    {
+        m_device->wait_idle();
+    }
+
     auto RendererVulkan::get_frame() -> Frame&
     {
         return m_frames[m_frameIndex];

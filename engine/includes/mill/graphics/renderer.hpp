@@ -50,6 +50,9 @@ namespace mill
 
         virtual auto create_static_mesh() -> Owned<StaticMesh> = 0;
         virtual void destroy_static_mesh(StaticMesh* static_mesh) = 0;
+
+        /* Called prior to engine shutdown to ensure no graphics resources are in use before cleanup. */
+        virtual void wait_idle() = 0;
     };
 
     namespace platform
