@@ -645,6 +645,11 @@ namespace mill::platform::vulkan
 
     void DeviceVulkan::destroy_buffer(BufferVulkan* buffer)
     {
+        if (buffer == nullptr)
+        {
+            return;
+        }
+
         const auto id = buffer->id;
         if (m_buffers.find(id) == m_buffers.end())
         {
