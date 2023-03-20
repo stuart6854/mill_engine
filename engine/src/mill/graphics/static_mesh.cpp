@@ -17,6 +17,11 @@ namespace mill
         m_triangles = triangles;
     }
 
+    void StaticMesh::set_submeshes(const std::vector<Submesh>& submeshes)
+    {
+        m_submeshes = submeshes;
+    }
+
     void StaticMesh::apply()
     {
         cb_on_data_changed.emit(this);
@@ -30,6 +35,11 @@ namespace mill
     auto StaticMesh::get_indices() const -> const std::vector<u16>&
     {
         return m_triangles;
+    }
+
+    auto StaticMesh::get_submeshes() const -> const std::vector<Submesh>&
+    {
+        return m_submeshes;
     }
 
 }
