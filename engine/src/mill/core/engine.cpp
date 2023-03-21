@@ -58,6 +58,8 @@ namespace mill
 
         /* Systems */
 
+        Events events{};
+
         Owned<WindowInterface> window = nullptr;
         Owned<RendererInterface> renderer = nullptr;
         Owned<InputInterface> input = nullptr;
@@ -98,6 +100,8 @@ namespace mill
         auto lastFrameTime = clock::now();
         while (m_pimpl->isRunning)
         {
+            m_pimpl->events.flush_queue();
+
             auto now = clock::now();
             u64 ms = duration_cast<milliseconds>(now - lastFrameTime).count();
             m_pimpl->deltaTime = static_cast<f32>(static_cast<f64>(ms) / 1000.0f);
@@ -181,6 +185,11 @@ namespace mill
     void Engine::quit()
     {
         m_pimpl->isRunning = false;
+    }
+
+    auto Engine::get_events() const -> Events&
+    {
+        return m_pimpl->events;
     }
 
     auto Engine::get_window() const -> WindowInterface*
