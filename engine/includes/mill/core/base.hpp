@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <functional>
 
 namespace mill
 {
@@ -35,6 +36,12 @@ namespace mill
         seed ^= h(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
 
+    inline u64 operator""_hs(const char* c_str, sizet length)
+    {
+        std::string_view str(c_str, length);
+        return std::hash<std::string_view>{}(str);
+    }
+
     template <typename T>
     inline auto vec_data_size(const std::vector<T>& vec) -> sizet
     {
@@ -62,6 +69,13 @@ namespace mill
 
 #ifndef UNUSED
     #define UNUSED(_var) (void)_var
+#endif
+
+#ifndef CAST_U32
+    #define CAST_U8(_x) static_cast<u8>(_x)
+    #define CAST_U16(_x) static_cast<u16>(_x)
+    #define CAST_U32(_x) static_cast<u32>(_x)
+    #define CAST_U64(_x) static_cast<u64>(_x)
 #endif
 
 #ifndef DISABLE_COPY
