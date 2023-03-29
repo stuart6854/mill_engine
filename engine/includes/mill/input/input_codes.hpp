@@ -4,6 +4,7 @@
 
 namespace mill
 {
+    // #TODO: Align with windows key codes - https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
     enum class KeyCodes : u16
     {
         Space = 32,
