@@ -70,6 +70,7 @@ private:
 
 private:
     platform::HandleWindow m_windowHandle{ nullptr };
+    Owned<SceneRenderer> m_sceneRenderer{ nullptr };
 };
 
 auto mill::create_application() -> mill::Application*
