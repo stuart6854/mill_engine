@@ -7,6 +7,8 @@
 
 #include "events/events.hpp"
 
+#include "platform/platform_interface.hpp"
+
 #include "graphics/static_mesh.hpp"
 
 #include "input/input_codes.hpp"
