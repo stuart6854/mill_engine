@@ -1,6 +1,7 @@
 #include "mill/core/engine.hpp"
 
 #include "mill/core/base.hpp"
+#include "mill/events/events.hpp"
 #include "mill/core/application.hpp"
 #include "platform/windowing.hpp"
 #include "mill/input/input.hpp"
@@ -98,6 +99,7 @@ namespace mill
         auto lastFrameTime = clock::now();
         while (m_pimpl->isRunning)
         {
+            platform::platform_pump_messages();
             m_pimpl->events.flush_queue();
 
             auto now = clock::now();

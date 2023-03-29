@@ -5,6 +5,7 @@
 #include "core/engine.hpp"
 #include "core/application.hpp"
 
+#include "events/events.hpp"
 
 #include "graphics/static_mesh.hpp"
 
