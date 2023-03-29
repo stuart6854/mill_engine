@@ -20,6 +20,7 @@ namespace mill
     struct Event
     {
         EventType type{};
+        void* context{ nullptr };
 
         // 128 bytes
         union
