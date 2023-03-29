@@ -44,7 +44,7 @@ public:
             const static auto RenderContextId = "render_context"_hs;
             rhi::begin_contex(RenderContextId);
 
-            rhi::begin_view(RenderContextId, SceneViewId, { 1, 0, 0, 1 });
+            rhi::begin_view(RenderContextId, SceneViewId, { 0.392f, 0.584f, 0.929f, 1 });
 
             rhi::end_view(RenderContextId, SceneViewId);
 
