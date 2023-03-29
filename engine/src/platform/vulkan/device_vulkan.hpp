@@ -14,6 +14,8 @@ namespace mill::rhi
         bool initialise();
         void shutdown();
 
+        void wait_idle() const;
+
         /* Getters */
 
         auto get_instance() -> vk::Instance&;

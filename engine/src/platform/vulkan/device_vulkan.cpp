@@ -91,6 +91,11 @@ namespace mill::rhi
         m_instance.reset();
     }
 
+    void DeviceVulkan::wait_idle() const
+    {
+        m_device->waitIdle();
+    }
+
     auto DeviceVulkan::get_instance() -> vk::Instance&
     {
         return *m_instance;
