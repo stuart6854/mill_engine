@@ -15,6 +15,7 @@
 namespace mill::platform
 {
     void close_callback(GLFWwindow* window);
+    void size_callback(GLFWwindow* window, i32 width, i32 height);
 
     bool platform_initialise()
     {
@@ -57,6 +58,7 @@ namespace mill::platform
         LOG_INFO("   monitor = {}", monitor_name);
 
         glfwSetWindowCloseCallback(handle, close_callback);
+        glfwSetWindowSizeCallback(handle, size_callback);
 
         return handle;
     }
@@ -97,6 +99,17 @@ namespace mill::platform
         Event event{};
         event.type = EventType::eWindowClose;
         event.context = window;
+
+        Engine::get()->get_events().post_immediate(event);
+    }
+
+    void size_callback(GLFWwindow* window, i32 width, i32 height)
+    {
+        Event event{};
+        event.type = EventType::eWindowSize;
+        event.context = window;
+        event.data.u32[0] = width;
+        event.data.u32[1] = height;
 
         Engine::get()->get_events().post_immediate(event);
     }

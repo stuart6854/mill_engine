@@ -66,6 +66,17 @@ private:
                 Engine::get()->quit();
             }
         }
+        else if (event.type == EventType::eWindowSize)
+        {
+            const platform::HandleWindow windowContext = event.context;
+            if (windowContext == m_windowHandle)
+            {
+                u32 width = event.data.u32[0];
+                u32 height = event.data.u32[1];
+                rhi::reset_screen(0, width, height, true);
+                rhi::reset_view(SceneViewId, width, height);
+            }
+        }
     }
 
 private:
