@@ -27,6 +27,11 @@ namespace mill::rhi
         ASSERT(m_device.get_device());
         ASSERT(m_surface);
 
+        // Handle minimized windows
+        m_isMinimized = width == 0 || height == 0;
+        if (m_isMinimized)
+            return;
+
         m_device.wait_idle();
 
         vk::UniqueSwapchainKHR old_swapchain = std::move(m_swapchain);
@@ -62,6 +67,10 @@ namespace mill::rhi
 
     void ScreenVulkan::acquire_image()
     {
+        // Handle minimized screens
+        if (is_minimized())
+            return;
+
         m_semaphoreIndex = (m_semaphoreIndex + 1) % CAST_U32(m_acquireSemaphores.size());
 
         auto result =
@@ -90,6 +99,11 @@ namespace mill::rhi
     auto ScreenVulkan::get_acquire_semaphore() const -> const vk::Semaphore&
     {
         return m_acquireSemaphores[m_semaphoreIndex].get();
+    }
+
+    bool ScreenVulkan::is_minimized() const
+    {
+        return m_isMinimized;
     }
 
 }

@@ -558,6 +558,11 @@ namespace mill::rhi::vulkan
             barrier.setSrcAccessMask(vk::AccessFlagBits2::eColorAttachmentWrite);
             barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eColorAttachmentOutput);
         }
+        else if (old_layout == vk::ImageLayout::ePresentSrcKHR)
+        {
+            barrier.setSrcAccessMask(vk::AccessFlagBits2::eNone);
+            barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eBottomOfPipe);
+        }
         else
         {
             LOG_ERROR("Unsupported `old_layout` for image barrier!");

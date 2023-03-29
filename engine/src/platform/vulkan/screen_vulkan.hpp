@@ -27,6 +27,8 @@ namespace mill::rhi
 
         auto get_backbuffer() -> ImageVulkan&;
 
+        bool is_minimized() const;
+
     private:
         DeviceVulkan& m_device;
         vk::UniqueSurfaceKHR m_surface{};
@@ -40,5 +42,7 @@ namespace mill::rhi
 
         std::array<vk::UniqueSemaphore, g_FrameBufferCount> m_acquireSemaphores{};
         u32 m_semaphoreIndex{};
+
+        bool m_isMinimized{};
     };
 }

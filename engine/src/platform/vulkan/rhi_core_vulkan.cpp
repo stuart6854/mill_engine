@@ -8,6 +8,8 @@
 #include "image_vulkan.hpp"
 #include "helpers_vulkan.hpp"
 
+#include <xutility>
+
 namespace mill::rhi
 {
     Owned<DeviceVulkan> g_device{ nullptr };
@@ -70,6 +72,17 @@ namespace mill::rhi
     {
         ASSERT(g_device);
 
+        // Can any swap chains be presented
+        bool can_present = false;
+        for (auto& [id, screen] : get_resources().screenMap)
+        {
+            if (!screen->is_minimized())
+            {
+                can_present = true;
+                break;
+            }
+        }
+
         std::unordered_map<u64, vk::Semaphore> present_wait_semaphore_map{};
 
         // Submit
@@ -82,6 +95,9 @@ namespace mill::rhi
             for (auto screen_id : context->get_associated_screens())
             {
                 auto& screen = get_resources().screenMap.at(screen_id);
+                if (screen->is_minimized())
+                    continue;
+
                 auto& semaphore = screen->get_acquire_semaphore();
                 wait_semaphores.push_back(semaphore);
 
@@ -93,7 +109,8 @@ namespace mill::rhi
             submit_info.setCommandBuffers(context->get_cmd());
             submit_info.setWaitDstStageMask(wait_stage);
             submit_info.setWaitSemaphores(wait_semaphores);
-            submit_info.setSignalSemaphores(context->get_completed_semaphore());
+            if (can_present)
+                submit_info.setSignalSemaphores(context->get_completed_semaphore());
             g_device->get_graphics_queue().submit(submit_info, context->get_fence());
         }
 
@@ -105,6 +122,10 @@ namespace mill::rhi
         auto& screens = get_resources().screenMap;
         for (auto& [id, screen] : screens)
         {
+            // Handle minimized screens
+            if (screen->is_minimized())
+                continue;
+
             image_indices.push_back(screen->get_image_index());
             swap_chains.push_back(screen->get_swap_chain());
             if (present_wait_semaphore_map.contains(id))
@@ -112,6 +133,10 @@ namespace mill::rhi
                 wait_semaphores.push_back(present_wait_semaphore_map[id]);
             }
         }
+
+        // Do not Present if not any swap chains
+        if (swap_chains.empty())
+            return;
 
         vk::PresentInfoKHR present_info{};
         present_info.setImageIndices(image_indices);
@@ -186,15 +211,20 @@ namespace mill::rhi
         ASSERT(g_contexts->viewMap.contains(view));
 
         auto& context_instance = g_contexts->contextMap[context];
-        context_instance->associate_screen(screen);
 
         auto& screen_inst = get_resources().screenMap.at(screen);
+        // Handle minimized screens
+        if (screen_inst->is_minimized())
+            return;
+
         auto& view_instance = g_contexts->viewMap[view];
 
         screen_inst->get_backbuffer().transition_to_transfer_dst(*context_instance);
         view_instance->get_color_attachment()->transition_to_transfer_src(*context_instance);
         context_instance->blit(*view_instance->get_color_attachment(), screen_inst->get_backbuffer());
         screen_inst->get_backbuffer().transition_to_present(*context_instance);
+
+        context_instance->associate_screen(screen);
     }
 
     void reset_view(u64 view, u32 width, u32 height)
@@ -205,6 +235,10 @@ namespace mill::rhi
         {
             g_contexts->viewMap[view] = CreateOwned<ViewVulkan>(*g_device);
         }
+
+        // Ensure we never have a view with a dimension of (0,0), eg. Minimized Window
+        width = std::max(1u, width);
+        height = std::max(1u, height);
 
         auto& view_inst = g_contexts->viewMap.at(view);
         view_inst->reset(width, height);

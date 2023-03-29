@@ -17,6 +17,9 @@ namespace mill::rhi
     ImageVulkan::ImageVulkan(DeviceVulkan& device, vk::ImageUsageFlags usage, vk::Extent3D dimensions, vk::Format format, u32 mip_levels)
         : m_device(device), m_usage(usage), m_dimensions(dimensions), m_format(format), m_mipLevels(mip_levels)
     {
+        ASSERT(m_dimensions.width > 0 && m_dimensions.height > 0 && m_dimensions.depth > 0);
+        ASSERT(mip_levels > 0);
+
         vk::ImageCreateInfo image_info{};
         image_info.setUsage(m_usage);
         image_info.setExtent(m_dimensions);
