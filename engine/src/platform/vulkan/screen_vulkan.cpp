@@ -27,7 +27,7 @@ namespace mill::rhi
         ASSERT(m_device.get_device());
         ASSERT(m_surface);
 
-        auto old_swapchain = m_swapchain.get();
+        vk::UniqueSwapchainKHR old_swapchain = std::move(m_swapchain);
 
         m_swapchain.reset();
         m_backbuffers.clear();
@@ -46,7 +46,7 @@ namespace mill::rhi
         swapchain_info.setImageArrayLayers(1);
         swapchain_info.setImageUsage(vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst);
         swapchain_info.setPresentMode(m_presentMode);
-        swapchain_info.setOldSwapchain(old_swapchain);
+        swapchain_info.setOldSwapchain(old_swapchain.get());
         m_swapchain = m_device.get_device().createSwapchainKHRUnique(swapchain_info);
 
         auto images = m_device.get_device().getSwapchainImagesKHR(m_swapchain.get());
