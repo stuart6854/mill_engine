@@ -6,7 +6,6 @@ namespace mill
 {
     class Events;
     class WindowInterface;
-    class RendererInterface;
     class InputInterface;
     class ResourceManager;
     class Application;
@@ -27,7 +26,6 @@ namespace mill
 
         auto get_events() const -> Events&;
         auto get_window() const -> WindowInterface*;
-        auto get_renderer() const -> RendererInterface*;
         auto get_input() const -> InputInterface*;
         auto get_resources() const -> ResourceManager*;
 

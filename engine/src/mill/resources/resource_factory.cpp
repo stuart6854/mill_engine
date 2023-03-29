@@ -6,6 +6,8 @@ namespace mill
 {
     auto StaticMeshFactory::load(const ResourceMetadata& metadata) -> Owned<Resource>
     {
+        UNUSED(metadata);
+#if 0
         BinaryReader reader(metadata.binaryFile);
 
         // File Header
@@ -78,6 +80,8 @@ namespace mill
         static_mesh->set_submeshes(submeshes);
         static_mesh->apply();
         return std::move(static_mesh);
+#endif
+        return nullptr;
     }
 
 }

@@ -31,8 +31,6 @@ project "Engine"
         "src/**.h",
         "includes/**"
     }
-    removefiles { "src/platform/**" }
-    files { "src/platform/*.hpp" }
 
     includedirs {        
         "src/",
@@ -45,18 +43,5 @@ project "Engine"
         "GLM_FORCE_DEPTH_ZERO_TO_ONE",        
         "GLM_FORCE_LEFT_HANDED"        
     }
-
-    filter "platforms:Win64"
-        files { 
-            "src/platform/glfw/**",
-            "src/platform/vulkan/**"
-            -- "src/platform/d3d12/**"
-        }
-
-    filter "platforms:Linux"
-        files { 
-            "src/platform/glfw/**",
-            "src/platform/vulkan/**"
-        }
 
     filter ""

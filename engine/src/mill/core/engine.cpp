@@ -3,7 +3,6 @@
 #include "mill/core/base.hpp"
 #include "mill/core/application.hpp"
 #include "platform/windowing.hpp"
-#include "platform/graphics.hpp"
 #include "mill/input/input.hpp"
 #include "mill/resources/resource_manager.hpp"
 
@@ -61,7 +60,6 @@ namespace mill
         Events events{};
 
         Owned<WindowInterface> window = nullptr;
-        Owned<RendererInterface> renderer = nullptr;
         Owned<InputInterface> input = nullptr;
         Owned<ResourceManager> resources = nullptr;
 
@@ -92,9 +90,9 @@ namespace mill
 
         initialise();
 
-        auto handle = m_pimpl->resources->get_handle(1998, true);
-        auto* mesh = handle.As<StaticMesh>();
-        UNUSED(mesh);
+        // auto handle = m_pimpl->resources->get_handle(1998, true);
+        // auto* mesh = handle.As<StaticMesh>();
+        // UNUSED(mesh);
 
         using clock = high_resolution_clock;
         auto lastFrameTime = clock::now();
@@ -108,7 +106,7 @@ namespace mill
             lastFrameTime = now;
 
             m_pimpl->input->new_frame();
-            m_pimpl->window->poll_events();
+            // m_pimpl->window->poll_events();
 
             // Print delta time
             if (m_pimpl->input->on_key_held(KeyCodes::F1))
@@ -165,7 +163,7 @@ namespace mill
                 }
             }
 
-            const f32 aspect_ratio =
+            /* const f32 aspect_ratio =
                 static_cast<f32>(m_pimpl->window->get_resolution().x) / static_cast<f32>(m_pimpl->window->get_resolution().y);
             SceneInfo scene_info{};
             scene_info.cameraProj = glm::perspective(glm::radians(60.0f), aspect_ratio, 0.1f, 100.0f);
@@ -173,10 +171,13 @@ namespace mill
                 glm::lookAt(m_pimpl->cameraPosition, m_pimpl->cameraPosition + m_pimpl->cameraDirection, glm::vec3(0, 1, 0));
 
             auto& mesh_instance = scene_info.meshInstances.emplace_back();
-            mesh_instance.mesh = handle.As<StaticMesh>();
-            mesh_instance.transform = glm::mat4(1.0f);
+            // mesh_instance.mesh = handle.As<StaticMesh>();
+            mesh_instance.transform = glm::mat4(1.0f);*/
 
-            m_pimpl->renderer->render(scene_info);
+            if (m_pimpl->app != nullptr)
+            {
+                m_pimpl->app->update();
+            }
         }
 
         shutdown();
@@ -195,11 +196,6 @@ namespace mill
     auto Engine::get_window() const -> WindowInterface*
     {
         return m_pimpl->window.get();
-    }
-
-    auto Engine::get_renderer() const -> RendererInterface*
-    {
-        return m_pimpl->renderer.get();
     }
 
     auto Engine::get_input() const -> InputInterface*
@@ -222,37 +218,22 @@ namespace mill
 
         load_config();
 
-        auto toml_window_size = m_pimpl->config["window"]["resolution"].as_array();
-        auto window_width = static_cast<u32>(static_cast<::mill::i64>(*toml_window_size->get(0)->as_integer()));
-        auto window_height = static_cast<u32>(static_cast<::mill::i64>(*toml_window_size->get(1)->as_integer()));
-
-        WindowInit window_init{
-            window_width,
-            window_height,
-            "Mill Engine",
-        };
-        INIT_SYSTEM(window, platform::create_window(), window_init);
-        m_pimpl->window->cb_on_window_close_requested.connect_member(this, &Engine::quit);
-
-        RendererInit renderer_init{
-            m_pimpl->window->get_platform_handle(),
-            window_width,
-            window_height,
-        };
-        INIT_SYSTEM(renderer, platform::create_renderer(), renderer_init);
+        // auto toml_window_size = m_pimpl->config["window"]["resolution"].as_array();
+        //  auto window_width = static_cast<u32>(static_cast<::mill::i64>(*toml_window_size->get(0)->as_integer()));
+        //  auto window_height = static_cast<u32>(static_cast<::mill::i64>(*toml_window_size->get(1)->as_integer()));
 
         INIT_SYSTEM(input, CreateOwned<InputDefault>());
-        m_pimpl->window->cb_on_input_keyboard_key.connect([this](i32 key, bool is_down)
+        /*m_pimpl->window->cb_on_input_keyboard_key.connect([this](i32 key, bool is_down)
                                                           { m_pimpl->input->set_key(static_cast<KeyCodes>(key), is_down); });
         m_pimpl->window->cb_on_input_mouse_btn.connect([this](i32 btn, bool is_down)
                                                        { m_pimpl->input->set_mouse_btn(static_cast<MouseButtonCodes>(btn), is_down); });
-        m_pimpl->window->cb_on_input_cursor_pos.connect([this](glm::vec2 pos) { m_pimpl->input->set_cursor_pos(pos); });
+        m_pimpl->window->cb_on_input_cursor_pos.connect([this](glm::vec2 pos) { m_pimpl->input->set_cursor_pos(pos); });*/
 
         ResourceManagerInit resource_manager_init{};
         INIT_SYSTEM(resources, CreateOwned<ResourceManager>(), resource_manager_init);
 
-        m_pimpl->resources->register_resource_type<StaticMesh>(ResourceType_StaticMesh,
-                                                               std::move(CreateOwned<StaticMeshFactory>(m_pimpl->renderer.get())));
+        /*m_pimpl->resources->register_resource_type<StaticMesh>(ResourceType_StaticMesh,
+                                                               std::move(CreateOwned<StaticMeshFactory>(m_pimpl->renderer.get())));*/
 
         m_pimpl->app->initialise();
     }
@@ -261,14 +242,10 @@ namespace mill
     {
         LOG_INFO("Engine - Shutting down...");
 
-        m_pimpl->renderer->wait_idle();
-
         m_pimpl->app->shutdown();
 
         SHUTDOWN_SYSTEM(resources);
         SHUTDOWN_SYSTEM(input);
-        SHUTDOWN_SYSTEM(renderer);
-        SHUTDOWN_SYSTEM(window);
     }
 
     void Engine::load_config()
