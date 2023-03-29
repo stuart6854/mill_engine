@@ -27,6 +27,8 @@ namespace mill::rhi
         ASSERT(m_device.get_device());
         ASSERT(m_surface);
 
+        m_device.wait_idle();
+
         vk::UniqueSwapchainKHR old_swapchain = std::move(m_swapchain);
 
         m_swapchain.reset();

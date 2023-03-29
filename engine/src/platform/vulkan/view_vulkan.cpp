@@ -1,5 +1,6 @@
 #include "view_vulkan.hpp"
 
+#include "device_vulkan.hpp"
 #include "image_vulkan.hpp"
 
 namespace mill::rhi
@@ -14,6 +15,9 @@ namespace mill::rhi
         {
             return;
         }
+
+        m_device.wait_idle();
+
         m_colorImage.reset();
         m_depthImage.reset();
 
