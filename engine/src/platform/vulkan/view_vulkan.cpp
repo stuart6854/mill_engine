@@ -37,7 +37,7 @@ namespace mill::rhi
         m_depthAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
         m_depthAttachment.setImageView(m_depthImage->get_view());
         m_depthAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
-        m_depthAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+        m_depthAttachment.setStoreOp(vk::AttachmentStoreOp::eDontCare);
 
         m_renderingInfo.setColorAttachments(m_colorAttachment);
         m_renderingInfo.setPDepthAttachment(&m_depthAttachment);
