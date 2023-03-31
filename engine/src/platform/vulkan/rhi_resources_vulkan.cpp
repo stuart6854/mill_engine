@@ -3,8 +3,7 @@
 #include "mill/platform/rhi.hpp"
 #include "rhi_core_vulkan.hpp"
 #include "screen_vulkan.hpp"
-
-#include <unordered_map>
+#include "pipeline_vulkan.hpp"
 
 namespace mill::rhi
 {
@@ -44,6 +43,16 @@ namespace mill::rhi
 
         auto& screen_inst = g_resources->screenMap.at(screen);
         screen_inst->reset(width, height, vsync);
+    }
+
+    auto create_pipeline(const PipelineDescription& description) -> HandlePipeline
+    {
+        const HandlePipeline handle = g_resources->nextPipelineId++;
+
+        auto& pipeline = g_resources->pipelineMap[handle];
+        pipeline = CreateOwned<PipelineVulkan>(get_device(), description);
+
+        return handle;
     }
 
 }

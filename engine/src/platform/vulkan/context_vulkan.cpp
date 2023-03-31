@@ -1,7 +1,9 @@
 #include "context_vulkan.hpp"
 
+#include "rhi_resources_vulkan.hpp"
 #include "device_vulkan.hpp"
 #include "image_vulkan.hpp"
+#include "pipeline_vulkan.hpp"
 #include "helpers_vulkan.hpp"
 
 namespace mill::rhi
@@ -32,6 +34,7 @@ namespace mill::rhi
     void ContextVulkan::wait_and_begin()
     {
         m_associatedScreens.clear();
+        m_boundPipeline = nullptr;
 
         m_frameIndex = (m_frameIndex + 1) % CAST_U32(m_frames.size());
 
@@ -54,6 +57,43 @@ namespace mill::rhi
     void ContextVulkan::end()
     {
         get_cmd().end();
+    }
+
+    void ContextVulkan::set_viewport(f32 x, f32 y, f32 w, f32 h, f32 min_depth, f32 max_depth)
+    {
+        vk::Viewport viewport{};
+        viewport.setX(x);
+        viewport.setY(y);
+        viewport.setWidth(w);
+        viewport.setHeight(h);
+        viewport.setMinDepth(min_depth);
+        viewport.setMaxDepth(max_depth);
+        get_cmd().setViewport(0, viewport);
+    }
+
+    void ContextVulkan::set_scissor(i32 x, i32 y, u32 w, u32 h)
+    {
+        vk::Rect2D scissor{};
+        scissor.setOffset(vk::Offset2D(x, y));
+        scissor.setExtent(vk::Extent2D(w, h));
+        get_cmd().setScissor(0, scissor);
+    }
+
+    void ContextVulkan::set_pipeline(HandlePipeline pipeline)
+    {
+        ASSERT(get_resources().pipelineMap.contains(pipeline));
+
+        auto& pipeline_inst = get_resources().pipelineMap[pipeline];
+        ASSERT(pipeline_inst->get_pipeline());
+
+        get_cmd().bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline_inst->get_pipeline());
+
+        m_boundPipeline = pipeline_inst.get();
+    }
+
+    void ContextVulkan::draw(u32 vertex_count)
+    {
+        get_cmd().draw(vertex_count, 1, 0, 0);
     }
 
     void ContextVulkan::associate_screen(u64 screen)
@@ -126,4 +166,5 @@ namespace mill::rhi
     {
         return m_associatedScreens;
     }
+
 }

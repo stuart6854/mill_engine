@@ -202,6 +202,46 @@ namespace mill::rhi
         view_instance->end(context_instance->get_cmd());
     }
 
+    void set_viewport(u64 context, f32 x, f32 y, f32 w, f32 h, f32 min_depth, f32 max_depth)
+    {
+        ASSERT(g_device);
+        ASSERT(g_contexts);
+        ASSERT(g_contexts->contextMap.contains(context));
+
+        auto& context_instance = g_contexts->contextMap[context];
+        context_instance->set_viewport(x, y, w, h, min_depth, max_depth);
+    }
+
+    void set_scissor(u64 context, i32 x, i32 y, u32 w, u32 h)
+    {
+        ASSERT(g_device);
+        ASSERT(g_contexts);
+        ASSERT(g_contexts->contextMap.contains(context));
+
+        auto& context_instance = g_contexts->contextMap[context];
+        context_instance->set_scissor(x, y, w, h);
+    }
+
+    void set_pipeline(u64 context, HandlePipeline pipeline)
+    {
+        ASSERT(g_device);
+        ASSERT(g_contexts);
+        ASSERT(g_contexts->contextMap.contains(context));
+
+        auto& context_instance = g_contexts->contextMap[context];
+        context_instance->set_pipeline(pipeline);
+    }
+
+    void draw(u64 context, u32 vertex_count)
+    {
+        ASSERT(g_device);
+        ASSERT(g_contexts);
+        ASSERT(g_contexts->contextMap.contains(context));
+
+        auto& context_instance = g_contexts->contextMap[context];
+        context_instance->draw(vertex_count);
+    }
+
     void blit_to_screen(u64 context, u64 screen, u64 view)
     {
         ASSERT(g_device);

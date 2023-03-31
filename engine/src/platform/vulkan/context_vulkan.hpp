@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mill/core/base.hpp"
+#include "mill/platform/rhi.hpp"
 #include "includes_vulkan.hpp"
 #include "rhi_core_vulkan.hpp"
 
@@ -18,6 +19,13 @@ namespace mill::rhi
 
         void wait_and_begin();
         void end();
+
+        void set_viewport(f32 x, f32 y, f32 w, f32 h, f32 min_depth, f32 max_depth);
+        void set_scissor(i32 x, i32 y, u32 w, u32 h);
+
+        void set_pipeline(HandlePipeline pipeline);
+
+        void draw(u32 vertex_count);
 
         void associate_screen(u64 screen);
 
@@ -54,5 +62,6 @@ namespace mill::rhi
         u32 m_frameIndex{};
 
         std::vector<u64> m_associatedScreens{};
+        class PipelineVulkan* m_boundPipeline{ nullptr };
     };
 }

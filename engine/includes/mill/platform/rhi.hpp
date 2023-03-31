@@ -29,13 +29,18 @@ namespace mill::rhi
 
 #pragma region Contexts
 
+    using HandlePipeline = u64;
+
     void begin_contex(u64 context);
     void end_context(u64 context);
 
     void begin_view(u64 context, u64 view, const glm::vec4& clear_color = { 1, 1, 1, 1 }, f32 clear_depth = 1.0f);
     void end_view(u64 context, u64 view);
 
-    void set_pipeline(u64 context);
+    void set_viewport(u64 context, f32 x, f32 y, f32 w, f32 h, f32 min_depth = 0.0f, f32 max_depth = 1.0f);
+    void set_scissor(u64 context, i32 x, i32 y, u32 w, u32 h);
+
+    void set_pipeline(u64 context, HandlePipeline pipeline);
 
     void set_index_buffer(u64 context);
     void set_vertex_buffer(u64 context);
@@ -56,6 +61,90 @@ namespace mill::rhi
 
     void reset_view(u64 view, u32 width, u32 height);
 
+    enum class ImageFormat
+    {
+        eUndefined,
+        // Grey scale
+        eR8,
+        eR16,
+        eR32,
+        // RGBA
+        eRGBA8,
+        // Depth/Stencil
+        eD16,
+        eD24S8,
+        eD32,
+        eD32S8,
+    };
+
+    enum class PrimitiveTopology
+    {
+        ePoints,
+        eLines,
+        eTriangles,
+    };
+
+    struct BlendDescription
+    {
+    };
+
+    enum class FillMode
+    {
+        eWireframe,
+        eSolid,
+    };
+
+    enum class CullMode
+    {
+        eNone,
+        eFront,
+        eBack,
+    };
+
+    enum class WindingOrder
+    {
+        eClockwise,
+        eCounterClockwise,
+    };
+
+    struct RasterizerDescription
+    {
+        FillMode fillMode{ FillMode::eSolid };
+        CullMode cullMode{ CullMode::eNone };
+        WindingOrder windingOrder{ WindingOrder::eClockwise };
+        f32 lineWidth{ 1.0f };
+    };
+
+    struct DepthStencilDescription
+    {
+        bool depthEnabled{ false };
+        bool stencilEnabled{ false };
+    };
+
+    struct PipelineDescription
+    {
+        std::vector<u32> vs{};
+        std::vector<u32> fs{};
+
+        PrimitiveTopology topology{ PrimitiveTopology::eTriangles };
+        std::vector<ImageFormat> colorTargets{};
+        ImageFormat depthStencilTarget{ ImageFormat::eUndefined };
+
+        BlendDescription blendDesc{};
+        RasterizerDescription rasterizerDesc{};
+        DepthStencilDescription depthStencilDesc{};
+    };
+
+    auto create_pipeline(const PipelineDescription& description) -> HandlePipeline;
+
+    // auto create_shader(const std::vector<u32>& compiled_code) -> HandleShader?; // Shader are responsible for shader
+
 #pragma endregion Resources
+
+#pragma region Utility
+
+    auto compile_shader(const std::string_view& code) -> std::vector<u32>;
+
+#pragma endregion Utility
 
 }
