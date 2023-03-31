@@ -14,10 +14,14 @@ namespace mill::rhi
         BufferVulkan(DeviceVulkan& device, const BufferDescription& description);
         ~BufferVulkan();
 
+        void write(u64 offset, u64 size, const void* data);
+
         /* Getters */
 
         auto get_size() const -> u64;
         auto get_usage() const -> BufferUsage;
+        auto get_mem_usage() const -> MemoryUsage;
+
         auto get_buffer() const -> const vk::Buffer&;
 
     private:

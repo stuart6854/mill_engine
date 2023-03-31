@@ -100,13 +100,15 @@ public:
 
             m_trianglePipeline = rhi::create_pipeline(pipeline_desc);
         }
-        // Triangle Buffers
+        // Triangle Vertex Buffer
         {
             rhi::BufferDescription buffer_desc{};
             buffer_desc.size = sizeof(Vertex) * g_TriangleVertices.size();
             buffer_desc.usage = rhi::BufferUsage::eVertexBuffer;
             buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
             m_triangleVertexBuffer = rhi::create_buffer(buffer_desc);
+
+            rhi::write_buffer(m_triangleVertexBuffer, 0, buffer_desc.size, g_TriangleVertices.data());
         }
     }
     void shutdown() override

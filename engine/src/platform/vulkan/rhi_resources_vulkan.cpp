@@ -69,4 +69,26 @@ namespace mill::rhi
         return handle;
     }
 
+    void write_buffer(HandleBuffer buffer, u64 offset, u64 size, const void* data)
+    {
+        ASSERT(g_resources);
+        ASSERT(buffer);
+        ASSERT(g_resources->bufferMap.contains(buffer));
+
+        auto& buffer_inst = g_resources->bufferMap[buffer];
+        ASSERT(buffer_inst != nullptr);
+
+        const bool isHostVisible =
+            buffer_inst->get_mem_usage() == MemoryUsage::eHost || buffer_inst->get_mem_usage() == MemoryUsage::eDeviceHostVisble;
+        if (!isHostVisible)
+        {
+            // #TODO: Transfer with staging buffer
+            ASSERT(false);
+        }
+        else
+        {
+            buffer_inst->write(offset, size, data);
+        }
+    }
+
 }

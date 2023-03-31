@@ -56,6 +56,18 @@ namespace mill::rhi
 
     BufferVulkan::~BufferVulkan() = default;
 
+    void BufferVulkan::write(u64 offset, u64 size, const void* data)
+    {
+        ASSERT(size);
+        ASSERT(offset + size <= m_desc.size);
+        ASSERT(m_desc.memoryUsage == MemoryUsage::eHost || m_desc.memoryUsage == MemoryUsage::eDeviceHostVisble);
+
+        void* mapped_dst = m_device.get_allocator().mapMemory(m_allocation.get());
+        u8* offset_dst = static_cast<u8*>(mapped_dst) + offset;
+        std::memcpy(offset_dst, data, size);
+        m_device.get_allocator().unmapMemory(m_allocation.get());
+    }
+
     auto BufferVulkan::get_size() const -> u64
     {
         return m_desc.size;
@@ -64,6 +76,11 @@ namespace mill::rhi
     auto BufferVulkan::get_usage() const -> BufferUsage
     {
         return m_desc.usage;
+    }
+
+    auto BufferVulkan::get_mem_usage() const -> MemoryUsage
+    {
+        return m_desc.memoryUsage;
     }
 
     auto BufferVulkan::get_buffer() const -> const vk::Buffer&

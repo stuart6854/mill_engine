@@ -164,6 +164,8 @@ namespace mill::rhi
 
     auto create_buffer(const BufferDescription& description) -> HandleBuffer;
 
+    void write_buffer(HandleBuffer buffer, u64 offset, u64 size, const void* data);
+
 #pragma endregion Resources
 
 #pragma region Utility
