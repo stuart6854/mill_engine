@@ -232,6 +232,16 @@ namespace mill::rhi
         context_instance->set_pipeline(pipeline);
     }
 
+    void set_vertex_buffer(u64 context, HandleBuffer buffer)
+    {
+        ASSERT(g_device);
+        ASSERT(g_contexts);
+        ASSERT(g_contexts->contextMap.contains(context));
+
+        auto& context_instance = g_contexts->contextMap[context];
+        context_instance->set_vertex_buffer(buffer);
+    }
+
     void draw(u64 context, u32 vertex_count)
     {
         ASSERT(g_device);

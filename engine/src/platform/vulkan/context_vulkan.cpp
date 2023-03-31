@@ -4,6 +4,7 @@
 #include "device_vulkan.hpp"
 #include "image_vulkan.hpp"
 #include "pipeline_vulkan.hpp"
+#include "buffer_vulkan.hpp"
 #include "helpers_vulkan.hpp"
 
 namespace mill::rhi
@@ -89,6 +90,17 @@ namespace mill::rhi
         get_cmd().bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline_inst->get_pipeline());
 
         m_boundPipeline = pipeline_inst.get();
+    }
+
+    void ContextVulkan::set_vertex_buffer(HandleBuffer buffer)
+    {
+        ASSERT(get_resources().bufferMap.contains(buffer));
+
+        auto& buffer_inst = get_resources().bufferMap[buffer];
+        ASSERT(buffer_inst->get_buffer());
+        ASSERT(buffer_inst->get_usage() == BufferUsage::eVertexBuffer);
+
+        get_cmd().bindVertexBuffers(0, buffer_inst->get_buffer(), { 0 });
     }
 
     void ContextVulkan::draw(u32 vertex_count)

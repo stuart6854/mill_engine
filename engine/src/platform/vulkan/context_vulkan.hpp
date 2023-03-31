@@ -24,6 +24,7 @@ namespace mill::rhi
         void set_scissor(i32 x, i32 y, u32 w, u32 h);
 
         void set_pipeline(HandlePipeline pipeline);
+        void set_vertex_buffer(HandleBuffer buffer);
 
         void draw(u32 vertex_count);
 

@@ -43,8 +43,8 @@ namespace mill::rhi
 
     void set_pipeline(u64 context, HandlePipeline pipeline);
 
-    void set_index_buffer(u64 context);
-    void set_vertex_buffer(u64 context);
+    void set_index_buffer(u64 context, HandleBuffer buffer);
+    void set_vertex_buffer(u64 context, HandleBuffer buffer);
 
     void draw(u64 context, u32 vertex_count);
 
@@ -62,13 +62,15 @@ namespace mill::rhi
 
     void reset_view(u64 view, u32 width, u32 height);
 
-    enum class ImageFormat
+    enum class Format
     {
         eUndefined,
         // Grey scale
         eR8,
         eR16,
         eR32,
+        // RGB
+        eRGB32,
         // RGBA
         eRGBA8,
         // Depth/Stencil
@@ -76,6 +78,12 @@ namespace mill::rhi
         eD24S8,
         eD32,
         eD32S8,
+    };
+
+    struct VertexAttribute
+    {
+        std::string name{};
+        Format format{};
     };
 
     enum class PrimitiveTopology
@@ -127,9 +135,11 @@ namespace mill::rhi
         std::vector<u32> vs{};
         std::vector<u32> fs{};
 
+        std::vector<VertexAttribute> vertexAttributes{};
+
         PrimitiveTopology topology{ PrimitiveTopology::eTriangles };
-        std::vector<ImageFormat> colorTargets{};
-        ImageFormat depthStencilTarget{ ImageFormat::eUndefined };
+        std::vector<Format> colorTargets{};
+        Format depthStencilTarget{ Format::eUndefined };
 
         BlendDescription blendDesc{};
         RasterizerDescription rasterizerDesc{};

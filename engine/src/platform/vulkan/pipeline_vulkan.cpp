@@ -1,5 +1,6 @@
 #include "pipeline_vulkan.hpp"
 
+#include "rhi_resources_vulkan.hpp"
 #include "device_vulkan.hpp"
 
 namespace mill::rhi
@@ -30,51 +31,40 @@ namespace mill::rhi
             stage_info.setStage(stage);
         }
 
-        auto to_vulkan(PrimitiveTopology topology) -> vk::PrimitiveTopology
+        auto convert_vertex_attributes(const std::vector<VertexAttribute>& attributes, u32 binding)
+            -> std::vector<vk::VertexInputAttributeDescription>
         {
-            switch (topology)
+            std::vector<vk::VertexInputAttributeDescription> out_attributes{};
+
+            u32 offset{ 0 };
+            i32 location{ 0 };
+            for (auto& attribute : attributes)
             {
-                case mill::rhi::PrimitiveTopology::ePoints: return vk::PrimitiveTopology::ePointList;
-                case mill::rhi::PrimitiveTopology::eLines: return vk::PrimitiveTopology::eLineList;
-                case mill::rhi::PrimitiveTopology::eTriangles: return vk::PrimitiveTopology::eTriangleList;
-                default:
-                    LOG_ERROR("RHI - Vulkan - Unknown PrimitiveTopology!");
-                    ASSERT(false);
-                    break;
+                auto& out_attrib = out_attributes.emplace_back();
+                out_attrib.setBinding(binding);
+                out_attrib.setLocation(location);
+                out_attrib.setFormat(convert_format(attribute.format));
+                out_attrib.setOffset(offset);
+
+                offset += get_format_size(attribute.format);
+                ++location;
             }
-            return {};
+            return out_attributes;
         }
 
-        auto to_vulkan(ImageFormat format) -> vk::Format
+        auto get_input_binding(const std::vector<VertexAttribute>& attributes, u32 binding) -> vk::VertexInputBindingDescription
         {
-            switch (format)
+            u32 stride{ 0 };
+            for (auto& attribute : attributes)
             {
-                case mill::rhi::ImageFormat::eUndefined: return vk::Format::eUndefined;
-                case mill::rhi::ImageFormat::eR8: return vk::Format::eR8Unorm;
-                case mill::rhi::ImageFormat::eR16: return vk::Format::eR16Unorm;
-                case mill::rhi::ImageFormat::eR32: return vk::Format::eR32Uint;
-                case mill::rhi::ImageFormat::eRGBA8: return vk::Format::eR8G8B8A8Unorm;
-                case mill::rhi::ImageFormat::eD16: return vk::Format::eD16Unorm;
-                case mill::rhi::ImageFormat::eD24S8: return vk::Format::eD24UnormS8Uint;
-                case mill::rhi::ImageFormat::eD32: return vk::Format::eD32Sfloat;
-                case mill::rhi::ImageFormat::eD32S8: return vk::Format::eD32SfloatS8Uint;
-                default:
-                    LOG_ERROR("RHI - Vulkan - Unknown ImageFormat!");
-                    ASSERT(false);
-                    break;
+                stride += get_format_size(attribute.format);
             }
-            return {};
-        }
 
-        auto to_vulkan(const std::vector<ImageFormat>& formats) -> std::vector<vk::Format>
-        {
-            std::vector<vk::Format> out_formats{};
-            out_formats.reserve(formats.size());
-            for (auto& format : formats)
-            {
-                out_formats.push_back(to_vulkan(format));
-            }
-            return out_formats;
+            vk::VertexInputBindingDescription out_binding{};
+            out_binding.setBinding(binding);
+            out_binding.setInputRate(vk::VertexInputRate::eVertex);
+            out_binding.setStride(stride);
+            return out_binding;
         }
     }
 
@@ -88,10 +78,14 @@ namespace mill::rhi
         vk::PipelineLayoutCreateInfo layout_info{};
         m_layout = m_device.get_device().createPipelineLayoutUnique(layout_info);
 
+        const auto vertex_attributes = convert_vertex_attributes(m_desc.vertexAttributes, 0);
+        const auto vertex_binding = get_input_binding(m_desc.vertexAttributes, 0);
         vk::PipelineVertexInputStateCreateInfo vertex_input_state{};
+        vertex_input_state.setVertexAttributeDescriptions(vertex_attributes);
+        vertex_input_state.setVertexBindingDescriptions(vertex_binding);
 
         vk::PipelineInputAssemblyStateCreateInfo input_assembly_state{};
-        input_assembly_state.setTopology(to_vulkan(m_desc.topology));
+        input_assembly_state.setTopology(convert_topology(m_desc.topology));
 
         vk::PipelineTessellationStateCreateInfo tessellation_state{};
 
@@ -119,8 +113,8 @@ namespace mill::rhi
         vk::PipelineDynamicStateCreateInfo dynamic_state{};
         dynamic_state.setDynamicStates(DynamicStates);
 
-        auto colorAttachmentFormats = to_vulkan(m_desc.colorTargets);
-        auto depthStencilAttachmentFormat = to_vulkan(m_desc.depthStencilTarget);
+        auto colorAttachmentFormats = convert_formats(m_desc.colorTargets);
+        auto depthStencilAttachmentFormat = convert_format(m_desc.depthStencilTarget);
         vk::PipelineRenderingCreateInfo rendering_info{};
         rendering_info.setColorAttachmentFormats(colorAttachmentFormats);
         rendering_info.setDepthAttachmentFormat(depthStencilAttachmentFormat);

@@ -91,4 +91,74 @@ namespace mill::rhi
         }
     }
 
+#pragma region Utility
+
+    auto convert_topology(PrimitiveTopology topology) -> vk::PrimitiveTopology
+    {
+        switch (topology)
+        {
+            case mill::rhi::PrimitiveTopology::ePoints: return vk::PrimitiveTopology::ePointList;
+            case mill::rhi::PrimitiveTopology::eLines: return vk::PrimitiveTopology::eLineList;
+            case mill::rhi::PrimitiveTopology::eTriangles: return vk::PrimitiveTopology::eTriangleList;
+            default:
+                LOG_ERROR("RHI - Vulkan - Unknown PrimitiveTopology!");
+                ASSERT(false);
+                break;
+        }
+        return {};
+    }
+
+    auto convert_format(Format format) -> vk::Format
+    {
+        switch (format)
+        {
+            case mill::rhi::Format::eUndefined: return vk::Format::eUndefined;
+            case mill::rhi::Format::eR8: return vk::Format::eR8Unorm;
+            case mill::rhi::Format::eR16: return vk::Format::eR16Unorm;
+            case mill::rhi::Format::eR32: return vk::Format::eR32Uint;
+            case mill::rhi::Format::eRGB32: return vk::Format::eR32G32B32Sfloat;
+            case mill::rhi::Format::eRGBA8: return vk::Format::eR8G8B8A8Unorm;
+            case mill::rhi::Format::eD16: return vk::Format::eD16Unorm;
+            case mill::rhi::Format::eD24S8: return vk::Format::eD24UnormS8Uint;
+            case mill::rhi::Format::eD32: return vk::Format::eD32Sfloat;
+            case mill::rhi::Format::eD32S8: return vk::Format::eD32SfloatS8Uint;
+            default:
+                LOG_ERROR("RHI - Vulkan - Unknown Format!");
+                ASSERT(false);
+                break;
+        }
+        return {};
+    }
+
+    auto convert_formats(const std::vector<Format>& formats) -> std::vector<vk::Format>
+    {
+        std::vector<vk::Format> out_formats{};
+        out_formats.reserve(formats.size());
+        for (auto& format : formats)
+        {
+            out_formats.push_back(convert_format(format));
+        }
+        return out_formats;
+    }
+
+    auto get_format_size(Format format) -> u32
+    {
+        switch (format)
+        {
+            case mill::rhi::Format::eUndefined: return 0;
+            case mill::rhi::Format::eR8: return 1;
+            case mill::rhi::Format::eR16: return 2;
+            case mill::rhi::Format::eR32: return 4;
+            case mill::rhi::Format::eRGB32: return 4 * 3;
+            case mill::rhi::Format::eRGBA8: return 1 * 4;
+            default:
+                LOG_ERROR("RHI - Vulkan - Cannot get size of unknown Format!");
+                ASSERT(false);
+                break;
+        }
+        return 0;
+    }
+
+#pragma endregion
+
 }
