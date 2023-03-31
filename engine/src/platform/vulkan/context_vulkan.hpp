@@ -24,9 +24,11 @@ namespace mill::rhi
         void set_scissor(i32 x, i32 y, u32 w, u32 h);
 
         void set_pipeline(HandlePipeline pipeline);
+        void set_index_buffer(HandleBuffer buffer, IndexType index_type);
         void set_vertex_buffer(HandleBuffer buffer);
 
         void draw(u32 vertex_count);
+        void draw_indexed(u32 index_count);
 
         void associate_screen(u64 screen);
 

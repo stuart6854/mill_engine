@@ -43,10 +43,16 @@ namespace mill::rhi
 
     void set_pipeline(u64 context, HandlePipeline pipeline);
 
-    void set_index_buffer(u64 context, HandleBuffer buffer);
+    enum class IndexType
+    {
+        eU16,
+        eU32,
+    };
+    void set_index_buffer(u64 context, HandleBuffer buffer, IndexType index_type);
     void set_vertex_buffer(u64 context, HandleBuffer buffer);
 
     void draw(u64 context, u32 vertex_count);
+    void draw_indexed(u64 context, u32 index_count);
 
     void blit_to_screen(u64 context, u64 screen, u64 view);
 

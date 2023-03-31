@@ -232,6 +232,16 @@ namespace mill::rhi
         context_instance->set_pipeline(pipeline);
     }
 
+    void set_index_buffer(u64 context, HandleBuffer buffer, IndexType index_type)
+    {
+        ASSERT(g_device);
+        ASSERT(g_contexts);
+        ASSERT(g_contexts->contextMap.contains(context));
+
+        auto& context_instance = g_contexts->contextMap[context];
+        context_instance->set_index_buffer(buffer, index_type);
+    }
+
     void set_vertex_buffer(u64 context, HandleBuffer buffer)
     {
         ASSERT(g_device);
@@ -250,6 +260,16 @@ namespace mill::rhi
 
         auto& context_instance = g_contexts->contextMap[context];
         context_instance->draw(vertex_count);
+    }
+
+    void draw_indexed(u64 context, u32 index_count)
+    {
+        ASSERT(g_device);
+        ASSERT(g_contexts);
+        ASSERT(g_contexts->contextMap.contains(context));
+
+        auto& context_instance = g_contexts->contextMap[context];
+        context_instance->draw_indexed(index_count);
     }
 
     void blit_to_screen(u64 context, u64 screen, u64 view)

@@ -92,6 +92,18 @@ namespace mill::rhi
         m_boundPipeline = pipeline_inst.get();
     }
 
+    void ContextVulkan::set_index_buffer(HandleBuffer buffer, IndexType index_type)
+    {
+        ASSERT(get_resources().bufferMap.contains(buffer));
+
+        auto& buffer_inst = get_resources().bufferMap[buffer];
+        ASSERT(buffer_inst->get_buffer());
+        ASSERT(buffer_inst->get_usage() == BufferUsage::eIndexBuffer);
+
+        auto idx_type = index_type == IndexType::eU16 ? vk::IndexType::eUint16 : vk::IndexType::eUint32;
+        get_cmd().bindIndexBuffer(buffer_inst->get_buffer(), 0, idx_type);
+    }
+
     void ContextVulkan::set_vertex_buffer(HandleBuffer buffer)
     {
         ASSERT(get_resources().bufferMap.contains(buffer));
@@ -106,6 +118,11 @@ namespace mill::rhi
     void ContextVulkan::draw(u32 vertex_count)
     {
         get_cmd().draw(vertex_count, 1, 0, 0);
+    }
+
+    void ContextVulkan::draw_indexed(u32 index_count)
+    {
+        get_cmd().drawIndexed(index_count, 1, 0, 0, 0);
     }
 
     void ContextVulkan::associate_screen(u64 screen)

@@ -56,6 +56,8 @@ static const std::vector<Vertex> g_TriangleVertices = {
     { { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
 };
 
+static const std::vector<u16> g_TriangleIndices = { 0, 1, 2 };
+
 class SandboxApp : public mill::Application
 {
 public:
@@ -70,6 +72,8 @@ public:
 
         platform::WindowInfo window_info{
             .title = "Sandbox",
+            .pos_x = 10,
+            .pos_y = 40,
             .width = 1600,
             .height = 900,
         };
@@ -105,6 +109,16 @@ public:
 
             rhi::write_buffer(m_triangleVertexBuffer, 0, buffer_desc.size, g_TriangleVertices.data());
         }
+        // Triangle Index Buffer
+        {
+            rhi::BufferDescription buffer_desc{};
+            buffer_desc.size = sizeof(u16) * g_TriangleIndices.size();
+            buffer_desc.usage = rhi::BufferUsage::eIndexBuffer;
+            buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
+            m_triangleIndexBuffer = rhi::create_buffer(buffer_desc);
+
+            rhi::write_buffer(m_triangleIndexBuffer, 0, buffer_desc.size, g_TriangleIndices.data());
+        }
     }
     void shutdown() override
     {
@@ -127,8 +141,9 @@ public:
                 rhi::set_viewport(RenderContextId, 0, 0, 1600, 900, 0.0f, 1.0f);
                 rhi::set_scissor(RenderContextId, 0, 0, 1600, 900);
                 rhi::set_pipeline(RenderContextId, m_trianglePipeline);
+                rhi::set_index_buffer(RenderContextId, m_triangleIndexBuffer, rhi::IndexType::eU16);
                 rhi::set_vertex_buffer(RenderContextId, m_triangleVertexBuffer);
-                rhi::draw(RenderContextId, 3);
+                rhi::draw_indexed(RenderContextId, 3);
             }
             rhi::end_view(RenderContextId, SceneViewId);
 
@@ -168,6 +183,7 @@ private:
     Owned<SceneRenderer> m_sceneRenderer{ nullptr };
 
     rhi::HandlePipeline m_trianglePipeline{};
+    rhi::HandleBuffer m_triangleIndexBuffer{};
     rhi::HandleBuffer m_triangleVertexBuffer{};
 };
 
