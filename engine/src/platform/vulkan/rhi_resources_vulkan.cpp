@@ -4,6 +4,7 @@
 #include "rhi_core_vulkan.hpp"
 #include "screen_vulkan.hpp"
 #include "pipeline_vulkan.hpp"
+#include "buffer_vulkan.hpp"
 
 namespace mill::rhi
 {
@@ -51,6 +52,19 @@ namespace mill::rhi
 
         auto& pipeline = g_resources->pipelineMap[handle];
         pipeline = CreateOwned<PipelineVulkan>(get_device(), description);
+
+        return handle;
+    }
+
+    auto create_buffer(const BufferDescription& description) -> HandleBuffer
+    {
+        ASSERT(g_resources);
+        ASSERT(description.size);
+
+        const HandleBuffer handle = g_resources->nextBufferId++;
+
+        auto& buffer = g_resources->bufferMap[handle];
+        buffer = CreateOwned<BufferVulkan>(get_device(), description);
 
         return handle;
     }

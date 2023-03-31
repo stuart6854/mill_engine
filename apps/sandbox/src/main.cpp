@@ -53,6 +53,18 @@ static const std::vector<u32> g_TriangleShaderSpirvFS = {
     0x0003003e, 0x00000009, 0x00000012, 0x000100fd, 0x00010038
 };
 
+struct Vertex
+{
+    glm::vec3 position{};
+    glm::vec3 color{};
+};
+
+static const std::vector<Vertex> g_TriangleVertices = {
+    { { 1.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+    { { -1.0f, 1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+    { { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
+};
+
 class SandboxApp : public mill::Application
 {
 public:
@@ -87,6 +99,14 @@ public:
             pipeline_desc.depthStencilTarget = rhi::ImageFormat::eD24S8;
 
             m_trianglePipeline = rhi::create_pipeline(pipeline_desc);
+        }
+        // Triangle Buffers
+        {
+            rhi::BufferDescription buffer_desc{};
+            buffer_desc.size = sizeof(Vertex) * g_TriangleVertices.size();
+            buffer_desc.usage = rhi::BufferUsage::eVertexBuffer;
+            buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
+            m_triangleVertexBuffer = rhi::create_buffer(buffer_desc);
         }
     }
     void shutdown() override
@@ -150,6 +170,7 @@ private:
     Owned<SceneRenderer> m_sceneRenderer{ nullptr };
 
     rhi::HandlePipeline m_trianglePipeline{};
+    rhi::HandleBuffer m_triangleVertexBuffer{};
 };
 
 auto mill::create_application() -> mill::Application*

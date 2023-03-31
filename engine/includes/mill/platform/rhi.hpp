@@ -30,6 +30,7 @@ namespace mill::rhi
 #pragma region Contexts
 
     using HandlePipeline = u64;
+    using HandleBuffer = u64;
 
     void begin_contex(u64 context);
     void end_context(u64 context);
@@ -138,6 +139,30 @@ namespace mill::rhi
     auto create_pipeline(const PipelineDescription& description) -> HandlePipeline;
 
     // auto create_shader(const std::vector<u32>& compiled_code) -> HandleShader?; // Shader are responsible for shader
+
+    enum class BufferUsage
+    {
+        eVertexBuffer,
+        eIndexBuffer,
+        eUniformBuffer,
+        eTransferSrc,
+    };
+
+    enum class MemoryUsage
+    {
+        eHost,
+        eDevice,
+        eDeviceHostVisble,
+    };
+
+    struct BufferDescription
+    {
+        u64 size{};
+        BufferUsage usage{};
+        MemoryUsage memoryUsage{};
+    };
+
+    auto create_buffer(const BufferDescription& description) -> HandleBuffer;
 
 #pragma endregion Resources
 

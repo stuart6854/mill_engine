@@ -10,6 +10,9 @@ namespace mill::rhi
 
         std::unordered_map<u64, Owned<class PipelineVulkan>> pipelineMap{};
         u64 nextPipelineId{ 1 };
+
+        std::unordered_map<u64, Owned<class BufferVulkan>> bufferMap{};
+        u64 nextBufferId{ 1 };
     };
 
     void initialise_resources();
