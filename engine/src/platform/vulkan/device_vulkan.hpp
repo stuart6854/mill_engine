@@ -31,6 +31,7 @@ namespace mill::rhi
         auto get_transfer_queue() -> vk::Queue&;
 
         auto get_allocator() -> vma::Allocator&;
+        auto get_descriptor_pool() -> vk::DescriptorPool&;
 
     private:
         bool init_instance();

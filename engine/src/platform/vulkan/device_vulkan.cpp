@@ -141,6 +141,16 @@ namespace mill::rhi
         return m_transferQueue;
     }
 
+    auto DeviceVulkan::get_allocator() -> vma::Allocator&
+    {
+        return m_allocator.get();
+    }
+
+    auto DeviceVulkan::get_descriptor_pool() -> vk::DescriptorPool&
+    {
+        return m_descriptorPool.get();
+    }
+
     bool DeviceVulkan::init_instance()
     {
         VULKAN_HPP_DEFAULT_DISPATCHER.init(m_loader.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"));
@@ -333,11 +343,6 @@ namespace mill::rhi
         }
 
         return true;
-    }
-
-    auto DeviceVulkan::get_allocator() -> vma::Allocator&
-    {
-        return m_allocator.get();
     }
 
 }
