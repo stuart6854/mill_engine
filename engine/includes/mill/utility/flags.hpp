@@ -13,7 +13,7 @@ namespace mill
         using MaskType = typename std::underlying_type<BitType>::type;
 
         constexpr Flags() = default;
-        constexpr Flags(BitType bit) : m_mask(bit) {}
+        constexpr Flags(BitType bit) : m_mask(static_cast<MaskType>(bit)) {}
         constexpr Flags(const Flags<BitType>& rhs) = default;
         constexpr explicit Flags(MaskType flags) noexcept : m_mask(flags) {}
         ~Flags() = default;
@@ -27,7 +27,7 @@ namespace mill
 
         constexpr auto operator&(const Flags<BitType>& rhs) const noexcept -> Flags<BitType>
         {
-            return { m_mask & rhs.m_mask };
+            return Flags<BitType>(m_mask & rhs.m_mask);
         }
 
         constexpr auto operator|(const Flags<BitType>& rhs) const noexcept -> Flags<BitType>
