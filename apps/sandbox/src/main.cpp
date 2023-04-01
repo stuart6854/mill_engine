@@ -85,6 +85,19 @@ public:
         rhi::reset_screen(0, 1600, 900, true);
         rhi::reset_view(SceneViewId, 1600, 900);
 
+        // Triangle Resource Set
+        {
+            rhi::ResourceSetDescription set_desc{};
+            set_desc.bindings = {
+                {
+                    rhi::ResourceType::eUniformBuffer,
+                    1,
+                    rhi::ShaderStage::eVertex,
+                },
+            };
+            m_triangleResourceSet = rhi::create_resource_set(set_desc);
+        }
+
         // Triangle Pipeline
         {
             rhi::PipelineDescription pipeline_desc{};
@@ -182,6 +195,7 @@ private:
     platform::HandleWindow m_windowHandle{ nullptr };
     Owned<SceneRenderer> m_sceneRenderer{ nullptr };
 
+    rhi::HandleResourceSet m_triangleResourceSet{};
     rhi::HandlePipeline m_trianglePipeline{};
     rhi::HandleBuffer m_triangleIndexBuffer{};
     rhi::HandleBuffer m_triangleVertexBuffer{};

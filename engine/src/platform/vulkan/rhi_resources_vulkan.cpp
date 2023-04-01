@@ -2,9 +2,13 @@
 
 #include "mill/platform/rhi.hpp"
 #include "rhi_core_vulkan.hpp"
+#include "device_vulkan.hpp"
 #include "screen_vulkan.hpp"
+#include "resource_set_vulkan.hpp"
 #include "pipeline_vulkan.hpp"
 #include "buffer_vulkan.hpp"
+
+#include <functional>
 
 namespace mill::rhi
 {
@@ -46,8 +50,47 @@ namespace mill::rhi
         screen_inst->reset(width, height, vsync);
     }
 
+    auto create_resource_set(const ResourceSetDescription& description) -> HandleResourceSet
+    {
+        ASSERT(g_resources);
+        ASSERT(description.bindings.size());
+
+        vk::DescriptorSetLayout layout{};
+        u64 desc_hash = std::hash<ResourceSetDescription>{}(description);
+        if (g_resources->resourceLayoutMap.contains(desc_hash))
+        {
+            layout = g_resources->resourceLayoutMap[desc_hash].layout.get();
+        }
+        else
+        {
+            std::vector<vk::DescriptorSetLayoutBinding> set_bindings{};
+            for (const auto& binding : description.bindings)
+            {
+                auto& set_binding = set_bindings.emplace_back();
+                if (binding.type != ResourceType::eNone && binding.count > 0)
+                    set_binding = convert_resource_binding(binding);
+            }
+
+            vk::DescriptorSetLayoutCreateInfo layout_info{};
+            layout_info.setBindings(set_bindings);
+            auto new_layout = get_device().get_device().createDescriptorSetLayoutUnique(layout_info);
+            g_resources->resourceLayoutMap[desc_hash] = ResourceLayout{ description, std::move(new_layout) };
+
+            layout = g_resources->resourceLayoutMap[desc_hash].layout.get();
+        }
+
+        ASSERT(layout);
+
+        const HandleResourceSet handle = g_resources->nextSetId++;
+        g_resources->resourceSetMap[handle] = CreateOwned<ResourceSetVulkan>(get_device(), layout);
+
+        return handle;
+    }
+
     auto create_pipeline(const PipelineDescription& description) -> HandlePipeline
     {
+        ASSERT(g_resources);
+
         const HandlePipeline handle = g_resources->nextPipelineId++;
 
         auto& pipeline = g_resources->pipelineMap[handle];
@@ -157,6 +200,43 @@ namespace mill::rhi
                 break;
         }
         return 0;
+    }
+
+    auto convert_resource_type(ResourceType resource_type) -> vk::DescriptorType
+    {
+        switch (resource_type)
+        {
+            case mill::rhi::ResourceType::eNone: return {};
+            case mill::rhi::ResourceType::eUniformBuffer: return vk::DescriptorType::eUniformBuffer;
+            case mill::rhi::ResourceType::eTexture: return vk::DescriptorType::eCombinedImageSampler;
+            default:
+                LOG_ERROR("RHI - Vulkan - Unknown ResourceType!");
+                ASSERT(false);
+                break;
+        }
+        return {};
+    }
+
+    auto convert_shader_stages(ShaderStageFlags shader_stages) -> vk::ShaderStageFlags
+    {
+        vk::ShaderStageFlags out_stages{};
+
+        if (shader_stages & ShaderStage::eVertex)
+            out_stages |= vk::ShaderStageFlagBits::eVertex;
+
+        if (shader_stages & ShaderStage::eFragment)
+            out_stages |= vk::ShaderStageFlagBits::eFragment;
+
+        return out_stages;
+    }
+
+    auto convert_resource_binding(const ResourceBinding& binding) -> vk::DescriptorSetLayoutBinding
+    {
+        vk::DescriptorSetLayoutBinding out_binding{};
+        out_binding.setDescriptorType(convert_resource_type(binding.type));
+        out_binding.setDescriptorCount(binding.count);
+        out_binding.setStageFlags(convert_shader_stages(binding.shaderStages));
+        return out_binding;
     }
 
 #pragma endregion

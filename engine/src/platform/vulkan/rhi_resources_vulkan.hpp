@@ -1,13 +1,24 @@
 #pragma once
 
+#include "mill/core/base.hpp"
 #include "mill/platform/rhi.hpp"
 #include "includes_vulkan.hpp"
 
 namespace mill::rhi
 {
+    struct ResourceLayout
+    {
+        ResourceSetDescription desc{};
+        vk::UniqueDescriptorSetLayout layout{};
+    };
+
     struct ResourcesVulkan
     {
         std::unordered_map<u64, Owned<class ScreenVulkan>> screenMap{};
+
+        std::unordered_map<u64, ResourceLayout> resourceLayoutMap{};
+        std::unordered_map<u64, Owned<class ResourceSetVulkan>> resourceSetMap{};
+        u64 nextSetId{ 1 };
 
         std::unordered_map<u64, Owned<class PipelineVulkan>> pipelineMap{};
         u64 nextPipelineId{ 1 };
@@ -29,6 +40,35 @@ namespace mill::rhi
 
     auto get_format_size(Format format) -> u32;
 
+    auto convert_resource_type(ResourceType resource_type) -> vk::DescriptorType;
+    auto convert_shader_stages(ShaderStageFlags shader_stages) -> vk::ShaderStageFlags;
+    auto convert_resource_binding(const ResourceBinding& binding) -> vk::DescriptorSetLayoutBinding;
+
 #pragma endregion
 
+}
+
+namespace std
+{
+    template <>
+    struct hash<mill::rhi::ResourceSetDescription>
+    {
+        std::size_t operator()(const mill::rhi::ResourceSetDescription& desc) const
+        {
+            using std::hash;
+            using std::size_t;
+
+            size_t value{};
+
+            mill::hash_combine(value, desc.bindings.size());
+            for (const auto& binding : desc.bindings)
+            {
+                mill::hash_combine(value, static_cast<uint8_t>(binding.type));
+                mill::hash_combine(value, binding.count);
+                mill::hash_combine(value, static_cast<uint8_t>(binding.shaderStages));
+            }
+
+            return value;
+        }
+    };
 }
