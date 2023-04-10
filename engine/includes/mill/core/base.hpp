@@ -27,6 +27,12 @@ namespace mill
     using f32 = float;
     using f64 = double;
 
+    template <typename T>
+    inline auto enum_to_underlying(const T& enum_value) -> std::underlying_type_t<T>
+    {
+        return static_cast<std::underlying_type_t<T>>(enum_value);
+    }
+
     using hasht = u64;
 
     template <typename T>
