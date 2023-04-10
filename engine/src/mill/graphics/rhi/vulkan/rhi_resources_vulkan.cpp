@@ -1,6 +1,6 @@
 #include "rhi_resources_vulkan.hpp"
 
-#include "mill/platform/rhi.hpp"
+#include "mill/graphics/rhi.hpp"
 #include "rhi_core_vulkan.hpp"
 #include "device_vulkan.hpp"
 #include "screen_vulkan.hpp"

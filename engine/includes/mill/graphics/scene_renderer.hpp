@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mill/platform/rhi.hpp"
+#include "mill/graphics/rhi.hpp"
 
 namespace mill
 {

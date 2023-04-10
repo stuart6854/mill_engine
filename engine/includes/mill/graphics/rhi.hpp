@@ -1,9 +1,15 @@
 #pragma once
 
-#include "mill/core/base.hpp"
-#include "mill/utility/flags.hpp"
+#include "rhi/rhi_core.hpp"
+#include "rhi/rhi_context.hpp"
+#include "rhi/rhi_resource.hpp"
 
-#include <glm/ext/vector_float4.hpp>
+#if 0
+
+    #include "mill/core/base.hpp"
+    #include "mill/utility/flags.hpp"
+
+    #include <glm/ext/vector_float4.hpp>
 
 namespace mill::rhi
 {
@@ -13,7 +19,7 @@ namespace mill::rhi
         A `View` is synonymous to a off-screen Render Target.
     */
 
-#pragma region Core
+    #pragma region Core
 
     bool initialise();
     void shutdown();
@@ -26,9 +32,9 @@ namespace mill::rhi
     */
     void end_frame();
 
-#pragma endregion Core
+    #pragma endregion Core
 
-#pragma region Contexts
+    #pragma region Contexts
 
     using HandlePipeline = u64;
     using HandleBuffer = u64;
@@ -57,9 +63,9 @@ namespace mill::rhi
 
     void blit_to_screen(u64 context, u64 screen, u64 view);
 
-#pragma endregion Contexts
+    #pragma endregion Contexts
 
-#pragma region Resources
+    #pragma region Resources
 
     /* Assigns a window handle to a screen. Usually called as initialisation stage. */
     void assign_screen(u64 screen, void* window_handle);
@@ -213,12 +219,13 @@ namespace mill::rhi
 
     void write_buffer(HandleBuffer buffer, u64 offset, u64 size, const void* data);
 
-#pragma endregion Resources
+    #pragma endregion Resources
 
-#pragma region Utility
+    #pragma region Utility
 
     auto compile_shader(const std::string_view& code) -> std::vector<u32>;
 
-#pragma endregion Utility
+    #pragma endregion Utility
 
 }
+#endif

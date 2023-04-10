@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mill/core/base.hpp"
-#include "mill/platform/rhi.hpp"
+#include "mill/graphics/rhi.hpp"
 #include "includes_vulkan.hpp"
 #include "rhi_core_vulkan.hpp"
 

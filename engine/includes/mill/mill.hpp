@@ -7,7 +7,7 @@
 
 #include "events/events.hpp"
 
-#include "platform/rhi.hpp"
+#include "graphics/rhi.hpp"
 #include "platform/platform_interface.hpp"
 
 #include "graphics/static_mesh.hpp"
