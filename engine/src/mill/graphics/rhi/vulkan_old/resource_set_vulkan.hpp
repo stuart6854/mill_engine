@@ -6,19 +6,19 @@
 
 namespace mill::rhi
 {
-    class DeviceVulkan;
+    class InstanceVulkan;
     class BufferVulkan;
 
     class ResourceSetVulkan
     {
     public:
-        ResourceSetVulkan(DeviceVulkan& device, vk::DescriptorSetLayout layout);
+        ResourceSetVulkan(InstanceVulkan& device, vk::DescriptorSetLayout layout);
         ~ResourceSetVulkan();
 
         void bind_buffer(u32 binding, BufferVulkan& buffer);
 
     private:
-        DeviceVulkan& m_device;
+        InstanceVulkan& m_device;
 
         std::array<vk::UniqueDescriptorSet, g_FrameBufferCount> m_sets{};
         u32 m_frameIndex{};

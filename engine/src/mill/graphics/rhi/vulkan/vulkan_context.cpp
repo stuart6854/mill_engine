@@ -1,11 +1,10 @@
-#include "context_vulkan.hpp"
+#include "vulkan_context.hpp"
 
-#include "rhi_resources_vulkan.hpp"
-#include "device_vulkan.hpp"
-#include "image_vulkan.hpp"
-#include "pipeline_vulkan.hpp"
-#include "buffer_vulkan.hpp"
-#include "helpers_vulkan.hpp"
+#include "mill/core/base.hpp"
+#include "mill/core/debug.hpp"
+#include "vulkan_device.hpp"
+#include "vulkan_image.hpp"
+#include "vulkan_helpers.hpp"
 
 namespace mill::rhi
 {
@@ -32,11 +31,10 @@ namespace mill::rhi
         }
     }
 
+    ContextVulkan::~ContextVulkan() = default;
+
     void ContextVulkan::wait_and_begin()
     {
-        m_associatedScreens.clear();
-        m_boundPipeline = nullptr;
-
         m_frameIndex = (m_frameIndex + 1) % CAST_U32(m_frames.size());
 
         auto& frame = get_frame();
@@ -50,6 +48,9 @@ namespace mill::rhi
         m_device.get_device().resetCommandPool(frame.cmdPool.get());
         frame.wasRecorded = false;
 
+        m_associatedScreenIds.clear();
+        // m_boundPipeline = nullptr;
+
         auto& cmd = get_cmd();
         vk::CommandBufferBeginInfo begin_info{};
         cmd.begin(begin_info);
@@ -60,86 +61,35 @@ namespace mill::rhi
         get_cmd().end();
     }
 
-    void ContextVulkan::set_viewport(f32 x, f32 y, f32 w, f32 h, f32 min_depth, f32 max_depth)
+    void ContextVulkan::transition_image(ImageVulkan& image, vk::ImageLayout new_layout)
     {
-        vk::Viewport viewport{};
-        viewport.setX(x);
-        viewport.setY(y);
-        viewport.setWidth(w);
-        viewport.setHeight(h);
-        viewport.setMinDepth(min_depth);
-        viewport.setMaxDepth(max_depth);
-        get_cmd().setViewport(0, viewport);
-    }
-
-    void ContextVulkan::set_scissor(i32 x, i32 y, u32 w, u32 h)
-    {
-        vk::Rect2D scissor{};
-        scissor.setOffset(vk::Offset2D(x, y));
-        scissor.setExtent(vk::Extent2D(w, h));
-        get_cmd().setScissor(0, scissor);
-    }
-
-    void ContextVulkan::set_pipeline(HandlePipeline pipeline)
-    {
-        ASSERT(get_resources().pipelineMap.contains(pipeline));
-
-        auto& pipeline_inst = get_resources().pipelineMap[pipeline];
-        ASSERT(pipeline_inst->get_pipeline());
-
-        get_cmd().bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline_inst->get_pipeline());
-
-        m_boundPipeline = pipeline_inst.get();
-    }
-
-    void ContextVulkan::set_index_buffer(HandleBuffer buffer, IndexType index_type)
-    {
-        ASSERT(get_resources().bufferMap.contains(buffer));
-
-        auto& buffer_inst = get_resources().bufferMap[buffer];
-        ASSERT(buffer_inst->get_buffer());
-        ASSERT(buffer_inst->get_usage() == BufferUsage::eIndexBuffer);
-
-        auto idx_type = index_type == IndexType::eU16 ? vk::IndexType::eUint16 : vk::IndexType::eUint32;
-        get_cmd().bindIndexBuffer(buffer_inst->get_buffer(), 0, idx_type);
-    }
-
-    void ContextVulkan::set_vertex_buffer(HandleBuffer buffer)
-    {
-        ASSERT(get_resources().bufferMap.contains(buffer));
-
-        auto& buffer_inst = get_resources().bufferMap[buffer];
-        ASSERT(buffer_inst->get_buffer());
-        ASSERT(buffer_inst->get_usage() == BufferUsage::eVertexBuffer);
-
-        get_cmd().bindVertexBuffers(0, buffer_inst->get_buffer(), { 0 });
-    }
-
-    void ContextVulkan::draw(u32 vertex_count)
-    {
-        get_cmd().draw(vertex_count, 1, 0, 0);
-    }
-
-    void ContextVulkan::draw_indexed(u32 index_count)
-    {
-        get_cmd().drawIndexed(index_count, 1, 0, 0, 0);
-    }
-
-    void ContextVulkan::associate_screen(u64 screen)
-    {
-        m_associatedScreens.push_back(screen);
-    }
-
-    void ContextVulkan::transition_image(const vk::ImageMemoryBarrier2& barrier)
-    {
-        if (!barrier.image)
+        const auto old_layout = image.get_layout();
+        if (new_layout == old_layout)
             return;
 
-        vk::DependencyInfo dependency_info{};
-        dependency_info.setImageMemoryBarriers(barrier);
-        get_cmd().pipelineBarrier2(dependency_info);
+        const auto subresource_range = vulkan::get_image_subresource_range_2d(image.get_format());
+        const auto src_stage_mask = vulkan::get_image_layout_stage_mask(old_layout);
+        const auto dst_stage_mask = vulkan::get_image_layout_stage_mask(new_layout);
+        const auto src_access_mask = vulkan::get_image_layout_access_mask(old_layout);
+        const auto dst_access_mask = vulkan::get_image_layout_access_mask(new_layout);
+
+        vk::ImageMemoryBarrier2 barrier{};
+        barrier.setImage(image.get_image());
+        barrier.setSubresourceRange(subresource_range);
+        barrier.setOldLayout(old_layout);
+        barrier.setNewLayout(new_layout);
+        barrier.setSrcStageMask(src_stage_mask);
+        barrier.setSrcAccessMask(src_access_mask);
+        barrier.setDstStageMask(dst_stage_mask);
+        barrier.setDstAccessMask(dst_access_mask);
+
+        vk::DependencyInfo dependency{};
+        dependency.setImageMemoryBarriers(barrier);
+
+        get_cmd().pipelineBarrier2(dependency);
 
         get_frame().wasRecorded = true;
+        image.set_layout(new_layout);
     }
 
     void ContextVulkan::blit(ImageVulkan& srcImage, ImageVulkan& dstImage)
@@ -164,6 +114,11 @@ namespace mill::rhi
         get_cmd().blitImage2(blit_info);
 
         get_frame().wasRecorded = true;
+    }
+
+    void ContextVulkan::associate_screen(u64 screen_id)
+    {
+        m_associatedScreenIds.push_back(screen_id);
     }
 
     auto ContextVulkan::get_cmd() -> vk::CommandBuffer&
@@ -191,9 +146,9 @@ namespace mill::rhi
         return m_frames[m_frameIndex];
     }
 
-    auto ContextVulkan::get_associated_screens() const -> const std::vector<u64>&
+    auto ContextVulkan::get_associated_screen_ids() const -> const std::vector<u64>&
     {
-        return m_associatedScreens;
+        return m_associatedScreenIds;
     }
 
 }

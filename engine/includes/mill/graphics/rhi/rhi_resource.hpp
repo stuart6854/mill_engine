@@ -1,5 +1,7 @@
 #pragma once
 
+#include "resources/rhi_pipeline.hpp"
+
 #include "mill/core/base.hpp"
 #include "mill/utility/flags.hpp"
 
@@ -7,14 +9,7 @@
 
 namespace mill::rhi
 {
-    void assign_screen(u64 screen, void* window_handle);
-
-    /* Update a screens back-buffer size. */
-    void reset_screen(u64 screen, u32 width, u32 height, bool vsync);
-
-    void reset_view(u64 view, u32 width, u32 height);
-
-    enum class Format
+    enum class Format : u16
     {
         eUndefined,
         // Grey scale
@@ -31,6 +26,15 @@ namespace mill::rhi
         eD32,
         eD32S8,
     };
+
+    void assign_screen(u64 screen_id, void* window_handle);
+
+    /* Update a screens back-buffer size. */
+    void reset_screen(u64 screen_id, u32 width, u32 height, bool vsync);
+
+    void reset_view(u64 view_id, u32 width, u32 height);
+
+#if 0
 
     enum class ShaderStage : u8
     {
@@ -132,6 +136,8 @@ namespace mill::rhi
     auto create_pipeline(const PipelineDescription& description) -> HandlePipeline;
 
     // auto create_shader(const std::vector<u32>& compiled_code) -> HandleShader?; // Shader are responsible for shader
+
+#endif
 
     enum class BufferUsage
     {

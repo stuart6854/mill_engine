@@ -1,18 +1,16 @@
 #pragma once
 
 #include "mill/core/base.hpp"
-#include "includes_vulkan.hpp"
 #include "rhi_core_vulkan.hpp"
-#include "image_vulkan.hpp"
+#include "vulkan_includes.hpp"
+#include "vulkan_image.hpp"
 
 namespace mill::rhi
 {
-    class ContextVulkan;
-
     class ScreenVulkan
     {
     public:
-        ScreenVulkan(class DeviceVulkan& device, void* window_handle);
+        ScreenVulkan(class DeviceVulkan& device, u64 id, void* window_handle);
         ~ScreenVulkan() = default;
 
         void reset(u32 width, u32 height, bool vsync);
@@ -20,6 +18,8 @@ namespace mill::rhi
         void acquire_image();
 
         /* Getters */
+
+        auto get_id() const -> u64;
 
         auto get_swap_chain() const -> vk::SwapchainKHR;
         auto get_image_index() const -> u32;
@@ -31,6 +31,8 @@ namespace mill::rhi
 
     private:
         DeviceVulkan& m_device;
+        const u64 m_id{};
+
         vk::UniqueSurfaceKHR m_surface{};
         vk::UniqueSwapchainKHR m_swapchain{};
 

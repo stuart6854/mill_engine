@@ -1,40 +1,39 @@
 #pragma once
 
 #include "mill/core/base.hpp"
-#include "mill/graphics/rhi.hpp"
-#include "includes_vulkan.hpp"
 #include "rhi_core_vulkan.hpp"
-
-#include <array>
+#include "vulkan_includes.hpp"
 
 namespace mill::rhi
 {
+    class DeviceVulkan;
     class ImageVulkan;
 
     class ContextVulkan
     {
     public:
         ContextVulkan(class DeviceVulkan& device);
-        ~ContextVulkan() = default;
+        ~ContextVulkan();
 
         void wait_and_begin();
         void end();
 
+#if 0
         void set_viewport(f32 x, f32 y, f32 w, f32 h, f32 min_depth, f32 max_depth);
         void set_scissor(i32 x, i32 y, u32 w, u32 h);
 
-        void set_pipeline(HandlePipeline pipeline);
         void set_index_buffer(HandleBuffer buffer, IndexType index_type);
         void set_vertex_buffer(HandleBuffer buffer);
 
         void draw(u32 vertex_count);
         void draw_indexed(u32 index_count);
 
-        void associate_screen(u64 screen);
-
-        void transition_image(const vk::ImageMemoryBarrier2& barrier);
+#endif
+        void transition_image(ImageVulkan& image, vk::ImageLayout new_layout);
 
         void blit(ImageVulkan& srcImage, ImageVulkan& dstImage);
+
+        void associate_screen(u64 screen_id);
 
         /* Getters */
 
@@ -43,7 +42,7 @@ namespace mill::rhi
         auto get_fence() -> vk::Fence&;
         bool get_was_recorded();
 
-        auto get_associated_screens() const -> const std::vector<u64>&;
+        auto get_associated_screen_ids() const -> const std::vector<u64>&;
 
     private:
         struct Frame;
@@ -64,7 +63,7 @@ namespace mill::rhi
         std::array<Frame, g_FrameBufferCount> m_frames{};
         u32 m_frameIndex{};
 
-        std::vector<u64> m_associatedScreens{};
-        class PipelineVulkan* m_boundPipeline{ nullptr };
+        std::vector<u64> m_associatedScreenIds{};
+        // vk::Pipeline m_boundPipeline{};
     };
 }

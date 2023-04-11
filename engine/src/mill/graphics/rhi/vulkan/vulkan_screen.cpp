@@ -1,13 +1,14 @@
-#include "screen_vulkan.hpp"
+#include "vulkan_screen.hpp"
 
-#include "device_vulkan.hpp"
-#include "context_vulkan.hpp"
-#include "image_vulkan.hpp"
-#include "helpers_vulkan.hpp"
+#include "vulkan_includes.hpp"
+#include "rhi_core_vulkan.hpp"
+#include "vulkan_device.hpp"
+#include "vulkan_image.hpp"
+#include "vulkan_helpers.hpp"
 
 namespace mill::rhi
 {
-    ScreenVulkan::ScreenVulkan(DeviceVulkan& device, void* window_handle) : m_device(device)
+    ScreenVulkan::ScreenVulkan(class DeviceVulkan& device, u64 id, void* window_handle) : m_device(device), m_id(id)
     {
 #if MILL_WINDOWS
         vk::Win32SurfaceCreateInfoKHR surface_info{};
@@ -79,6 +80,11 @@ namespace mill::rhi
         m_imageIndex = result.value;
 
         get_backbuffer().set_layout(vk::ImageLayout::eUndefined);
+    }
+
+    auto ScreenVulkan::get_id() const -> u64
+    {
+        return m_id;
     }
 
     auto ScreenVulkan::get_backbuffer() -> ImageVulkan&

@@ -6,12 +6,12 @@
 
 namespace mill::rhi
 {
-    class DeviceVulkan;
+    class InstanceVulkan;
 
     class PipelineVulkan
     {
     public:
-        PipelineVulkan(DeviceVulkan& device, const PipelineDescription& description);
+        PipelineVulkan(InstanceVulkan& device, const PipelineDescription& description);
         ~PipelineVulkan();
 
         /* Getters */
@@ -20,7 +20,7 @@ namespace mill::rhi
         auto get_pipeline() const -> const vk::Pipeline&;
 
     private:
-        DeviceVulkan& m_device;
+        InstanceVulkan& m_device;
         PipelineDescription m_desc{};
 
         vk::UniquePipelineLayout m_layout{};  // #TODO: Cache all layouts (prevent duplicates)

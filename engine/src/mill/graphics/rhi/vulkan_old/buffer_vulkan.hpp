@@ -6,12 +6,12 @@
 
 namespace mill::rhi
 {
-    class DeviceVulkan;
+    class InstanceVulkan;
 
     class BufferVulkan
     {
     public:
-        BufferVulkan(DeviceVulkan& device, const BufferDescription& description);
+        BufferVulkan(InstanceVulkan& device, const BufferDescription& description);
         ~BufferVulkan();
 
         void write(u64 offset, u64 size, const void* data);
@@ -25,7 +25,7 @@ namespace mill::rhi
         auto get_buffer() const -> const vk::Buffer&;
 
     private:
-        DeviceVulkan& m_device;
+        InstanceVulkan& m_device;
         BufferDescription m_desc{};
 
         vma::UniqueBuffer m_buffer{};

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mill/core/base.hpp"
-#include "includes_vulkan.hpp"
+#include "../includes_vulkan.hpp"
 
 namespace mill::rhi
 {
@@ -10,7 +10,7 @@ namespace mill::rhi
     class ViewVulkan
     {
     public:
-        ViewVulkan(class DeviceVulkan& device);
+        ViewVulkan(class InstanceVulkan& device);
         ~ViewVulkan();
 
         void reset(u32 width, u32 height);
@@ -26,7 +26,7 @@ namespace mill::rhi
         auto get_depth_attachment() -> ImageVulkan*;
 
     private:
-        DeviceVulkan& m_device;
+        InstanceVulkan& m_device;
         vk::Extent2D m_resolution{};
 
         Owned<ImageVulkan> m_colorImage{};

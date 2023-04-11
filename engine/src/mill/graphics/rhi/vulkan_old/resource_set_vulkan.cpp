@@ -4,7 +4,7 @@
 
 namespace mill::rhi
 {
-    ResourceSetVulkan::ResourceSetVulkan(DeviceVulkan& device, vk::DescriptorSetLayout layout) : m_device(device)
+    ResourceSetVulkan::ResourceSetVulkan(InstanceVulkan& device, vk::DescriptorSetLayout layout) : m_device(device)
     {
         std::vector<vk::DescriptorSetLayout> set_layouts(g_FrameBufferCount, layout);
 

@@ -1,13 +1,12 @@
-#include "image_vulkan.hpp"
+#include "vulkan_image.hpp"
 
-#include "device_vulkan.hpp"
-#include "context_vulkan.hpp"
-#include "helpers_vulkan.hpp"
+#include "vulkan_includes.hpp"
+#include "vulkan_device.hpp"
+#include "vulkan_helpers.hpp"
 
 namespace mill::rhi
 {
-    ImageVulkan::ImageVulkan(
-        class DeviceVulkan& device, vk::Image image, vk::ImageUsageFlags usage, vk::Extent3D dimensions, vk::Format format)
+    ImageVulkan::ImageVulkan(DeviceVulkan& device, vk::Image image, vk::ImageUsageFlags usage, vk::Extent3D dimensions, vk::Format format)
         : m_device(device), m_image(image), m_usage(usage), m_dimensions(dimensions), m_format(format), m_mipLevels(1)
     {
         vk::ImageViewCreateInfo view_info = vulkan::get_image_view_create_info_2d(m_image, m_format, 0, m_mipLevels);
@@ -48,50 +47,6 @@ namespace mill::rhi
         }
     }
 
-    void ImageVulkan::transition_to_transfer_src(ContextVulkan& context)
-    {
-        if (m_layout == vk::ImageLayout::eTransferSrcOptimal)
-            return;
-
-        const auto barrier = vulkan::get_barrier_image_to_transfer_src(m_image, m_format, m_layout);
-        context.transition_image(barrier);
-
-        m_layout = vk::ImageLayout::eTransferSrcOptimal;
-    }
-
-    void ImageVulkan::transition_to_transfer_dst(ContextVulkan& context)
-    {
-        if (m_layout == vk::ImageLayout::eTransferDstOptimal)
-            return;
-
-        const auto barrier = vulkan::get_barrier_image_to_transfer_dst(m_image, m_format, m_layout);
-        context.transition_image(barrier);
-
-        m_layout = vk::ImageLayout::eTransferDstOptimal;
-    }
-
-    void ImageVulkan::transition_to_attachment(ContextVulkan& context)
-    {
-        if (m_layout == vk::ImageLayout::eAttachmentOptimal)
-            return;
-
-        const auto barrier = vulkan::get_barrier_image_to_attachment(m_image, m_format, m_layout);
-        context.transition_image(barrier);
-
-        m_layout = vk::ImageLayout::eAttachmentOptimal;
-    }
-
-    void ImageVulkan::transition_to_present(ContextVulkan& context)
-    {
-        if (m_layout == vk::ImageLayout::ePresentSrcKHR)
-            return;
-
-        const auto barrier = vulkan::get_barrier_image_to_present(m_image, m_format, m_layout);
-        context.transition_image(barrier);
-
-        m_layout = vk::ImageLayout::ePresentSrcKHR;
-    }
-
     void ImageVulkan::set_layout(vk::ImageLayout layout)
     {
         m_layout = layout;
@@ -105,11 +60,6 @@ namespace mill::rhi
     auto ImageVulkan::get_view() -> vk::ImageView&
     {
         return m_view;
-    }
-
-    auto ImageVulkan::get_layout() -> vk::ImageLayout&
-    {
-        return m_layout;
     }
 
     auto ImageVulkan::get_usage() -> vk::ImageUsageFlags
@@ -130,6 +80,11 @@ namespace mill::rhi
     auto ImageVulkan::get_mip_levels() -> u32
     {
         return m_mipLevels;
+    }
+
+    auto ImageVulkan::get_layout() -> vk::ImageLayout
+    {
+        return m_layout;
     }
 
 }

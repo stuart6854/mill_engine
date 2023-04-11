@@ -1,10 +1,17 @@
 #pragma once
 
 #include "mill/core/base.hpp"
-#include "includes_vulkan.hpp"
+#include "vulkan_includes.hpp"
+
+#include <vector>
+#include <unordered_map>
 
 namespace mill::rhi
 {
+    class ScreenVulkan;
+    class ContextVulkan;
+    class ViewVulkan;
+
     class DeviceVulkan
     {
     public:
@@ -13,8 +20,23 @@ namespace mill::rhi
 
         bool initialise();
         void shutdown();
-
         void wait_idle() const;
+
+        /* Resources */
+
+        void create_screen(u64 screen_id, void* window_handle);
+        void destroy_screen(u64 screen_id);
+        auto get_screen(u64 screen_id) const -> ScreenVulkan*;
+        auto get_all_screens() const -> const std::vector<ScreenVulkan*>&;
+
+        void create_context(u64 context_id);
+        void destroy_context(u64 context_id);
+        auto get_context(u64 context_id) const -> ContextVulkan*;
+        auto get_all_contexts() const -> const std::vector<ContextVulkan*>&;
+
+        void create_view(u64 view_id);
+        void destroy_view(u64 view_id);
+        auto get_view(u64 view_id) const -> ViewVulkan*;
 
         /* Getters */
 
@@ -53,7 +75,14 @@ namespace mill::rhi
         vk::Queue m_transferQueue{};
 
         vma::UniqueAllocator m_allocator{};
-
         vk::UniqueDescriptorPool m_descriptorPool{};
+
+        std::unordered_map<u64, Owned<ScreenVulkan>> m_screens{};
+        std::vector<ScreenVulkan*> m_allScreens{};
+
+        std::unordered_map<u64, Owned<ContextVulkan>> m_contexts{};
+        std::vector<ContextVulkan*> m_allContexts{};
+
+        std::unordered_map<u64, Owned<ViewVulkan>> m_views{};
     };
 }

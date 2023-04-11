@@ -1,11 +1,13 @@
-#include "view_vulkan.hpp"
+#include "vulkan_view.hpp"
 
-#include "device_vulkan.hpp"
-#include "image_vulkan.hpp"
+#include "mill/core/base.hpp"
+#include "mill/core/debug.hpp"
+#include "vulkan_device.hpp"
+#include "vulkan_image.hpp"
 
 namespace mill::rhi
 {
-    ViewVulkan::ViewVulkan(class DeviceVulkan& device) : m_device(device) {}
+    ViewVulkan::ViewVulkan(DeviceVulkan& device) : m_device(device) {}
 
     ViewVulkan::~ViewVulkan() = default;
 

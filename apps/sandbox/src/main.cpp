@@ -84,7 +84,7 @@ public:
         rhi::assign_screen(0, platform::get_raw_window_handle(m_windowHandle));
         rhi::reset_screen(0, 1600, 900, true);
         rhi::reset_view(SceneViewId, 1600, 900);
-
+#if 0
         // Triangle Resource Set
         {
             rhi::ResourceSetDescription set_desc{};
@@ -112,15 +112,17 @@ public:
 
             m_trianglePipeline = rhi::create_pipeline(pipeline_desc);
         }
+#endif
+
         // Triangle Vertex Buffer
         {
             rhi::BufferDescription buffer_desc{};
             buffer_desc.size = sizeof(Vertex) * g_TriangleVertices.size();
             buffer_desc.usage = rhi::BufferUsage::eVertexBuffer;
             buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
-            m_triangleVertexBuffer = rhi::create_buffer(buffer_desc);
+            // m_triangleVertexBuffer = rhi::create_buffer(buffer_desc);
 
-            rhi::write_buffer(m_triangleVertexBuffer, 0, buffer_desc.size, g_TriangleVertices.data());
+            // rhi::write_buffer(m_triangleVertexBuffer, 0, buffer_desc.size, g_TriangleVertices.data());
         }
         // Triangle Index Buffer
         {
@@ -128,9 +130,9 @@ public:
             buffer_desc.size = sizeof(u16) * g_TriangleIndices.size();
             buffer_desc.usage = rhi::BufferUsage::eIndexBuffer;
             buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
-            m_triangleIndexBuffer = rhi::create_buffer(buffer_desc);
+            // m_triangleIndexBuffer = rhi::create_buffer(buffer_desc);
 
-            rhi::write_buffer(m_triangleIndexBuffer, 0, buffer_desc.size, g_TriangleIndices.data());
+            // rhi::write_buffer(m_triangleIndexBuffer, 0, buffer_desc.size, g_TriangleIndices.data());
         }
     }
     void shutdown() override
@@ -147,16 +149,30 @@ public:
         rhi::begin_frame();
         {
             const static auto RenderContextId = "render_context"_hs;
-            rhi::begin_contex(RenderContextId);
+            rhi::begin_context(RenderContextId);
 
             rhi::begin_view(RenderContextId, SceneViewId, { 0.392f, 0.584f, 0.929f, 1 });
             {
+#if 0
                 rhi::set_viewport(RenderContextId, 0, 0, 1600, 900, 0.0f, 1.0f);
                 rhi::set_scissor(RenderContextId, 0, 0, 1600, 900);
-                rhi::set_pipeline(RenderContextId, m_trianglePipeline);
+    #if 0
+				rhi::set_pipeline(RenderContextId, m_trianglePipeline);
+    #endif  // 0
+
+                rhi::PipelineVertexInputState vertex_input_state{
+                    /*.attributes = {
+                        { "Position", rhi::Format::eRGB32 },
+                        { "Color", rhi::Format::eRGB32 },
+                    },*/
+                    .topology = rhi::PrimitiveTopology::eTriangles,
+                };
+                rhi::set_pipeline_vertex_input_state(RenderContextId, vertex_input_state);
+
                 rhi::set_index_buffer(RenderContextId, m_triangleIndexBuffer, rhi::IndexType::eU16);
                 rhi::set_vertex_buffer(RenderContextId, m_triangleVertexBuffer);
                 rhi::draw_indexed(RenderContextId, 3);
+#endif
             }
             rhi::end_view(RenderContextId, SceneViewId);
 
@@ -195,8 +211,10 @@ private:
     platform::HandleWindow m_windowHandle{ nullptr };
     Owned<SceneRenderer> m_sceneRenderer{ nullptr };
 
+#if 0
     rhi::HandleResourceSet m_triangleResourceSet{};
     rhi::HandlePipeline m_trianglePipeline{};
+#endif
     rhi::HandleBuffer m_triangleIndexBuffer{};
     rhi::HandleBuffer m_triangleVertexBuffer{};
 };

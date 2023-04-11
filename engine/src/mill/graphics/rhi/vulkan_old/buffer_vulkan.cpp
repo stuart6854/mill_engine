@@ -38,7 +38,7 @@ namespace mill::rhi
         }
     }
 
-    BufferVulkan::BufferVulkan(DeviceVulkan& device, const BufferDescription& description) : m_device(device), m_desc(description)
+    BufferVulkan::BufferVulkan(InstanceVulkan& device, const BufferDescription& description) : m_device(device), m_desc(description)
     {
         ASSERT(m_desc.size);
 

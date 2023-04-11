@@ -68,7 +68,7 @@ namespace mill::rhi
         }
     }
 
-    PipelineVulkan::PipelineVulkan(DeviceVulkan& device, const PipelineDescription& description) : m_device(device), m_desc(description)
+    PipelineVulkan::PipelineVulkan(InstanceVulkan& device, const PipelineDescription& description) : m_device(device), m_desc(description)
     {
         std::vector<vk::UniqueShaderModule> shader_modules{};
         std::vector<vk::PipelineShaderStageCreateInfo> stage_infos{};

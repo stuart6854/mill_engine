@@ -1,4 +1,4 @@
-#include "device_vulkan.hpp"
+#include "instance_vulkan.hpp"
 
 #include "mill/core/base.hpp"
 #include "helpers_vulkan.hpp"
@@ -34,14 +34,14 @@ namespace mill::rhi
         return VK_FALSE;
     }
 
-    DeviceVulkan::DeviceVulkan() = default;
+    InstanceVulkan::InstanceVulkan() = default;
 
-    DeviceVulkan::~DeviceVulkan()
+    InstanceVulkan::~InstanceVulkan()
     {
         ASSERT(!m_instance || !m_device);
     }
 
-    bool DeviceVulkan::initialise()
+    bool InstanceVulkan::initialise()
     {
         ASSERT(!m_instance && !m_device);
 
@@ -82,7 +82,7 @@ namespace mill::rhi
         return true;
     }
 
-    void DeviceVulkan::shutdown()
+    void InstanceVulkan::shutdown()
     {
         m_descriptorPool.reset();
         m_allocator.reset();
@@ -91,67 +91,67 @@ namespace mill::rhi
         m_instance.reset();
     }
 
-    void DeviceVulkan::wait_idle() const
+    void InstanceVulkan::wait_idle() const
     {
         m_device->waitIdle();
     }
 
-    auto DeviceVulkan::get_instance() -> vk::Instance&
+    auto InstanceVulkan::get_instance() -> vk::Instance&
     {
         return *m_instance;
     }
 
-    auto DeviceVulkan::get_physical_device() -> vk::PhysicalDevice&
+    auto InstanceVulkan::get_physical_device() -> vk::PhysicalDevice&
     {
         return m_physicalDevice;
     }
 
-    auto DeviceVulkan::get_device() -> vk::Device&
+    auto InstanceVulkan::get_device() -> vk::Device&
     {
         return *m_device;
     }
 
-    auto DeviceVulkan::get_graphics_queue_family() -> i32
+    auto InstanceVulkan::get_graphics_queue_family() -> i32
     {
         return m_graphicsQueueFamily;
     }
 
-    auto DeviceVulkan::get_compute_queue_family() -> i32
+    auto InstanceVulkan::get_compute_queue_family() -> i32
     {
         return m_computeQueueFamily;
     }
 
-    auto DeviceVulkan::get_transfer_queue_family() -> i32
+    auto InstanceVulkan::get_transfer_queue_family() -> i32
     {
         return m_transferQueueFamily;
     }
 
-    auto DeviceVulkan::get_graphics_queue() -> vk::Queue&
+    auto InstanceVulkan::get_graphics_queue() -> vk::Queue&
     {
         return m_graphicsQueue;
     }
 
-    auto DeviceVulkan::get_compute_queue() -> vk::Queue&
+    auto InstanceVulkan::get_compute_queue() -> vk::Queue&
     {
         return m_computeQueue;
     }
 
-    auto DeviceVulkan::get_transfer_queue() -> vk::Queue&
+    auto InstanceVulkan::get_transfer_queue() -> vk::Queue&
     {
         return m_transferQueue;
     }
 
-    auto DeviceVulkan::get_allocator() -> vma::Allocator&
+    auto InstanceVulkan::get_allocator() -> vma::Allocator&
     {
         return m_allocator.get();
     }
 
-    auto DeviceVulkan::get_descriptor_pool() -> vk::DescriptorPool&
+    auto InstanceVulkan::get_descriptor_pool() -> vk::DescriptorPool&
     {
         return m_descriptorPool.get();
     }
 
-    bool DeviceVulkan::init_instance()
+    bool InstanceVulkan::init_instance()
     {
         VULKAN_HPP_DEFAULT_DISPATCHER.init(m_loader.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"));
 
@@ -241,7 +241,7 @@ namespace mill::rhi
         return true;
     }
 
-    bool DeviceVulkan::init_physical_device()
+    bool InstanceVulkan::init_physical_device()
     {
         m_physicalDevice = vulkan::get_best_dedicated_gpu(*m_instance);
         if (!m_physicalDevice)
@@ -257,7 +257,7 @@ namespace mill::rhi
         return true;
     }
 
-    bool DeviceVulkan::init_device()
+    bool InstanceVulkan::init_device()
     {
         std::vector<const char*> device_exts{
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,

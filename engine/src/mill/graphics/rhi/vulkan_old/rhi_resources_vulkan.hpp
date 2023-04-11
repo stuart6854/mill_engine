@@ -6,17 +6,19 @@
 
 namespace mill::rhi
 {
+#if 0
     struct ResourceLayout
     {
         ResourceSetDescription desc{};
         vk::UniqueDescriptorSetLayout layout{};
     };
+#endif
 
     struct ResourcesVulkan
     {
         std::unordered_map<u64, Owned<class ScreenVulkan>> screenMap{};
 
-        std::unordered_map<u64, ResourceLayout> resourceLayoutMap{};
+        // std::unordered_map<u64, ResourceLayout> resourceLayoutMap{};
         std::unordered_map<u64, Owned<class ResourceSetVulkan>> resourceSetMap{};
         u64 nextSetId{ 1 };
 
@@ -40,14 +42,17 @@ namespace mill::rhi
 
     auto get_format_size(Format format) -> u32;
 
-    auto convert_resource_type(ResourceType resource_type) -> vk::DescriptorType;
+#if 0
+	auto convert_resource_type(ResourceType resource_type) -> vk::DescriptorType;
     auto convert_shader_stages(ShaderStageFlags shader_stages) -> vk::ShaderStageFlags;
     auto convert_resource_binding(const ResourceBinding& binding) -> vk::DescriptorSetLayoutBinding;
+#endif  // 0
 
 #pragma endregion
 
 }
 
+#if 0
 namespace std
 {
     template <>
@@ -72,3 +77,4 @@ namespace std
         }
     };
 }
+#endif  // 0
