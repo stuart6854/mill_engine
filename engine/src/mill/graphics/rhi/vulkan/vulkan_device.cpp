@@ -341,6 +341,8 @@ namespace mill::rhi
     {
         std::vector<const char*> device_exts{
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,
+            VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME,
         };
 
         for (const auto& ext : device_exts)
@@ -360,11 +362,15 @@ namespace mill::rhi
         dyn_rendering_features.setDynamicRendering(true);
         dyn_rendering_features.setPNext(&sync2_features);
 
+        vk::PhysicalDeviceGraphicsPipelineLibraryFeaturesEXT graphics_pipeline_library_features{};
+        graphics_pipeline_library_features.setGraphicsPipelineLibrary(true);
+        graphics_pipeline_library_features.setPNext(&dyn_rendering_features);
+
         // #TODO: Check if descriptor indexing is supported
         vk::PhysicalDeviceDescriptorIndexingFeatures descriptor_indexing_features{};
         descriptor_indexing_features.setDescriptorBindingPartiallyBound(true);
         descriptor_indexing_features.setRuntimeDescriptorArray(true);
-        descriptor_indexing_features.setPNext(&dyn_rendering_features);
+        descriptor_indexing_features.setPNext(&graphics_pipeline_library_features);
 
         m_graphicsQueueFamily = vulkan::find_graphics_queue_family(m_physicalDevice);
         m_transferQueueFamily = vulkan::find_transfer_queue_family(m_physicalDevice);
