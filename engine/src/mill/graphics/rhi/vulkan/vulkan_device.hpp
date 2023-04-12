@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mill/core/base.hpp"
+#include "rhi_resource_vulkan.hpp"
 #include "vulkan_includes.hpp"
 
 #include <vector>
@@ -22,7 +23,7 @@ namespace mill::rhi
         void shutdown();
         void wait_idle() const;
 
-        /* Resources */
+#pragma region Resources
 
         void create_screen(u64 screen_id, void* window_handle);
         void destroy_screen(u64 screen_id);
@@ -37,6 +38,26 @@ namespace mill::rhi
         void create_view(u64 view_id);
         void destroy_view(u64 view_id);
         auto get_view(u64 view_id) const -> ViewVulkan*;
+
+        /* Pipeline */
+
+        void compile_pipeline_vertex_input_state(const PipelineVertexInputState& state);
+        bool is_pipeline_vertex_input_state_compiled(hasht state_hash);
+
+        void compile_pipeline_pre_rasterisation_state(const PipelinePreRasterisationState& state);
+        bool is_pipeline_pre_rasterisation_state_compiled(hasht state_hash);
+
+        void compile_pipeline_fragment_stage_state(const PipelineFragmentStageState& state);
+        bool is_pipeline_fragment_stage_state_compiled(hasht state_hash);
+
+        void compile_pipeline_fragment_output_state(const PipelineFragmentOutputState& state);
+        bool is_pipeline_fragment_output_state_compiled(hasht state_hash);
+
+        void compile_pipeline(const PipelineState& state);
+        bool is_pipeline_compiled(const PipelineState& state);
+        auto get_pipeline(hasht pipeline_hash) -> vk::Pipeline&;
+
+#pragma endregion
 
         /* Getters */
 
@@ -84,5 +105,11 @@ namespace mill::rhi
         std::vector<ContextVulkan*> m_allContexts{};
 
         std::unordered_map<u64, Owned<ViewVulkan>> m_views{};
+
+        std::unordered_map<hasht, vk::UniquePipeline> m_compiledPipelineVertexInputStates{};
+        std::unordered_map<hasht, vk::UniquePipeline> m_compiledPipelinePreRasterisationStates{};
+        std::unordered_map<hasht, vk::UniquePipeline> m_compiledPipelineFragmentStageStates{};
+        std::unordered_map<hasht, vk::UniquePipeline> m_compiledPipelineFragmentOutputStates{};
+        std::unordered_map<hasht, vk::UniquePipeline> m_compiledPipelines{};
     };
 }

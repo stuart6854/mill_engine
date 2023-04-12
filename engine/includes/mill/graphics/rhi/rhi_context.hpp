@@ -16,6 +16,11 @@ namespace mill::rhi
     void set_viewport(u64 context_id, f32 x, f32 y, f32 w, f32 h, f32 min_depth = 0.0f, f32 max_depth = 1.0f);
     void set_scissor(u64 context_id, i32 x, i32 y, u32 w, u32 h);
 
+    void set_pipeline_vertex_input_state(u64 context_id, const PipelineVertexInputState& state);
+    void set_pipeline_pre_rasterisation_state(u64 context_id, const PipelinePreRasterisationState& state);
+    void set_pipeline_fragment_stage_state(u64 context_id, const PipelineFragmentStageState& state);
+    void set_pipeline_fragment_output_state(u64 context_id, const PipelineFragmentOutputState& state);
+
     enum class IndexType
     {
         eU16,

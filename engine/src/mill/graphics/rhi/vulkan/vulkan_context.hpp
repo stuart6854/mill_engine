@@ -2,6 +2,7 @@
 
 #include "mill/core/base.hpp"
 #include "rhi_core_vulkan.hpp"
+#include "rhi_resource_vulkan.hpp"
 #include "vulkan_includes.hpp"
 
 namespace mill::rhi
@@ -18,14 +19,20 @@ namespace mill::rhi
         void wait_and_begin();
         void end();
 
-#if 0
         void set_viewport(f32 x, f32 y, f32 w, f32 h, f32 min_depth, f32 max_depth);
         void set_scissor(i32 x, i32 y, u32 w, u32 h);
 
+        void set_pipeline_vertex_input_state(hasht state_hash);
+        void set_pipeline_pre_rasterisation_state(hasht state_hash);
+        void set_pipeline_fragment_stage_state(hasht state_hash);
+        void set_pipeline_fragment_output_state(hasht state_hash);
+
+        void draw(u32 vertex_count);
+
+#if 0
         void set_index_buffer(HandleBuffer buffer, IndexType index_type);
         void set_vertex_buffer(HandleBuffer buffer);
 
-        void draw(u32 vertex_count);
         void draw_indexed(u32 index_count);
 
 #endif
@@ -48,6 +55,8 @@ namespace mill::rhi
         struct Frame;
         auto get_frame() -> Frame&;
 
+        void verify_pipeline_state();
+
     private:
         DeviceVulkan& m_device;
 
@@ -64,6 +73,9 @@ namespace mill::rhi
         u32 m_frameIndex{};
 
         std::vector<u64> m_associatedScreenIds{};
-        // vk::Pipeline m_boundPipeline{};
+
+        PipelineState m_pipelineState{};
+        hasht m_compiledPipelineStateHash;
+        bool m_pipelineStateDirty{};
     };
 }

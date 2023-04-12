@@ -177,6 +177,8 @@ namespace mill::rhi::vulkan
 
     auto get_image_aspect_from_format(vk::Format format) -> vk::ImageAspectFlags;
 
+    auto get_format_byte_size(vk::Format format) -> u32;
+
 #pragma endregion
 
 }

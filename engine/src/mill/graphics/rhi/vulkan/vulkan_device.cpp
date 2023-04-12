@@ -2,6 +2,7 @@
 
 #include "mill/core/base.hpp"
 #include "mill/core/debug.hpp"
+#include "rhi_resource_vulkan.hpp"
 #include "vulkan_device.hpp"
 #include "vulkan_screen.hpp"
 #include "vulkan_context.hpp"
@@ -16,6 +17,7 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 namespace mill::rhi
 {
     constexpr auto g_VulkanAPIVersion = VK_API_VERSION_1_3;
+    constexpr bool g_PipelineLinkTimeOptimisation = true;  // Enable for better runtime performance (costs slower compile/linking time)
 
     VKAPI_ATTR VkBool32 VKAPI_CALL debug_message_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
                                                           VkDebugUtilsMessageTypeFlagsEXT message_type,
@@ -172,6 +174,245 @@ namespace mill::rhi
 
         const auto& view = m_views.at(view_id);
         return view.get();
+    }
+
+    /* Pipeline */
+
+    void DeviceVulkan::compile_pipeline_vertex_input_state(const PipelineVertexInputState& state)
+    {
+        const auto state_hash = state.get_hash();
+        if (is_pipeline_vertex_input_state_compiled(state_hash))
+            return;
+
+        vk::VertexInputBindingDescription vertex_binding{};
+        vertex_binding.setInputRate(vk::VertexInputRate::eVertex);
+        vertex_binding.setBinding(0);
+
+        const auto attributes = to_vulkan(state.attributes, vertex_binding.stride);
+
+        vk::PipelineVertexInputStateCreateInfo vertex_input_state{};
+        if (!attributes.empty())
+        {
+            vertex_input_state.setVertexBindingDescriptions(vertex_binding);
+            vertex_input_state.setVertexAttributeDescriptions(attributes);
+        }
+
+        vk::PipelineInputAssemblyStateCreateInfo input_assembly_state{};
+        input_assembly_state.setTopology(to_vulkan(state.topology));
+
+        vk::GraphicsPipelineLibraryCreateInfoEXT library_info{};
+        library_info.setFlags(vk::GraphicsPipelineLibraryFlagBitsEXT::eVertexInputInterface);
+
+        vk::GraphicsPipelineCreateInfo pipeline_info{};
+        pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLibraryKHR | vk::PipelineCreateFlagBits::eRetainLinkTimeOptimizationInfoEXT);
+        pipeline_info.setPVertexInputState(&vertex_input_state);
+        pipeline_info.setPInputAssemblyState(&input_assembly_state);
+        pipeline_info.setPNext(&library_info);
+
+        vk::UniquePipeline pipeline = m_device->createGraphicsPipelineUnique({}, pipeline_info).value;
+        m_compiledPipelineVertexInputStates[state_hash] = std::move(pipeline);
+    }
+
+    bool DeviceVulkan::is_pipeline_vertex_input_state_compiled(hasht state_hash)
+    {
+        return m_compiledPipelineVertexInputStates.contains(state_hash);
+    }
+
+    void DeviceVulkan::compile_pipeline_pre_rasterisation_state(const PipelinePreRasterisationState& state)
+    {
+        const auto state_hash = state.get_hash();
+        if (is_pipeline_pre_rasterisation_state_compiled(state_hash))
+            return;
+
+        vk::PipelineLayoutCreateInfo layout_info{};
+        layout_info.setFlags(vk::PipelineLayoutCreateFlagBits::eIndependentSetsEXT);
+        auto layout = m_device->createPipelineLayout(layout_info);
+
+        vk::ShaderModuleCreateInfo module_info{};
+        module_info.setCode(state.vertexSpirv);
+
+        vk::PipelineShaderStageCreateInfo stage_info{};
+        stage_info.setPNext(&module_info);
+        stage_info.setStage(vk::ShaderStageFlagBits::eVertex);
+        stage_info.setPName("main");
+
+        const std::vector<vk::DynamicState> dynamic_states{
+            vk::DynamicState::eViewport,
+            vk::DynamicState::eScissor,
+        };
+        vk::PipelineDynamicStateCreateInfo dynamic_state{};
+        dynamic_state.setDynamicStates(dynamic_states);
+
+        vk::PipelineViewportStateCreateInfo viewport_state{};
+        viewport_state.setViewportCount(1);
+        viewport_state.setScissorCount(1);
+
+        vk::PipelineRasterizationStateCreateInfo rasterisation_state{};
+        rasterisation_state.setPolygonMode(to_vulkan(state.fillMode));
+        rasterisation_state.setCullMode(to_vulkan(state.cullMode));
+        rasterisation_state.setFrontFace(to_vulkan(state.frontFace));
+        rasterisation_state.setLineWidth(state.lineWidth);
+
+        vk::GraphicsPipelineLibraryCreateInfoEXT library_info{};
+        library_info.setFlags(vk::GraphicsPipelineLibraryFlagBitsEXT::ePreRasterizationShaders);
+
+        vk::GraphicsPipelineCreateInfo pipeline_info{};
+        pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLibraryKHR | vk::PipelineCreateFlagBits::eRetainLinkTimeOptimizationInfoEXT);
+        pipeline_info.setStages(stage_info);
+        pipeline_info.setLayout(layout);
+        pipeline_info.setPDynamicState(&dynamic_state);
+        pipeline_info.setPViewportState(&viewport_state);
+        pipeline_info.setPRasterizationState(&rasterisation_state);
+        pipeline_info.setPNext(&library_info);
+
+        vk::UniquePipeline pipeline = m_device->createGraphicsPipelineUnique({}, pipeline_info).value;
+        m_compiledPipelinePreRasterisationStates[state_hash] = std::move(pipeline);
+    }
+
+    bool DeviceVulkan::is_pipeline_pre_rasterisation_state_compiled(hasht state_hash)
+    {
+        return m_compiledPipelinePreRasterisationStates.contains(state_hash);
+    }
+
+    void DeviceVulkan::compile_pipeline_fragment_stage_state(const PipelineFragmentStageState& state)
+    {
+        const auto state_hash = state.get_hash();
+        if (is_pipeline_fragment_stage_state_compiled(state_hash))
+            return;
+
+        vk::PipelineLayoutCreateInfo layout_info{};
+        layout_info.setFlags(vk::PipelineLayoutCreateFlagBits::eIndependentSetsEXT);
+        auto layout = m_device->createPipelineLayout(layout_info);
+
+        vk::ShaderModuleCreateInfo module_info{};
+        module_info.setCode(state.fragmentSpirv);
+
+        vk::PipelineShaderStageCreateInfo stage_info{};
+        stage_info.setPNext(&module_info);
+        stage_info.setStage(vk::ShaderStageFlagBits::eFragment);
+        stage_info.setPName("main");
+
+        vk::PipelineDepthStencilStateCreateInfo depth_stencil_state{};
+        vk::PipelineMultisampleStateCreateInfo multisample_state{};
+
+        vk::GraphicsPipelineLibraryCreateInfoEXT library_info{};
+        library_info.setFlags(vk::GraphicsPipelineLibraryFlagBitsEXT::eFragmentShader);
+
+        vk::GraphicsPipelineCreateInfo pipeline_info{};
+        pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLibraryKHR | vk::PipelineCreateFlagBits::eRetainLinkTimeOptimizationInfoEXT);
+        pipeline_info.setStages(stage_info);
+        pipeline_info.setLayout(layout);
+        pipeline_info.setPDepthStencilState(&depth_stencil_state);
+        pipeline_info.setPMultisampleState(&multisample_state);
+        pipeline_info.setPNext(&library_info);
+
+        vk::UniquePipeline pipeline = m_device->createGraphicsPipelineUnique({}, pipeline_info).value;
+        m_compiledPipelineFragmentStageStates[state_hash] = std::move(pipeline);
+    }
+
+    bool DeviceVulkan::is_pipeline_fragment_stage_state_compiled(hasht state_hash)
+    {
+        return m_compiledPipelineFragmentStageStates.contains(state_hash);
+    }
+
+    void DeviceVulkan::compile_pipeline_fragment_output_state(const PipelineFragmentOutputState& state)
+    {
+        const auto state_hash = state.get_hash();
+        if (is_pipeline_fragment_output_state_compiled(state_hash))
+            return;
+
+        vk::PipelineColorBlendAttachmentState blend_attachment{};
+        blend_attachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+                                           vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+        blend_attachment.setBlendEnable(state.enableColorBlend);
+        vk::PipelineColorBlendStateCreateInfo color_blend_state{};
+        color_blend_state.setAttachments(blend_attachment);
+
+        vk::PipelineMultisampleStateCreateInfo multisample_state{};
+
+        std::vector<vk::Format> colorFormats(state.colorAttachmentFormats.size());
+        for (u32 i = 0; i < colorFormats.size(); ++i)
+            colorFormats[i] = to_vulkan(state.colorAttachmentFormats[i]);
+
+        vk::PipelineRenderingCreateInfo rendering_info{};
+        rendering_info.setColorAttachmentFormats(colorFormats);
+        rendering_info.setDepthAttachmentFormat(to_vulkan(state.depthAttachmentFormat));
+
+        vk::GraphicsPipelineLibraryCreateInfoEXT library_info{};
+        library_info.setFlags(vk::GraphicsPipelineLibraryFlagBitsEXT::eFragmentOutputInterface);
+        library_info.setPNext(&rendering_info);
+
+        vk::GraphicsPipelineCreateInfo pipeline_info{};
+        pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLibraryKHR | vk::PipelineCreateFlagBits::eRetainLinkTimeOptimizationInfoEXT);
+        pipeline_info.setPColorBlendState(&color_blend_state);
+        pipeline_info.setPMultisampleState(&multisample_state);
+        pipeline_info.setPNext(&library_info);
+
+        vk::UniquePipeline pipeline = m_device->createGraphicsPipelineUnique({}, pipeline_info).value;
+        m_compiledPipelineFragmentOutputStates[state_hash] = std::move(pipeline);
+    }
+
+    bool DeviceVulkan::is_pipeline_fragment_output_state_compiled(hasht state_hash)
+    {
+        return m_compiledPipelineFragmentOutputStates.contains(state_hash);
+    }
+
+    void DeviceVulkan::compile_pipeline(const PipelineState& state)
+    {
+        hasht compiledPipelineHash{};
+        std::vector<vk::Pipeline> libraries{};
+
+        // Vertex Input State
+        hash_combine(compiledPipelineHash, state.vertexInputStateHash);
+        if (state.vertexInputStateHash != 0)
+        {
+            libraries.push_back(m_compiledPipelineVertexInputStates.at(state.vertexInputStateHash).get());
+        }
+
+        // Pre Rasterisation State
+        hash_combine(compiledPipelineHash, state.preRasterisationStateHash);
+        if (state.preRasterisationStateHash != 0)
+        {
+            libraries.push_back(m_compiledPipelinePreRasterisationStates.at(state.preRasterisationStateHash).get());
+        }
+
+        // Fragment Stage State
+        hash_combine(compiledPipelineHash, state.fragmentStageStateHash);
+        if (state.fragmentStageStateHash != 0)
+        {
+            libraries.push_back(m_compiledPipelineFragmentStageStates.at(state.fragmentStageStateHash).get());
+        }
+
+        // Fragment Output State
+        hash_combine(compiledPipelineHash, state.fragmentOutputStateHash);
+        if (state.fragmentOutputStateHash != 0)
+        {
+            libraries.push_back(m_compiledPipelineFragmentOutputStates.at(state.fragmentOutputStateHash).get());
+        }
+
+        vk::PipelineLibraryCreateInfoKHR linking_info{};
+        linking_info.setLibraries(libraries);
+
+        vk::GraphicsPipelineCreateInfo pipeline_info{};
+        pipeline_info.setLayout({});
+        pipeline_info.setPNext(&linking_info);
+        if (g_PipelineLinkTimeOptimisation)
+            pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLinkTimeOptimizationEXT);
+
+        vk::UniquePipeline pipeline = m_device->createGraphicsPipelineUnique({}, pipeline_info).value;
+        m_compiledPipelines[compiledPipelineHash] = std::move(pipeline);
+    }
+
+    bool DeviceVulkan::is_pipeline_compiled(const PipelineState& state)
+    {
+        const auto pipeline_hash = state.get_hash();
+        return m_compiledPipelines.contains(pipeline_hash);
+    }
+
+    auto DeviceVulkan::get_pipeline(hasht pipeline_hash) -> vk::Pipeline&
+    {
+        ASSERT(m_compiledPipelines.contains(pipeline_hash));
+        return m_compiledPipelines.at(pipeline_hash).get();
     }
 
 #pragma endregion

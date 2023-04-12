@@ -67,17 +67,101 @@ namespace mill::rhi
         view->end(cmd);
     }
 
-    void set_viewport(u64 /*context*/, f32 /*x*/, f32 /*y*/, f32 /*w*/, f32 /*h*/, f32 /*min_depth*/, f32 /*max_depth*/) {}
+    void set_viewport(u64 context_id, f32 x, f32 y, f32 w, f32 h, f32 min_depth, f32 max_depth)
+    {
+        auto& device = get_device();
 
-    void set_scissor(u64 /*context*/, i32 /*x*/, i32 /*y*/, u32 /*w*/, u32 /*h*/) {}
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
 
-    void set_index_buffer(u64 /*context*/, HandleBuffer /*buffer*/, IndexType /*index_type*/) {}
+        context->set_viewport(x, y, w, h, min_depth, max_depth);
+    }
 
-    void set_vertex_buffer(u64 /*context*/, HandleBuffer /*buffer*/) {}
+    void set_scissor(u64 context_id, i32 x, i32 y, u32 w, u32 h)
+    {
+        auto& device = get_device();
 
-    void draw(u64 /*context*/, u32 /*vertex_count*/) {}
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
 
-    void draw_indexed(u64 /*context*/, u32 /*index_count*/) {}
+        context->set_scissor(x, y, w, h);
+    }
+
+    void set_pipeline_vertex_input_state(u64 context_id, const PipelineVertexInputState& state)
+    {
+        auto& device = get_device();
+
+        if (!device.is_pipeline_vertex_input_state_compiled(state.get_hash()))
+        {
+            device.compile_pipeline_vertex_input_state(state);
+        }
+
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
+
+        context->set_pipeline_vertex_input_state(state.get_hash());
+    }
+
+    void set_pipeline_pre_rasterisation_state(u64 context_id, const PipelinePreRasterisationState& state)
+    {
+        auto& device = get_device();
+
+        if (!device.is_pipeline_pre_rasterisation_state_compiled(state.get_hash()))
+        {
+            device.compile_pipeline_pre_rasterisation_state(state);
+        }
+
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
+
+        context->set_pipeline_pre_rasterisation_state(state.get_hash());
+    }
+
+    void set_pipeline_fragment_stage_state(u64 context_id, const PipelineFragmentStageState& state)
+    {
+        auto& device = get_device();
+
+        if (!device.is_pipeline_fragment_stage_state_compiled(state.get_hash()))
+        {
+            device.compile_pipeline_fragment_stage_state(state);
+        }
+
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
+
+        context->set_pipeline_fragment_stage_state(state.get_hash());
+    }
+
+    void set_pipeline_fragment_output_state(u64 context_id, const PipelineFragmentOutputState& state)
+    {
+        auto& device = get_device();
+
+        if (!device.is_pipeline_fragment_output_state_compiled(state.get_hash()))
+        {
+            device.compile_pipeline_fragment_output_state(state);
+        }
+
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
+
+        context->set_pipeline_fragment_output_state(state.get_hash());
+    }
+
+    void set_index_buffer(u64 /*contex_id*/, HandleBuffer /*buffer*/, IndexType /*index_type*/) {}
+
+    void set_vertex_buffer(u64 /*context_id*/, HandleBuffer /*buffer*/) {}
+
+    void draw(u64 context_id, u32 vertex_count)
+    {
+        auto& device = get_device();
+
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
+
+        context->draw(vertex_count);
+    }
+
+    void draw_indexed(u64 /*context_id*/, u32 /*index_count*/) {}
 
     void blit_to_screen(u64 context_id, u64 screen_id, u64 view_id)
     {

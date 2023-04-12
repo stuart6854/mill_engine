@@ -2,6 +2,7 @@
 
 #include "mill/core/base.hpp"
 #include "mill/core/debug.hpp"
+#include "rhi_core_vulkan.hpp"
 #include "vulkan_device.hpp"
 #include "vulkan_image.hpp"
 #include "vulkan_helpers.hpp"
@@ -49,7 +50,9 @@ namespace mill::rhi
         frame.wasRecorded = false;
 
         m_associatedScreenIds.clear();
-        // m_boundPipeline = nullptr;
+        m_pipelineState = {};
+        m_compiledPipelineStateHash = 0;
+        m_pipelineStateDirty = false;
 
         auto& cmd = get_cmd();
         vk::CommandBufferBeginInfo begin_info{};
@@ -59,6 +62,63 @@ namespace mill::rhi
     void ContextVulkan::end()
     {
         get_cmd().end();
+    }
+
+    void ContextVulkan::set_viewport(f32 x, f32 y, f32 w, f32 h, f32 min_depth, f32 max_depth)
+    {
+        vk::Viewport viewport{};
+        viewport.setX(x);
+        viewport.setY(y);
+        viewport.setWidth(w);
+        viewport.setHeight(h);
+        viewport.setMinDepth(min_depth);
+        viewport.setMaxDepth(max_depth);
+        get_cmd().setViewport(0, viewport);
+
+        get_frame().wasRecorded = true;
+    }
+
+    void ContextVulkan::set_scissor(i32 x, i32 y, u32 w, u32 h)
+    {
+        vk::Rect2D scissor{};
+        scissor.setOffset(vk::Offset2D(x, y));
+        scissor.setExtent(vk::Extent2D(w, h));
+        get_cmd().setScissor(0, scissor);
+
+        get_frame().wasRecorded = true;
+    }
+
+    void ContextVulkan::set_pipeline_vertex_input_state(hasht state_hash)
+    {
+        m_pipelineState.vertexInputStateHash = state_hash;
+        m_pipelineStateDirty = true;
+    }
+
+    void ContextVulkan::set_pipeline_pre_rasterisation_state(hasht state_hash)
+    {
+        m_pipelineState.preRasterisationStateHash = state_hash;
+        m_pipelineStateDirty = true;
+    }
+
+    void ContextVulkan::set_pipeline_fragment_stage_state(hasht state_hash)
+    {
+        m_pipelineState.fragmentStageStateHash = state_hash;
+        m_pipelineStateDirty = true;
+    }
+
+    void ContextVulkan::set_pipeline_fragment_output_state(hasht state_hash)
+    {
+        m_pipelineState.fragmentOutputStateHash = state_hash;
+        m_pipelineStateDirty = true;
+    }
+
+    void ContextVulkan::draw(u32 vertex_count)
+    {
+        verify_pipeline_state();
+
+        get_cmd().draw(vertex_count, 1, 0, 0);
+
+        get_frame().wasRecorded = true;
     }
 
     void ContextVulkan::transition_image(ImageVulkan& image, vk::ImageLayout new_layout)
@@ -88,8 +148,9 @@ namespace mill::rhi
 
         get_cmd().pipelineBarrier2(dependency);
 
-        get_frame().wasRecorded = true;
         image.set_layout(new_layout);
+
+        get_frame().wasRecorded = true;
     }
 
     void ContextVulkan::blit(ImageVulkan& srcImage, ImageVulkan& dstImage)
@@ -149,6 +210,29 @@ namespace mill::rhi
     auto ContextVulkan::get_associated_screen_ids() const -> const std::vector<u64>&
     {
         return m_associatedScreenIds;
+    }
+
+    void ContextVulkan::verify_pipeline_state()
+    {
+        if (!m_pipelineStateDirty)
+            return;
+
+        m_pipelineStateDirty = false;
+
+        const auto new_pipeline_state_hash = m_pipelineState.get_hash();
+        if (new_pipeline_state_hash == m_compiledPipelineStateHash)
+            return;
+
+        auto& device = get_device();
+
+        if (!device.is_pipeline_compiled(m_pipelineState))
+        {
+            device.compile_pipeline(m_pipelineState);
+        }
+        m_compiledPipelineStateHash = new_pipeline_state_hash;
+
+        auto& pipeline = device.get_pipeline(m_compiledPipelineStateHash);
+        get_cmd().bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
     }
 
 }

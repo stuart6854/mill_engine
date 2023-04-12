@@ -1,7 +1,5 @@
 #pragma once
 
-#include "resources/rhi_pipeline.hpp"
-
 #include "mill/core/base.hpp"
 #include "mill/utility/flags.hpp"
 
@@ -166,3 +164,5 @@ namespace mill::rhi
 
     void write_buffer(HandleBuffer buffer, u64 offset, u64 size, const void* data);
 }
+
+#include "resources/rhi_pipeline.hpp"

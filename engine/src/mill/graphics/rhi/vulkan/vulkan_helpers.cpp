@@ -732,4 +732,16 @@ namespace mill::rhi::vulkan
         return aspect;
     }
 
+    auto get_format_byte_size(vk::Format format) -> u32
+    {
+        switch (format)
+        {
+            case vk::Format::eR8G8B8A8Srgb: return 1 * 4;
+            case vk::Format::eR32G32B32Sfloat: return 4 * 3;
+            case vk::Format::eR32G32B32A32Sfloat: return 4 * 4;
+            default: ASSERT(("Unknown vk::Format!", false)); break;
+        }
+        return {};
+    }
+
 }
