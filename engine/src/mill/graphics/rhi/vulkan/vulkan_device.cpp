@@ -595,6 +595,8 @@ namespace mill::rhi
         }
 
         vk::PhysicalDeviceFeatures features{};
+        features.setFillModeNonSolid(true);
+        features.setWideLines(true);
 
         vk::PhysicalDeviceSynchronization2Features sync2_features{};
         sync2_features.setSynchronization2(true);
