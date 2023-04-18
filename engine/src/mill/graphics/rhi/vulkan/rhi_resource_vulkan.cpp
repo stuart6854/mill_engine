@@ -44,16 +44,6 @@ namespace mill::rhi
         view->reset(width, height);
     }
 
-    auto PipelineState::get_hash() const -> hasht
-    {
-        hasht hash{};
-
-        hash_combine(hash, vertexInputStateHash);
-        hash_combine(hash, preRasterisationStateHash);
-        hash_combine(hash, fragmentStageStateHash);
-        hash_combine(hash, fragmentOutputStateHash);
-
-        return hash;
     auto to_vulkan(ResourceType type) -> vk::DescriptorType
     {
         switch (type)
@@ -77,16 +67,6 @@ namespace mill::rhi
             out_stages |= vk::ShaderStageFlagBits::eFragment;
 
         return out_stages;
-    }
-
-    auto to_vulkan(const ResourceBinding& binding, u32 binding_index) -> vk::DescriptorSetLayoutBinding
-    {
-        vk::DescriptorSetLayoutBinding out_binding{};
-        out_binding.setBinding(binding_index);
-        out_binding.setDescriptorCount(binding.count);
-        out_binding.setDescriptorType(to_vulkan(binding.type));
-        out_binding.setStageFlags(to_vulkan(binding.shaderStages));
-        return out_binding;
     }
 
     auto to_vulkan(Format format) -> vk::Format

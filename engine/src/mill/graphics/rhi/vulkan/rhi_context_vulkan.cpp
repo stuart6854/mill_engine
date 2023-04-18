@@ -111,10 +111,6 @@ namespace mill::rhi
         context->set_push_constants(offset, size, data);
     }
 
-    void set_index_buffer(u64 /*contex_id*/, HandleBuffer /*buffer*/, IndexType /*index_type*/) {}
-
-    void set_vertex_buffer(u64 /*context_id*/, HandleBuffer /*buffer*/) {}
-
     void draw(u64 context_id, u32 vertex_count)
     {
         auto& device = get_device();

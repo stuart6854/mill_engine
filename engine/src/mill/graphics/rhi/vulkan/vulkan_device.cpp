@@ -217,12 +217,6 @@ namespace mill::rhi
         return layout;
     }
 
-    {
-    }
-
-    {
-
-
     /* Pipelines */
 
     auto DeviceVulkan::get_or_create_pipeline_vertex_input_module(const PipelineVertexInputStateVulkan& state)

@@ -10,6 +10,5 @@ namespace mill::rhi
 
     auto to_vulkan(ShaderStageFlags stages) -> vk::ShaderStageFlags;
 
-
     auto to_vulkan(Format format) -> vk::Format;
 }
