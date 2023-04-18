@@ -5,16 +5,6 @@
 
 layout(location = 0) out vec3 out_color;
 
-// layout(set = 0, binding = 0) uniform Buffer
-// {
-//     mat4 abc;
-// } u_buffer;
-
-// layout(push_constant) uniform Constants
-// {
-//     mat4 abc;
-// } u_constants;
-
 void main()
 {
     const vec3 pos[3] = vec3[3](
