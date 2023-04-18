@@ -12,6 +12,13 @@ namespace mill::rhi
     class ScreenVulkan;
     class ContextVulkan;
     class ViewVulkan;
+    class DescriptorSetLayout;
+    class PipelineLayout;
+    class PipelineModuleVertexInput;
+    class PipelineModulePreRasterisation;
+    class PipelineModuleFragmentStage;
+    class PipelineModuleFragmentOutput;
+    class Pipeline;
 
     class DeviceVulkan
     {
@@ -39,7 +46,9 @@ namespace mill::rhi
         void destroy_view(u64 view_id);
         auto get_view(u64 view_id) const -> ViewVulkan*;
 
+        /* Resource Set */
 
+        auto get_or_create_resource_set_layout(const ResourceSetDescriptionVulkan& description) -> Shared<DescriptorSetLayout>;
 
 
 
@@ -108,8 +117,9 @@ namespace mill::rhi
 
         std::unordered_map<u64, Owned<ViewVulkan>> m_views{};
 
-        std::unordered_map<hasht, Shared<PipelineLayout>> m_pipelineLayouts{};
+        std::unordered_map<hasht, Shared<DescriptorSetLayout>> m_descriptorSetLayouts{};
 
+        std::unordered_map<hasht, Shared<PipelineLayout>> m_pipelineLayouts{};
         std::unordered_map<hasht, Shared<PipelineModuleVertexInput>> m_vertexInputPipelineModules{};
         std::unordered_map<hasht, Shared<PipelineModulePreRasterisation>> m_preRasterisationPipelineModules{};
         std::unordered_map<hasht, Shared<PipelineModuleFragmentStage>> m_fragmentStagePipelineModules{};

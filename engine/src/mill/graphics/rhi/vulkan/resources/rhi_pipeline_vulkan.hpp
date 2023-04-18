@@ -8,8 +8,21 @@ namespace mill::rhi
 {
     class DeviceVulkan;
 
-    auto to_vulkan(const std::vector<VertexAttribute>& attributes) -> std::vector<vk::VertexInputAttributeDescription>;
+    struct ResourceBindingVulkan
+    {
+        vk::DescriptorType type{};
+        u32 count{};
+        vk::ShaderStageFlags shaderStages{};
+    };
+    auto to_vulkan(const ResourceBinding& binding) -> ResourceBindingVulkan;
 
+    struct ResourceSetDescriptionVulkan
+    {
+        std::vector<ResourceBindingVulkan> bindings{};
+    };
+    auto to_vulkan(const ResourceSetDescription& input_desc) -> ResourceSetDescriptionVulkan;
+
+    auto to_vulkan(const std::vector<VertexAttribute>& attributes) -> std::vector<vk::VertexInputAttributeDescription>;
     auto to_vulkan(PrimitiveTopology topology) -> vk::PrimitiveTopology;
     auto to_vulkan(FillMode fill_mode) -> vk::PolygonMode;
     auto to_vulkan(CullMode cull_mode) -> vk::CullModeFlags;

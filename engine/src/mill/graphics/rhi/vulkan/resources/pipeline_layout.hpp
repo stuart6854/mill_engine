@@ -15,7 +15,7 @@ namespace mill::rhi
         PipelineLayout(PipelineLayout&& other) noexcept;
         ~PipelineLayout();
 
-        void add_set_layout(u32 set, DescriptorSetLayout& set_layout);
+        void add_set_layout(u32 set, Shared<DescriptorSetLayout> set_layout);
         void add_push_constant_buffer(u32 offset, u32 size, vk::ShaderStageFlags shader_stages);
 
         void build();
@@ -46,7 +46,7 @@ namespace mill::rhi
         hasht m_hash{};
         vk::UniquePipelineLayout m_layout{};
 
-        std::vector<DescriptorSetLayout*> m_sets{};
+        std::vector<Shared<DescriptorSetLayout>> m_setLayouts{};
         std::vector<vk::PushConstantRange> m_pushConstantRanges{};
     };
 }

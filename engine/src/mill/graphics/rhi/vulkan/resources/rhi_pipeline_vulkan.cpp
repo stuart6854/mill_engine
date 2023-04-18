@@ -41,6 +41,26 @@ namespace mill::rhi
         return pipeline->get_hash();
     }
 
+    auto to_vulkan(const ResourceBinding& binding) -> ResourceBindingVulkan
+    {
+        ResourceBindingVulkan out_binding{};
+        out_binding.type = to_vulkan(binding.type);
+        out_binding.count = binding.count;
+        out_binding.shaderStages = to_vulkan(binding.shaderStages);
+        return out_binding;
+    }
+
+    auto to_vulkan(const ResourceSetDescription& input_desc) -> ResourceSetDescriptionVulkan
+    {
+        ResourceSetDescriptionVulkan out_desc{};
+
+        out_desc.bindings.resize(input_desc.bindings.size());
+        for (u32 i = 0; i < out_desc.bindings.size(); ++i)
+            out_desc.bindings[i] = to_vulkan(input_desc.bindings[i]);
+
+        return out_desc;
+    }
+
     auto to_vulkan(const std::vector<VertexAttribute>& attributes) -> std::vector<vk::VertexInputAttributeDescription>
     {
         std::vector<vk::VertexInputAttributeDescription> out_attributes{};

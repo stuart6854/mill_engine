@@ -15,6 +15,7 @@ namespace mill::rhi
         Pipeline(DeviceVulkan& device);
 
         void add_module(Shared<PipelineModule> module);
+        void set_layout(Shared<PipelineLayout> layout);
 
         void build();
 
@@ -22,6 +23,8 @@ namespace mill::rhi
 
         auto get_pipeline() const -> vk::Pipeline;
         auto get_hash() const -> hasht;
+
+        auto get_layout() const -> const Shared<PipelineLayout>&;
 
     private:
         auto compute_hash() const -> hasht;
@@ -33,5 +36,6 @@ namespace mill::rhi
         hasht m_hash{};
 
         std::vector<Shared<PipelineModule>> m_modules{};
+        Shared<PipelineLayout> m_layout{};
     };
 }

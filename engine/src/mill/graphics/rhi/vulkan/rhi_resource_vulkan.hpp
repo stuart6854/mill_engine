@@ -6,16 +6,10 @@
 
 namespace mill::rhi
 {
-    struct PipelineState
-    {
-        hasht vertexInputStateHash{};
-        hasht preRasterisationStateHash{};
-        hasht fragmentStageStateHash{};
-        hasht fragmentOutputStateHash{};
+    auto to_vulkan(ResourceType type) -> vk::DescriptorType;
 
-        auto get_hash() const -> hasht;
-    };
+    auto to_vulkan(ShaderStageFlags stages) -> vk::ShaderStageFlags;
+
 
     auto to_vulkan(Format format) -> vk::Format;
-
 }

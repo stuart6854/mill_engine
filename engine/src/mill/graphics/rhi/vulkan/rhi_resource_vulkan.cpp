@@ -54,6 +54,39 @@ namespace mill::rhi
         hash_combine(hash, fragmentOutputStateHash);
 
         return hash;
+    auto to_vulkan(ResourceType type) -> vk::DescriptorType
+    {
+        switch (type)
+        {
+            case mill::rhi::ResourceType::eNone: return {};
+            case mill::rhi::ResourceType::eUniformBuffer: return vk::DescriptorType::eUniformBuffer;
+            case mill::rhi::ResourceType::eTexture: return vk::DescriptorType::eCombinedImageSampler;
+            default: ASSERT(("Unknown ResourceType!", false)); break;
+        }
+        return {};
+    }
+
+    auto to_vulkan(ShaderStageFlags stages) -> vk::ShaderStageFlags
+    {
+        vk::ShaderStageFlags out_stages{};
+
+        if (stages & ShaderStage::eVertex)
+            out_stages |= vk::ShaderStageFlagBits::eVertex;
+
+        if (stages & ShaderStage::eFragment)
+            out_stages |= vk::ShaderStageFlagBits::eFragment;
+
+        return out_stages;
+    }
+
+    auto to_vulkan(const ResourceBinding& binding, u32 binding_index) -> vk::DescriptorSetLayoutBinding
+    {
+        vk::DescriptorSetLayoutBinding out_binding{};
+        out_binding.setBinding(binding_index);
+        out_binding.setDescriptorCount(binding.count);
+        out_binding.setDescriptorType(to_vulkan(binding.type));
+        out_binding.setStageFlags(to_vulkan(binding.shaderStages));
+        return out_binding;
     }
 
     auto to_vulkan(Format format) -> vk::Format

@@ -8,6 +8,7 @@
 #include "vulkan_context.hpp"
 #include "vulkan_view.hpp"
 #include "vulkan_helpers.hpp"
+#include "resources/descriptor_set_layout.hpp"
 #include "resources/pipeline_layout.hpp"
 #include "resources/pipeline_module_vertex_input.hpp"
 #include "resources/pipeline_module_pre_rasterisation.hpp"
@@ -184,9 +185,36 @@ namespace mill::rhi
         return view.get();
     }
 
+    /* Resource Sets */
 
+    auto DeviceVulkan::get_or_create_resource_set_layout(const ResourceSetDescriptionVulkan& description) -> Shared<DescriptorSetLayout>
     {
+        auto layout = CreateShared<DescriptorSetLayout>(m_device.get());
 
+        for (u32 i = 0; i < description.bindings.size(); ++i)
+        {
+            const auto& binding = description.bindings.at(i);
+            switch (binding.type)
+            {
+                case vk::DescriptorType::eUniformBuffer: layout->add_uniform_buffer(i); break;
+                case vk::DescriptorType::eCombinedImageSampler: layout->add_sampled_image(i); break;
+                default: ASSERT(("Unknown DescriptorType!", false)); break;
+            }
+        }
+
+        const auto layout_hash = layout->get_hash();
+        ASSERT(layout_hash);
+
+        if (m_descriptorSetLayouts.contains(layout_hash))
+            return m_descriptorSetLayouts.at(layout_hash);
+
+        m_descriptorSetLayouts[layout_hash] = layout;
+
+        layout->build();
+
+        LOG_DEBUG("DeviceVulkan - Descriptor Set Layout has been created: {}", layout_hash);
+
+        return layout;
     }
 
     {

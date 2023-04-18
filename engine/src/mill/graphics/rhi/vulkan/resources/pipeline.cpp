@@ -1,6 +1,7 @@
 #include "pipeline.hpp"
 
 #include "mill/core/base.hpp"
+#include "pipeline_layout.hpp"
 #include "../vulkan_device.hpp"
 #include "../vulkan_includes.hpp"
 
@@ -13,9 +14,15 @@ namespace mill::rhi
         m_modules.push_back(std::move(module));
     }
 
+    void Pipeline::set_layout(Shared<PipelineLayout> layout)
+    {
+        m_layout = layout;
+    }
+
     void Pipeline::build()
     {
-        // #TODO: Merge pipeline layouts
+        ASSERT(!m_modules.empty());
+        ASSERT(m_layout);
 
         std::vector<vk::Pipeline> libraries(m_modules.size());
         for (u32 i = 0; i < m_modules.size(); ++i)
@@ -25,7 +32,7 @@ namespace mill::rhi
         linking_info.setLibraries(libraries);
 
         vk::GraphicsPipelineCreateInfo pipeline_info{};
-        // pipeline_info.setLayout(layout);
+        pipeline_info.setLayout(m_layout->get_layout());
         pipeline_info.setPNext(&linking_info);
         // if (g_PipelineLinkTimeOptimisation)
         pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLinkTimeOptimizationEXT);
@@ -46,6 +53,11 @@ namespace mill::rhi
             return m_hash;
 
         return compute_hash();
+    }
+
+    auto Pipeline::get_layout() const -> const Shared<PipelineLayout>&
+    {
+        return m_layout;
     }
 
     auto Pipeline::compute_hash() const -> hasht
