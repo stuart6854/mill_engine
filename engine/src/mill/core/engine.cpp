@@ -7,6 +7,7 @@
 #include "platform/windowing.hpp"
 #include "mill/input/input.hpp"
 #include "mill/resources/resource_manager.hpp"
+#include "mill/scene/scene_manager.hpp"
 
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -64,6 +65,7 @@ namespace mill
         Owned<WindowInterface> window = nullptr;
         Owned<InputInterface> input = nullptr;
         Owned<ResourceManager> resources = nullptr;
+        Owned<SceneManager> sceneManager{ nullptr };
 
         glm::vec3 cameraPosition{ 0, 0, -5.0f };
         glm::vec3 cameraDirection{ 0, 0, 1 };
@@ -110,6 +112,8 @@ namespace mill
 
             m_pimpl->input->new_frame();
             // m_pimpl->window->poll_events();
+
+            m_pimpl->sceneManager->tick(m_pimpl->deltaTime);
 
             // Print delta time
             if (m_pimpl->input->on_key_held(KeyCodes::F1))
@@ -240,6 +244,8 @@ namespace mill
         /*m_pimpl->resources->register_resource_type<StaticMesh>(ResourceType_StaticMesh,
                                                                std::move(CreateOwned<StaticMeshFactory>(m_pimpl->renderer.get())));*/
 
+        INIT_SYSTEM(sceneManager, CreateOwned<SceneManager>());
+
         m_pimpl->app->initialise();
     }
 
@@ -249,6 +255,7 @@ namespace mill
 
         m_pimpl->app->shutdown();
 
+        SHUTDOWN_SYSTEM(sceneManager);
         SHUTDOWN_SYSTEM(resources);
         SHUTDOWN_SYSTEM(input);
 
