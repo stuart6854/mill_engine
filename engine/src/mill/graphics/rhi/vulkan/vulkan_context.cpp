@@ -5,6 +5,7 @@
 #include "rhi_core_vulkan.hpp"
 #include "resources/pipeline_layout.hpp"
 #include "resources/pipeline.hpp"
+#include "resources/buffer.hpp"
 #include "vulkan_device.hpp"
 #include "vulkan_image.hpp"
 #include "vulkan_helpers.hpp"
@@ -118,9 +119,36 @@ namespace mill::rhi
         get_frame().wasRecorded = true;
     }
 
+    void ContextVulkan::set_index_buffer(HandleBuffer buffer_id, vk::IndexType index_type)
+    {
+        ASSERT(buffer_id);
+        const auto& buffer = m_device.get_buffer(buffer_id);
+
+        get_cmd().bindIndexBuffer(buffer.get_buffer(), { 0 }, index_type);
+
+        get_frame().wasRecorded = true;
+    }
+
+    void ContextVulkan::set_vertex_buffer(HandleBuffer buffer_id)
+    {
+        ASSERT(buffer_id);
+        const auto& buffer = m_device.get_buffer(buffer_id);
+
+        get_cmd().bindVertexBuffers(0, buffer.get_buffer(), { 0 });
+
+        get_frame().wasRecorded = true;
+    }
+
     void ContextVulkan::draw(u32 vertex_count)
     {
         get_cmd().draw(vertex_count, 1, 0, 0);
+
+        get_frame().wasRecorded = true;
+    }
+
+    void ContextVulkan::draw_indexed(u32 index_count)
+    {
+        get_cmd().drawIndexed(index_count, 1, 0, 0, 0);
 
         get_frame().wasRecorded = true;
     }

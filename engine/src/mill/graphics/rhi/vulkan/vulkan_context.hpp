@@ -29,13 +29,11 @@ namespace mill::rhi
 
         void draw(u32 vertex_count);
 
-#if 0
-        void set_index_buffer(HandleBuffer buffer, IndexType index_type);
-        void set_vertex_buffer(HandleBuffer buffer);
+        void set_index_buffer(HandleBuffer buffer_id, vk::IndexType index_type);
+        void set_vertex_buffer(HandleBuffer buffer_id);
 
         void draw_indexed(u32 index_count);
 
-#endif
         void transition_image(ImageVulkan& image, vk::ImageLayout new_layout);
 
         void blit(ImageVulkan& srcImage, ImageVulkan& dstImage);

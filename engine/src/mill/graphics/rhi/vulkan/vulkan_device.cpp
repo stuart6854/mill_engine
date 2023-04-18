@@ -377,6 +377,14 @@ namespace mill::rhi
 
     /* Buffers */
 
+    auto DeviceVulkan::get_buffer(u64 buffer_id) -> const Buffer&
+    {
+        ASSERT(m_buffers.contains(buffer_id));
+
+        const auto& buffer = m_buffers.at(buffer_id);
+        return *buffer;
+    }
+
     auto DeviceVulkan::create_buffer(const BufferDescriptionVulkan& description) -> u64
     {
         const auto buffer_id = m_nextBufferId;

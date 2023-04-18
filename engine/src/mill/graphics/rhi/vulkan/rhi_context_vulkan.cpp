@@ -97,9 +97,26 @@ namespace mill::rhi
         context->set_pipeline(pipeline_id);
     }
 
-    void set_index_buffer(u64 /*contex_id*/, HandleBuffer /*buffer*/, IndexType /*index_type*/) {}
+    void set_index_buffer(u64 context_id, HandleBuffer buffer_id, IndexType index_type)
+    {
+        auto& device = get_device();
 
-    void set_vertex_buffer(u64 /*context_id*/, HandleBuffer /*buffer*/) {}
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
+
+        auto vk_index_type = index_type == IndexType::eU16 ? vk::IndexType::eUint16 : vk::IndexType::eUint32;
+        context->set_index_buffer(buffer_id, vk_index_type);
+    }
+
+    void set_vertex_buffer(u64 context_id, HandleBuffer buffer_id)
+    {
+        auto& device = get_device();
+
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
+
+        context->set_vertex_buffer(buffer_id);
+    }
 
     void set_push_constants(u64 context_id, u32 offset, u32 size, const void* data)
     {
@@ -121,7 +138,15 @@ namespace mill::rhi
         context->draw(vertex_count);
     }
 
-    void draw_indexed(u64 /*context_id*/, u32 /*index_count*/) {}
+    void draw_indexed(u64 context_id, u32 index_count)
+    {
+        auto& device = get_device();
+
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
+
+        context->draw_indexed(index_count);
+    }
 
     void blit_to_screen(u64 context_id, u64 screen_id, u64 view_id)
     {
