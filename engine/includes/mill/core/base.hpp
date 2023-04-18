@@ -78,6 +78,7 @@ namespace mill
 #endif
 
 #ifndef CAST_U32
+    #define CAST_BOOL(_x) static_cast<bool>(_x)
     #define CAST_U8(_x) static_cast<u8>(_x)
     #define CAST_U16(_x) static_cast<u16>(_x)
     #define CAST_U32(_x) static_cast<u32>(_x)
