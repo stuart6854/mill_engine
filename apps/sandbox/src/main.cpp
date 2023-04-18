@@ -212,6 +212,7 @@ public:
 
                 rhi::set_pipeline(RenderContextId, m_trianglePipeline);
 
+                rhi::set_push_constants(RenderContextId, 0, sizeof(PushBlock), &m_pushBlock);
                 rhi::draw(RenderContextId, 3);
 
 #if 0
