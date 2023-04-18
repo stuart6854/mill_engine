@@ -31,6 +31,7 @@ project "Engine"
         "src/**.h",
         "includes/**"
     }
+    removefiles "src/mill/graphics/rhi/d3d12/**"
 
     includedirs {        
         "src/",
