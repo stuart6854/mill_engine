@@ -15,6 +15,7 @@
 #include "resources/pipeline_module_fragment_stage.hpp"
 #include "resources/pipeline_module_fragment_output.hpp"
 #include "resources/pipeline.hpp"
+#include "resources/buffer.hpp"
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
@@ -372,6 +373,28 @@ namespace mill::rhi
     {
         ASSERT(m_compiledPipelines.contains(pipeline_hash));
         return m_compiledPipelines.at(pipeline_hash);
+    }
+
+    /* Buffers */
+
+    auto DeviceVulkan::create_buffer(const BufferDescriptionVulkan& description) -> u64
+    {
+        const auto buffer_id = m_nextBufferId;
+        ++m_nextBufferId;
+
+        m_buffers[buffer_id] = CreateOwned<Buffer>(*this);
+
+        auto& buffer = m_buffers[buffer_id];
+        buffer->set_size(description.size);
+        buffer->set_usage(description.usage);
+        buffer->set_memory_usage(description.memoryUsage);
+        buffer->set_alloc_flags(description.allocFlags);
+
+        buffer->build();
+
+        LOG_DEBUG("DeviceVulkan - Buffer has been created: id={}, size={}B", buffer_id, description.size);
+
+        return buffer_id;
     }
 
 #pragma endregion

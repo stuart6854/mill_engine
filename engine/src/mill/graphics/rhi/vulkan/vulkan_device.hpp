@@ -20,6 +20,7 @@ namespace mill::rhi
     class PipelineModuleFragmentStage;
     class PipelineModuleFragmentOutput;
     class Pipeline;
+    class Buffer;
 
     class DeviceVulkan
     {
@@ -51,8 +52,6 @@ namespace mill::rhi
 
         auto get_or_create_resource_set_layout(const ResourceSetDescriptionVulkan& description) -> Shared<DescriptorSetLayout>;
 
-
-
         /* Pipelines */
 
         auto get_or_create_pipeline_vertex_input_module(const PipelineVertexInputStateVulkan& state) -> Shared<PipelineModuleVertexInput>;
@@ -65,6 +64,10 @@ namespace mill::rhi
 
         auto get_or_create_pipeline(const std::vector<Shared<PipelineModule>>& modules) -> Shared<Pipeline>;
         auto get_pipeline(hasht pipeline_hash) -> Shared<Pipeline>;
+
+        /* Buffers */
+
+        auto create_buffer(const BufferDescriptionVulkan& description) -> u64;
 
 #pragma endregion
 
@@ -130,5 +133,8 @@ namespace mill::rhi
         std::unordered_map<hasht, Shared<PipelineModuleFragmentStage>> m_fragmentStagePipelineModules{};
         std::unordered_map<hasht, Shared<PipelineModuleFragmentOutput>> m_fragmentOutputPipelineModules{};
         std::unordered_map<hasht, Shared<Pipeline>> m_compiledPipelines{};
+
+        std::unordered_map<u64, Owned<Buffer>> m_buffers{};
+        u64 m_nextBufferId{ 1 };
     };
 }

@@ -165,7 +165,7 @@ public:
             buffer_desc.size = sizeof(Vertex) * g_TriangleVertices.size();
             buffer_desc.usage = rhi::BufferUsage::eVertexBuffer;
             buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
-            // m_triangleVertexBuffer = rhi::create_buffer(buffer_desc);
+            m_triangleVertexBuffer = rhi::create_buffer(buffer_desc);
 
             // rhi::write_buffer(m_triangleVertexBuffer, 0, buffer_desc.size, g_TriangleVertices.data());
         }
@@ -175,7 +175,7 @@ public:
             buffer_desc.size = sizeof(u16) * g_TriangleIndices.size();
             buffer_desc.usage = rhi::BufferUsage::eIndexBuffer;
             buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
-            // m_triangleIndexBuffer = rhi::create_buffer(buffer_desc);
+            m_triangleIndexBuffer = rhi::create_buffer(buffer_desc);
 
             // rhi::write_buffer(m_triangleIndexBuffer, 0, buffer_desc.size, g_TriangleIndices.data());
         }
