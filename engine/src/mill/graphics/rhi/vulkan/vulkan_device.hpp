@@ -14,6 +14,7 @@ namespace mill::rhi
     class ViewVulkan;
     class DescriptorSetLayout;
     class PipelineLayout;
+    class PipelineModule;
     class PipelineModuleVertexInput;
     class PipelineModulePreRasterisation;
     class PipelineModuleFragmentStage;
