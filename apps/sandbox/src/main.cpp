@@ -93,35 +93,54 @@ public:
         rhi::assign_screen(0, platform::get_raw_window_handle(m_windowHandle));
         rhi::reset_screen(0, 1600, 900, true);
         rhi::reset_view(SceneViewId, 1600, 900);
+
 #if 0
         // Triangle Resource Set
         {
-            rhi::ResourceSetDescription set_desc{};
-            set_desc.bindings = {
-                {
-                    rhi::ResourceType::eUniformBuffer,
-                    1,
-                    rhi::ShaderStage::eVertex,
+            rhi::ResourceSetDescription set_desc{ 
+                .bindings = {
+                    {
+                        rhi::ResourceType::eUniformBuffer,
+                        1,
+                        rhi::ShaderStage::eVertex,
+                    },
                 },
+                .isBuffered = false,
             };
-            m_triangleResourceSet = rhi::create_resource_set(set_desc);
+            rhi::create_resource_set(m_triangleResourceSet, set_desc);
         }
+#endif
 
         // Triangle Pipeline
         {
-            rhi::PipelineDescription pipeline_desc{};
-            pipeline_desc.vs = g_TriangleShaderSpirvVS;
-            pipeline_desc.fs = g_TriangleShaderSpirvFS;
-            pipeline_desc.vertexAttributes = {
-                { "Position", rhi::Format::eRGB32 },
-                { "Color", rhi::Format::eRGB32 },
+            rhi::PipelineDescription pipeline_desc
+            {
+                .vertexInputState = { 
+                    .attributes = {
+                        //{ "Position", rhi::Format::eRGB32 },
+                        //{ "Color", rhi::Format::eRGB32 },
+                    },
+                    .topology = rhi::PrimitiveTopology::eTriangles,
+                },
+                .preRasterisationState = {
+                    .vertexSpirv = g_TriangleShaderSpirvVS,
+                    .fillMode = rhi::FillMode::eFill,
+                    .cullMode = rhi::CullMode::eNone,
+                    .frontFace = rhi::FrontFace::eClockwise,
+                    .lineWidth = 1.0f,
+                },
+                .fragmentStageState = {
+                    .fragmentSpirv = g_TriangleShaderSpirvFS,
+                    .depthTest = false,
+                    .stencilTest = false,
+                },
+                .fragmentOutputState = {
+                    .enableColorBlend = false,
+                },
             };
-            pipeline_desc.colorTargets = { rhi::Format::eRGBA8 };
-            pipeline_desc.depthStencilTarget = rhi::Format::eD24S8;
 
             m_trianglePipeline = rhi::create_pipeline(pipeline_desc);
         }
-#endif
 
         // Triangle Vertex Buffer
         {
@@ -165,44 +184,7 @@ public:
                 rhi::set_viewport(RenderContextId, 0, 0, 1600, 900, 0.0f, 1.0f);
                 rhi::set_scissor(RenderContextId, 0, 0, 1600, 900);
 
-                rhi::PipelineVertexInputState vertex_input_state{
-                    .attributes = {
-                        //{ "Position", rhi::Format::eRGB32 },
-                        //{ "Color", rhi::Format::eRGB32 },
-                    },
-                    .topology = rhi::PrimitiveTopology::eTriangles,
-                };
-                rhi::set_pipeline_vertex_input_state(RenderContextId, vertex_input_state);
-
-                rhi::PipelinePreRasterisationState pre_raster_state{
-                    .vertexSpirv = g_TriangleShaderSpirvVS,
-                    .fillMode = rhi::FillMode::eFill,
-                    .cullMode = rhi::CullMode::eNone,
-                    .frontFace = rhi::FrontFace::eClockwise,
-                };
-                rhi::set_pipeline_pre_rasterisation_state(RenderContextId, pre_raster_state);
-
-                rhi::PipelineFragmentStageState fragment_shader_state{
-                    .fragmentSpirv = g_TriangleShaderSpirvFS,
-                    .depthTest = false,
-                    .stencilTest = false,
-                };
-                rhi::set_pipeline_fragment_stage_state(RenderContextId, fragment_shader_state);
-
-                rhi::PipelineFragmentOutputState fragment_output_state{
-                    .colorAttachmentFormats = {
-                        rhi::Format::eRGBA8,
-                    },
-                    .depthAttachmentFormat = rhi::Format::eD24S8,
-                };
-                rhi::set_pipeline_fragment_output_state(RenderContextId, fragment_output_state);
-
-                rhi::draw(RenderContextId, 3);
-
-                // Wireframe
-                pre_raster_state.fillMode = rhi::FillMode::eWireframe;
-                pre_raster_state.lineWidth = 5.0f;
-                rhi::set_pipeline_pre_rasterisation_state(RenderContextId, pre_raster_state);
+                rhi::set_pipeline(RenderContextId, m_trianglePipeline);
 
                 rhi::draw(RenderContextId, 3);
 
@@ -249,10 +231,8 @@ private:
     platform::HandleWindow m_windowHandle{ nullptr };
     Owned<SceneRenderer> m_sceneRenderer{ nullptr };
 
-#if 0
-    rhi::HandleResourceSet m_triangleResourceSet{};
-    rhi::HandlePipeline m_trianglePipeline{};
-#endif
+    u64 m_triangleResourceSet = "rs_triangle"_hs;
+    u64 m_trianglePipeline{};
     rhi::HandleBuffer m_triangleIndexBuffer{};
     rhi::HandleBuffer m_triangleVertexBuffer{};
 };

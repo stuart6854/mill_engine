@@ -8,9 +8,17 @@
 #include "vulkan_context.hpp"
 #include "vulkan_view.hpp"
 #include "vulkan_helpers.hpp"
+#include "resources/pipeline_layout.hpp"
+#include "resources/pipeline_module_vertex_input.hpp"
+#include "resources/pipeline_module_pre_rasterisation.hpp"
+#include "resources/pipeline_module_fragment_stage.hpp"
+#include "resources/pipeline_module_fragment_output.hpp"
+#include "resources/pipeline.hpp"
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
+
+#include <spirv_cross.hpp>
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -176,243 +184,150 @@ namespace mill::rhi
         return view.get();
     }
 
-    /* Pipeline */
 
-    void DeviceVulkan::compile_pipeline_vertex_input_state(const PipelineVertexInputState& state)
     {
-        const auto state_hash = state.get_hash();
-        if (is_pipeline_vertex_input_state_compiled(state_hash))
-            return;
 
-        vk::VertexInputBindingDescription vertex_binding{};
-        vertex_binding.setInputRate(vk::VertexInputRate::eVertex);
-        vertex_binding.setBinding(0);
-
-        const auto attributes = to_vulkan(state.attributes, vertex_binding.stride);
-
-        vk::PipelineVertexInputStateCreateInfo vertex_input_state{};
-        if (!attributes.empty())
-        {
-            vertex_input_state.setVertexBindingDescriptions(vertex_binding);
-            vertex_input_state.setVertexAttributeDescriptions(attributes);
-        }
-
-        vk::PipelineInputAssemblyStateCreateInfo input_assembly_state{};
-        input_assembly_state.setTopology(to_vulkan(state.topology));
-
-        vk::GraphicsPipelineLibraryCreateInfoEXT library_info{};
-        library_info.setFlags(vk::GraphicsPipelineLibraryFlagBitsEXT::eVertexInputInterface);
-
-        vk::GraphicsPipelineCreateInfo pipeline_info{};
-        pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLibraryKHR | vk::PipelineCreateFlagBits::eRetainLinkTimeOptimizationInfoEXT);
-        pipeline_info.setPVertexInputState(&vertex_input_state);
-        pipeline_info.setPInputAssemblyState(&input_assembly_state);
-        pipeline_info.setPNext(&library_info);
-
-        vk::UniquePipeline pipeline = m_device->createGraphicsPipelineUnique({}, pipeline_info).value;
-        m_compiledPipelineVertexInputStates[state_hash] = std::move(pipeline);
     }
 
-    bool DeviceVulkan::is_pipeline_vertex_input_state_compiled(hasht state_hash)
     {
-        return m_compiledPipelineVertexInputStates.contains(state_hash);
     }
 
-    void DeviceVulkan::compile_pipeline_pre_rasterisation_state(const PipelinePreRasterisationState& state)
     {
-        const auto state_hash = state.get_hash();
-        if (is_pipeline_pre_rasterisation_state_compiled(state_hash))
-            return;
 
-        vk::PipelineLayoutCreateInfo layout_info{};
-        layout_info.setFlags(vk::PipelineLayoutCreateFlagBits::eIndependentSetsEXT);
-        auto layout = m_device->createPipelineLayout(layout_info);
 
-        vk::ShaderModuleCreateInfo module_info{};
-        module_info.setCode(state.vertexSpirv);
+    /* Pipelines */
 
-        vk::PipelineShaderStageCreateInfo stage_info{};
-        stage_info.setPNext(&module_info);
-        stage_info.setStage(vk::ShaderStageFlagBits::eVertex);
-        stage_info.setPName("main");
+    auto DeviceVulkan::get_or_create_pipeline_vertex_input_module(const PipelineVertexInputStateVulkan& state)
+        -> Shared<PipelineModuleVertexInput>
+    {
+        auto module = CreateShared<PipelineModuleVertexInput>(*this);
+        module->set_input_attributes(state.attributes);
+        module->set_topology(state.topology);
 
-        const std::vector<vk::DynamicState> dynamic_states{
-            vk::DynamicState::eViewport,
-            vk::DynamicState::eScissor,
-        };
-        vk::PipelineDynamicStateCreateInfo dynamic_state{};
-        dynamic_state.setDynamicStates(dynamic_states);
+        const auto module_hash = module->get_hash();
+        ASSERT(module_hash);
 
-        vk::PipelineViewportStateCreateInfo viewport_state{};
-        viewport_state.setViewportCount(1);
-        viewport_state.setScissorCount(1);
+        if (m_vertexInputPipelineModules.contains(module_hash))
+            return m_vertexInputPipelineModules.at(module_hash);
 
-        vk::PipelineRasterizationStateCreateInfo rasterisation_state{};
-        rasterisation_state.setPolygonMode(to_vulkan(state.fillMode));
-        rasterisation_state.setCullMode(to_vulkan(state.cullMode));
-        rasterisation_state.setFrontFace(to_vulkan(state.frontFace));
-        rasterisation_state.setLineWidth(state.lineWidth);
+        m_vertexInputPipelineModules[module_hash] = module;
 
-        vk::GraphicsPipelineLibraryCreateInfoEXT library_info{};
-        library_info.setFlags(vk::GraphicsPipelineLibraryFlagBitsEXT::ePreRasterizationShaders);
+        module->build();
 
-        vk::GraphicsPipelineCreateInfo pipeline_info{};
-        pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLibraryKHR | vk::PipelineCreateFlagBits::eRetainLinkTimeOptimizationInfoEXT);
-        pipeline_info.setStages(stage_info);
-        pipeline_info.setLayout(layout);
-        pipeline_info.setPDynamicState(&dynamic_state);
-        pipeline_info.setPViewportState(&viewport_state);
-        pipeline_info.setPRasterizationState(&rasterisation_state);
-        pipeline_info.setPNext(&library_info);
+        LOG_DEBUG("DeviceVulkan - Pipeline Module for <VertexInput> has been created: {}", module_hash);
 
-        vk::UniquePipeline pipeline = m_device->createGraphicsPipelineUnique({}, pipeline_info).value;
-        m_compiledPipelinePreRasterisationStates[state_hash] = std::move(pipeline);
+        return module;
     }
 
-    bool DeviceVulkan::is_pipeline_pre_rasterisation_state_compiled(hasht state_hash)
+    auto DeviceVulkan::get_or_create_pipeline_pre_rasterisation_module(const PipelinePreRasterisationStateVulkan& state)
+        -> Shared<PipelineModulePreRasterisation>
     {
-        return m_compiledPipelinePreRasterisationStates.contains(state_hash);
+        ASSERT(!state.vertexSpirv.empty());
+
+        auto module = CreateShared<PipelineModulePreRasterisation>(*this);
+
+        auto layout = reflect_shader_stage_pipeline_layout(state.vertexSpirv, vk::ShaderStageFlagBits::eVertex);
+        ASSERT(layout);
+
+        module->set_layout(layout);
+        module->set_vertex_spirv(state.vertexSpirv);
+        module->set_polygon_mode(state.fillMode);
+        module->set_cull_mode(state.cullMode);
+        module->set_front_face(state.frontFace);
+        module->set_line_width(state.lineWidth);
+
+        const auto module_hash = module->get_hash();
+        ASSERT(module_hash);
+
+        if (m_preRasterisationPipelineModules.contains(module_hash))
+            return m_preRasterisationPipelineModules.at(module_hash);
+
+        m_preRasterisationPipelineModules[module_hash] = module;
+
+        module->build();
+
+        LOG_DEBUG("DeviceVulkan - Pipeline Module for <PreRasterisation> has been created: {}", module_hash);
+
+        return module;
     }
 
-    void DeviceVulkan::compile_pipeline_fragment_stage_state(const PipelineFragmentStageState& state)
+    auto DeviceVulkan::get_or_create_pipeline_fragment_stage_module(const PipelineFragmentStageStateVulkan& state)
+        -> Shared<PipelineModuleFragmentStage>
     {
-        const auto state_hash = state.get_hash();
-        if (is_pipeline_fragment_stage_state_compiled(state_hash))
-            return;
+        ASSERT(!state.fragmentSpirv.empty());
 
-        vk::PipelineLayoutCreateInfo layout_info{};
-        layout_info.setFlags(vk::PipelineLayoutCreateFlagBits::eIndependentSetsEXT);
-        auto layout = m_device->createPipelineLayout(layout_info);
+        auto module = CreateShared<PipelineModuleFragmentStage>(*this);
 
-        vk::ShaderModuleCreateInfo module_info{};
-        module_info.setCode(state.fragmentSpirv);
+        auto layout = reflect_shader_stage_pipeline_layout(state.fragmentSpirv, vk::ShaderStageFlagBits::eFragment);
+        ASSERT(layout);
 
-        vk::PipelineShaderStageCreateInfo stage_info{};
-        stage_info.setPNext(&module_info);
-        stage_info.setStage(vk::ShaderStageFlagBits::eFragment);
-        stage_info.setPName("main");
+        module->set_layout(layout);
+        module->set_fragment_spirv(state.fragmentSpirv);
+        module->set_depth_test(state.depthTest);
+        module->set_stencil_test(state.stencilTest);
 
-        vk::PipelineDepthStencilStateCreateInfo depth_stencil_state{};
-        vk::PipelineMultisampleStateCreateInfo multisample_state{};
+        const auto module_hash = module->get_hash();
+        ASSERT(module_hash);
 
-        vk::GraphicsPipelineLibraryCreateInfoEXT library_info{};
-        library_info.setFlags(vk::GraphicsPipelineLibraryFlagBitsEXT::eFragmentShader);
+        if (m_fragmentStagePipelineModules.contains(module_hash))
+            return m_fragmentStagePipelineModules.at(module_hash);
 
-        vk::GraphicsPipelineCreateInfo pipeline_info{};
-        pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLibraryKHR | vk::PipelineCreateFlagBits::eRetainLinkTimeOptimizationInfoEXT);
-        pipeline_info.setStages(stage_info);
-        pipeline_info.setLayout(layout);
-        pipeline_info.setPDepthStencilState(&depth_stencil_state);
-        pipeline_info.setPMultisampleState(&multisample_state);
-        pipeline_info.setPNext(&library_info);
+        m_fragmentStagePipelineModules[module_hash] = module;
 
-        vk::UniquePipeline pipeline = m_device->createGraphicsPipelineUnique({}, pipeline_info).value;
-        m_compiledPipelineFragmentStageStates[state_hash] = std::move(pipeline);
+        module->build();
+
+        LOG_DEBUG("DeviceVulkan - Pipeline Module for <FragmentStage> has been created: {}", module_hash);
+
+        return module;
     }
 
-    bool DeviceVulkan::is_pipeline_fragment_stage_state_compiled(hasht state_hash)
+    auto DeviceVulkan::get_or_create_pipeline_fragment_output_module(const PipelineFragmentOutputStateVulkan& state)
+        -> Shared<PipelineModuleFragmentOutput>
     {
-        return m_compiledPipelineFragmentStageStates.contains(state_hash);
+        auto module = CreateShared<PipelineModuleFragmentOutput>(*this);
+
+        module->set_color_blend(state.colorBlend);
+
+        const auto module_hash = module->get_hash();
+        ASSERT(module_hash);
+
+        if (m_fragmentOutputPipelineModules.contains(module_hash))
+            return m_fragmentOutputPipelineModules.at(module_hash);
+
+        m_fragmentOutputPipelineModules[module_hash] = module;
+
+        module->build();
+
+        LOG_DEBUG("DeviceVulkan - Pipeline Module for <FragmentOutput> has been created: {}", module_hash);
+
+        return module;
     }
 
-    void DeviceVulkan::compile_pipeline_fragment_output_state(const PipelineFragmentOutputState& state)
+    auto DeviceVulkan::get_or_create_pipeline(const std::vector<Shared<PipelineModule>>& modules) -> Shared<Pipeline>
     {
-        const auto state_hash = state.get_hash();
-        if (is_pipeline_fragment_output_state_compiled(state_hash))
-            return;
+        auto pipeline = CreateShared<Pipeline>(*this);
+        for (const auto& module : modules)
+            pipeline->add_module(module);
 
-        vk::PipelineColorBlendAttachmentState blend_attachment{};
-        blend_attachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-                                           vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-        blend_attachment.setBlendEnable(state.enableColorBlend);
-        vk::PipelineColorBlendStateCreateInfo color_blend_state{};
-        color_blend_state.setAttachments(blend_attachment);
+        const hasht pipeline_hash = pipeline->get_hash();
+        ASSERT(pipeline_hash);
 
-        vk::PipelineMultisampleStateCreateInfo multisample_state{};
+        if (m_compiledPipelines.contains(pipeline_hash))
+            return m_compiledPipelines.at(pipeline_hash);
 
-        std::vector<vk::Format> colorFormats(state.colorAttachmentFormats.size());
-        for (u32 i = 0; i < colorFormats.size(); ++i)
-            colorFormats[i] = to_vulkan(state.colorAttachmentFormats[i]);
+        m_compiledPipelines[pipeline_hash] = pipeline;
 
-        vk::PipelineRenderingCreateInfo rendering_info{};
-        rendering_info.setColorAttachmentFormats(colorFormats);
-        rendering_info.setDepthAttachmentFormat(to_vulkan(state.depthAttachmentFormat));
+        pipeline->build();
 
-        vk::GraphicsPipelineLibraryCreateInfoEXT library_info{};
-        library_info.setFlags(vk::GraphicsPipelineLibraryFlagBitsEXT::eFragmentOutputInterface);
-        library_info.setPNext(&rendering_info);
+        LOG_DEBUG("DeviceVulkan - Pipeline ({} modules) has been created: {}", modules.size(), pipeline_hash);
 
-        vk::GraphicsPipelineCreateInfo pipeline_info{};
-        pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLibraryKHR | vk::PipelineCreateFlagBits::eRetainLinkTimeOptimizationInfoEXT);
-        pipeline_info.setPColorBlendState(&color_blend_state);
-        pipeline_info.setPMultisampleState(&multisample_state);
-        pipeline_info.setPNext(&library_info);
-
-        vk::UniquePipeline pipeline = m_device->createGraphicsPipelineUnique({}, pipeline_info).value;
-        m_compiledPipelineFragmentOutputStates[state_hash] = std::move(pipeline);
+        return pipeline;
     }
 
-    bool DeviceVulkan::is_pipeline_fragment_output_state_compiled(hasht state_hash)
-    {
-        return m_compiledPipelineFragmentOutputStates.contains(state_hash);
-    }
-
-    void DeviceVulkan::compile_pipeline(const PipelineState& state)
-    {
-        hasht compiledPipelineHash{};
-        std::vector<vk::Pipeline> libraries{};
-
-        // Vertex Input State
-        hash_combine(compiledPipelineHash, state.vertexInputStateHash);
-        if (state.vertexInputStateHash != 0)
-        {
-            libraries.push_back(m_compiledPipelineVertexInputStates.at(state.vertexInputStateHash).get());
-        }
-
-        // Pre Rasterisation State
-        hash_combine(compiledPipelineHash, state.preRasterisationStateHash);
-        if (state.preRasterisationStateHash != 0)
-        {
-            libraries.push_back(m_compiledPipelinePreRasterisationStates.at(state.preRasterisationStateHash).get());
-        }
-
-        // Fragment Stage State
-        hash_combine(compiledPipelineHash, state.fragmentStageStateHash);
-        if (state.fragmentStageStateHash != 0)
-        {
-            libraries.push_back(m_compiledPipelineFragmentStageStates.at(state.fragmentStageStateHash).get());
-        }
-
-        // Fragment Output State
-        hash_combine(compiledPipelineHash, state.fragmentOutputStateHash);
-        if (state.fragmentOutputStateHash != 0)
-        {
-            libraries.push_back(m_compiledPipelineFragmentOutputStates.at(state.fragmentOutputStateHash).get());
-        }
-
-        vk::PipelineLibraryCreateInfoKHR linking_info{};
-        linking_info.setLibraries(libraries);
-
-        vk::GraphicsPipelineCreateInfo pipeline_info{};
-        pipeline_info.setLayout({});
-        pipeline_info.setPNext(&linking_info);
-        if (g_PipelineLinkTimeOptimisation)
-            pipeline_info.setFlags(vk::PipelineCreateFlagBits::eLinkTimeOptimizationEXT);
-
-        vk::UniquePipeline pipeline = m_device->createGraphicsPipelineUnique({}, pipeline_info).value;
-        m_compiledPipelines[compiledPipelineHash] = std::move(pipeline);
-    }
-
-    bool DeviceVulkan::is_pipeline_compiled(const PipelineState& state)
-    {
-        const auto pipeline_hash = state.get_hash();
-        return m_compiledPipelines.contains(pipeline_hash);
-    }
-
-    auto DeviceVulkan::get_pipeline(hasht pipeline_hash) -> vk::Pipeline&
+    auto DeviceVulkan::get_pipeline(hasht pipeline_hash) -> Shared<Pipeline>
     {
         ASSERT(m_compiledPipelines.contains(pipeline_hash));
-        return m_compiledPipelines.at(pipeline_hash).get();
+        return m_compiledPipelines.at(pipeline_hash);
     }
 
 #pragma endregion
@@ -672,6 +587,42 @@ namespace mill::rhi
         }
 
         return true;
+    }
+
+    auto DeviceVulkan::reflect_shader_stage_pipeline_layout(const std::vector<u32>& spirv, vk::ShaderStageFlagBits shader_stage)
+        -> Shared<PipelineLayout>
+    {
+        auto pipeline_layout = CreateShared<PipelineLayout>(m_device.get(), vk::PipelineLayoutCreateFlagBits::eIndependentSetsEXT);
+
+        spirv_cross::Compiler compiler(spirv);
+        auto shader_resources = compiler.get_shader_resources();
+
+        for (const auto& const_range : shader_resources.push_constant_buffers)
+        {
+            const auto& type = compiler.get_type(const_range.base_type_id);
+            const u32 size = CAST_U32(compiler.get_declared_struct_size(type));
+
+            pipeline_layout->add_push_constant_buffer(0, size, shader_stage);
+        }
+
+#if 0
+        for (const auto& ubo : shader_resources.uniform_buffers)
+        {
+            const u32 set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
+            const u32 binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
+
+            pipeline_layout_state.add_binding(set, binding, shader_stage, ResourceType::eUniformBuffer);
+        }
+#endif
+
+        const auto pipeline_layout_hash = pipeline_layout->get_hash();
+        if (m_pipelineLayouts.contains(pipeline_layout_hash))
+            return m_pipelineLayouts.at(pipeline_layout_hash);
+
+        m_pipelineLayouts[pipeline_layout_hash] = pipeline_layout;
+        pipeline_layout->build();
+
+        return pipeline_layout;
     }
 
     VKAPI_ATTR VkBool32 VKAPI_CALL debug_message_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,

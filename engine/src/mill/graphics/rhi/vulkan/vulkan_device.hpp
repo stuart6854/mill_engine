@@ -39,23 +39,22 @@ namespace mill::rhi
         void destroy_view(u64 view_id);
         auto get_view(u64 view_id) const -> ViewVulkan*;
 
-        /* Pipeline */
 
-        void compile_pipeline_vertex_input_state(const PipelineVertexInputState& state);
-        bool is_pipeline_vertex_input_state_compiled(hasht state_hash);
 
-        void compile_pipeline_pre_rasterisation_state(const PipelinePreRasterisationState& state);
-        bool is_pipeline_pre_rasterisation_state_compiled(hasht state_hash);
 
-        void compile_pipeline_fragment_stage_state(const PipelineFragmentStageState& state);
-        bool is_pipeline_fragment_stage_state_compiled(hasht state_hash);
 
-        void compile_pipeline_fragment_output_state(const PipelineFragmentOutputState& state);
-        bool is_pipeline_fragment_output_state_compiled(hasht state_hash);
+        /* Pipelines */
 
-        void compile_pipeline(const PipelineState& state);
-        bool is_pipeline_compiled(const PipelineState& state);
-        auto get_pipeline(hasht pipeline_hash) -> vk::Pipeline&;
+        auto get_or_create_pipeline_vertex_input_module(const PipelineVertexInputStateVulkan& state) -> Shared<PipelineModuleVertexInput>;
+        auto get_or_create_pipeline_pre_rasterisation_module(const PipelinePreRasterisationStateVulkan& state)
+            -> Shared<PipelineModulePreRasterisation>;
+        auto get_or_create_pipeline_fragment_stage_module(const PipelineFragmentStageStateVulkan& state)
+            -> Shared<PipelineModuleFragmentStage>;
+        auto get_or_create_pipeline_fragment_output_module(const PipelineFragmentOutputStateVulkan& state)
+            -> Shared<PipelineModuleFragmentOutput>;
+
+        auto get_or_create_pipeline(const std::vector<Shared<PipelineModule>>& modules) -> Shared<Pipeline>;
+        auto get_pipeline(hasht pipeline_hash) -> Shared<Pipeline>;
 
 #pragma endregion
 
@@ -80,6 +79,9 @@ namespace mill::rhi
         bool init_instance();
         bool init_physical_device();
         bool init_device();
+
+        auto reflect_shader_stage_pipeline_layout(const std::vector<u32>& spirv, vk::ShaderStageFlagBits shader_stage)
+            -> Shared<PipelineLayout>;
 
     private:
         vk::DynamicLoader m_loader{};
@@ -106,10 +108,12 @@ namespace mill::rhi
 
         std::unordered_map<u64, Owned<ViewVulkan>> m_views{};
 
-        std::unordered_map<hasht, vk::UniquePipeline> m_compiledPipelineVertexInputStates{};
-        std::unordered_map<hasht, vk::UniquePipeline> m_compiledPipelinePreRasterisationStates{};
-        std::unordered_map<hasht, vk::UniquePipeline> m_compiledPipelineFragmentStageStates{};
-        std::unordered_map<hasht, vk::UniquePipeline> m_compiledPipelineFragmentOutputStates{};
-        std::unordered_map<hasht, vk::UniquePipeline> m_compiledPipelines{};
+        std::unordered_map<hasht, Shared<PipelineLayout>> m_pipelineLayouts{};
+
+        std::unordered_map<hasht, Shared<PipelineModuleVertexInput>> m_vertexInputPipelineModules{};
+        std::unordered_map<hasht, Shared<PipelineModulePreRasterisation>> m_preRasterisationPipelineModules{};
+        std::unordered_map<hasht, Shared<PipelineModuleFragmentStage>> m_fragmentStagePipelineModules{};
+        std::unordered_map<hasht, Shared<PipelineModuleFragmentOutput>> m_fragmentOutputPipelineModules{};
+        std::unordered_map<hasht, Shared<Pipeline>> m_compiledPipelines{};
     };
 }

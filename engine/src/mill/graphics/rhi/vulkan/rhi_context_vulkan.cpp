@@ -87,7 +87,7 @@ namespace mill::rhi
         context->set_scissor(x, y, w, h);
     }
 
-    void set_pipeline_vertex_input_state(u64 context_id, const PipelineVertexInputState& state)
+    void set_pipeline(u64 context_id, u64 pipeline_id)
     {
         auto& device = get_device();
 
@@ -115,6 +115,7 @@ namespace mill::rhi
         ASSERT(context != nullptr);
 
         context->set_pipeline_pre_rasterisation_state(state.get_hash());
+        context->set_pipeline(pipeline_id);
     }
 
     void set_pipeline_fragment_stage_state(u64 context_id, const PipelineFragmentStageState& state)

@@ -3,6 +3,7 @@
 #include "mill/core/base.hpp"
 #include "mill/core/debug.hpp"
 #include "rhi_core_vulkan.hpp"
+#include "resources/pipeline.hpp"
 #include "vulkan_device.hpp"
 #include "vulkan_image.hpp"
 #include "vulkan_helpers.hpp"
@@ -50,9 +51,7 @@ namespace mill::rhi
         frame.wasRecorded = false;
 
         m_associatedScreenIds.clear();
-        m_pipelineState = {};
-        m_compiledPipelineStateHash = 0;
-        m_pipelineStateDirty = false;
+        m_boundPipeline = nullptr;
 
         auto& cmd = get_cmd();
         vk::CommandBufferBeginInfo begin_info{};
@@ -88,34 +87,20 @@ namespace mill::rhi
         get_frame().wasRecorded = true;
     }
 
-    void ContextVulkan::set_pipeline_vertex_input_state(hasht state_hash)
+    void ContextVulkan::set_pipeline(u64 pipeline_id)
     {
-        m_pipelineState.vertexInputStateHash = state_hash;
-        m_pipelineStateDirty = true;
+        m_boundPipeline = m_device.get_pipeline(pipeline_id);
+
+        get_cmd().bindPipeline(vk::PipelineBindPoint::eGraphics, m_boundPipeline->get_pipeline());
+
+        get_frame().wasRecorded = true;
     }
 
-    void ContextVulkan::set_pipeline_pre_rasterisation_state(hasht state_hash)
     {
-        m_pipelineState.preRasterisationStateHash = state_hash;
-        m_pipelineStateDirty = true;
-    }
-
-    void ContextVulkan::set_pipeline_fragment_stage_state(hasht state_hash)
-    {
-        m_pipelineState.fragmentStageStateHash = state_hash;
-        m_pipelineStateDirty = true;
-    }
-
-    void ContextVulkan::set_pipeline_fragment_output_state(hasht state_hash)
-    {
-        m_pipelineState.fragmentOutputStateHash = state_hash;
-        m_pipelineStateDirty = true;
     }
 
     void ContextVulkan::draw(u32 vertex_count)
     {
-        verify_pipeline_state();
-
         get_cmd().draw(vertex_count, 1, 0, 0);
 
         get_frame().wasRecorded = true;
@@ -210,29 +195,6 @@ namespace mill::rhi
     auto ContextVulkan::get_associated_screen_ids() const -> const std::vector<u64>&
     {
         return m_associatedScreenIds;
-    }
-
-    void ContextVulkan::verify_pipeline_state()
-    {
-        if (!m_pipelineStateDirty)
-            return;
-
-        m_pipelineStateDirty = false;
-
-        const auto new_pipeline_state_hash = m_pipelineState.get_hash();
-        if (new_pipeline_state_hash == m_compiledPipelineStateHash)
-            return;
-
-        auto& device = get_device();
-
-        if (!device.is_pipeline_compiled(m_pipelineState))
-        {
-            device.compile_pipeline(m_pipelineState);
-        }
-        m_compiledPipelineStateHash = new_pipeline_state_hash;
-
-        auto& pipeline = device.get_pipeline(m_compiledPipelineStateHash);
-        get_cmd().bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
     }
 
 }

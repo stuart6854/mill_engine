@@ -32,8 +32,6 @@ namespace mill::rhi
 
     void reset_view(u64 view_id, u32 width, u32 height);
 
-#if 0
-
     enum class ShaderStage : u8
     {
         eNone = 0,

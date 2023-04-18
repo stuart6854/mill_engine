@@ -8,6 +8,7 @@
 namespace mill::rhi
 {
     class DeviceVulkan;
+    class Pipeline;
     class ImageVulkan;
 
     class ContextVulkan
@@ -22,10 +23,7 @@ namespace mill::rhi
         void set_viewport(f32 x, f32 y, f32 w, f32 h, f32 min_depth, f32 max_depth);
         void set_scissor(i32 x, i32 y, u32 w, u32 h);
 
-        void set_pipeline_vertex_input_state(hasht state_hash);
-        void set_pipeline_pre_rasterisation_state(hasht state_hash);
-        void set_pipeline_fragment_stage_state(hasht state_hash);
-        void set_pipeline_fragment_output_state(hasht state_hash);
+        void set_pipeline(u64 pipeline_id);
 
         void draw(u32 vertex_count);
 
@@ -55,8 +53,6 @@ namespace mill::rhi
         struct Frame;
         auto get_frame() -> Frame&;
 
-        void verify_pipeline_state();
-
     private:
         DeviceVulkan& m_device;
 
@@ -74,8 +70,6 @@ namespace mill::rhi
 
         std::vector<u64> m_associatedScreenIds{};
 
-        PipelineState m_pipelineState{};
-        hasht m_compiledPipelineStateHash;
-        bool m_pipelineStateDirty{};
+        Shared<Pipeline> m_boundPipeline{};
     };
 }
