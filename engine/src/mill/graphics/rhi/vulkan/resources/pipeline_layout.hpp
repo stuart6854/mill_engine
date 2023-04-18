@@ -27,9 +27,10 @@ namespace mill::rhi
         auto get_hash() const -> hasht;
         auto get_layout() const -> const vk::PipelineLayout&;
 
-        /* Static */
+        auto get_set_layouts() const -> const std::vector<Shared<DescriptorSetLayout>>&;
 
-        static auto merge_layouts(const PipelineLayout& a, const PipelineLayout& b) -> PipelineLayout;
+        bool has_push_constant_range() const;
+        auto get_push_constant_range(u32 index = 0) const -> const vk::PushConstantRange&;
 
         /* Operators */
 

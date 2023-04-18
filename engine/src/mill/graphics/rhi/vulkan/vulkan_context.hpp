@@ -25,6 +25,8 @@ namespace mill::rhi
 
         void set_pipeline(u64 pipeline_id);
 
+        void set_push_constants(u32 offset, u32 size, const void* data);
+
         void draw(u32 vertex_count);
 
 #if 0

@@ -93,6 +93,10 @@ namespace mill::rhi
         auto reflect_shader_stage_pipeline_layout(const std::vector<u32>& spirv, vk::ShaderStageFlagBits shader_stage)
             -> Shared<PipelineLayout>;
 
+        auto merge_descriptor_set_layouts(const DescriptorSetLayout& layout_a, const DescriptorSetLayout& layout_b)
+            -> Shared<DescriptorSetLayout>;
+        auto merge_pipeline_layouts(const PipelineLayout& layout_a, const PipelineLayout& layout_b) -> Shared<PipelineLayout>;
+
     private:
         vk::DynamicLoader m_loader{};
         vk::UniqueInstance m_instance;

@@ -3,6 +3,7 @@
 #include "mill/core/base.hpp"
 #include "mill/core/debug.hpp"
 #include "rhi_core_vulkan.hpp"
+#include "resources/pipeline_layout.hpp"
 #include "resources/pipeline.hpp"
 #include "vulkan_device.hpp"
 #include "vulkan_image.hpp"
@@ -65,11 +66,12 @@ namespace mill::rhi
 
     void ContextVulkan::set_viewport(f32 x, f32 y, f32 w, f32 h, f32 min_depth, f32 max_depth)
     {
+        // #TODO: Test viewport is correct.
         vk::Viewport viewport{};
         viewport.setX(x);
-        viewport.setY(y);
+        viewport.setY(y + h);
         viewport.setWidth(w);
-        viewport.setHeight(h);
+        viewport.setHeight(-h);
         viewport.setMinDepth(min_depth);
         viewport.setMaxDepth(max_depth);
         get_cmd().setViewport(0, viewport);
@@ -96,7 +98,24 @@ namespace mill::rhi
         get_frame().wasRecorded = true;
     }
 
+    void ContextVulkan::set_push_constants(u32 offset, u32 size, const void* data)
     {
+        const auto layout = m_boundPipeline->get_layout();
+        if (!layout->has_push_constant_range())
+        {
+            LOG_WARN("ContextVulkan - Trying to set push constants for a pipeline that does not have any push constant blocks!");
+            return;
+        }
+
+        const auto pipeline = m_boundPipeline->get_pipeline();
+
+        const auto& push_block = layout->get_push_constant_range();
+        ASSERT(offset + size <= push_block.size);
+
+        const auto& stage_flags = push_block.stageFlags;
+        get_cmd().pushConstants(layout->get_layout(), stage_flags, offset, size, data);
+
+        get_frame().wasRecorded = true;
     }
 
     void ContextVulkan::draw(u32 vertex_count)

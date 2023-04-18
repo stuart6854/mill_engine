@@ -334,8 +334,30 @@ namespace mill::rhi
     auto DeviceVulkan::get_or_create_pipeline(const std::vector<Shared<PipelineModule>>& modules) -> Shared<Pipeline>
     {
         auto pipeline = CreateShared<Pipeline>(*this);
+
+        // Merge pipeline layouts
+        auto merged_layout = CreateShared<PipelineLayout>(m_device.get());
         for (const auto& module : modules)
+        {
+            if (module->get_layout() != nullptr)
+                merged_layout = merge_pipeline_layouts(*merged_layout, *module->get_layout());
+
             pipeline->add_module(module);
+        }
+
+        // Cache pipeline layout or Get existing
+        const hasht pipeline_layout_hash = merged_layout->get_hash();
+        if (m_pipelineLayouts.contains(pipeline_layout_hash))
+        {
+            merged_layout = m_pipelineLayouts.at(pipeline_layout_hash);
+        }
+        else
+        {
+            merged_layout->build();
+            m_pipelineLayouts[pipeline_layout_hash] = merged_layout;
+        }
+
+        pipeline->set_layout(merged_layout);
 
         const hasht pipeline_hash = pipeline->get_hash();
         ASSERT(pipeline_hash);
@@ -653,6 +675,101 @@ namespace mill::rhi
         return pipeline_layout;
     }
 
+    auto DeviceVulkan::merge_descriptor_set_layouts(const DescriptorSetLayout& layout_a, const DescriptorSetLayout& layout_b)
+        -> Shared<DescriptorSetLayout>
+    {
+        std::unordered_map<u32, vk::DescriptorSetLayoutBinding> binding_map{};
+
+        const auto& bindings_a = layout_a.get_bindings();
+        for (const auto& binding : bindings_a)
+        {
+            binding_map[binding.binding] = binding;
+        }
+
+        const auto& bindings_b = layout_b.get_bindings();
+        for (const auto& binding : bindings_b)
+        {
+            if (!binding_map.contains(binding.binding))
+            {
+                binding_map[binding.binding] = binding;
+                continue;
+            }
+
+            // Merge bindings
+            auto& existing_binding = binding_map[binding.binding];
+            ASSERT(binding.descriptorType == existing_binding.descriptorType);
+
+            existing_binding.descriptorCount = std::max(existing_binding.descriptorCount, binding.descriptorCount);
+            existing_binding.stageFlags |= binding.stageFlags;
+        }
+
+        auto merged_layout = CreateShared<DescriptorSetLayout>(m_device.get());
+
+        for (auto& [binding_loc, binding] : binding_map)
+        {
+            merged_layout->add_binding(binding.binding, binding.descriptorType, binding.stageFlags);
+        }
+
+        return merged_layout;
+    }
+
+    auto DeviceVulkan::merge_pipeline_layouts(const PipelineLayout& layout_a, const PipelineLayout& layout_b) -> Shared<PipelineLayout>
+    {
+        auto merged_layout = CreateShared<PipelineLayout>(m_device.get());
+
+        if (layout_a.has_push_constant_range() || layout_b.has_push_constant_range())
+        {
+            if (layout_a.has_push_constant_range() && layout_b.has_push_constant_range())
+            {
+                vk::PushConstantRange push_block{};
+
+                const auto& push_block_a = layout_a.get_push_constant_range(0);
+                const auto& push_block_b = layout_b.get_push_constant_range(0);
+
+                push_block.size = std::max(push_block_a.size, push_block_b.size);
+                push_block.stageFlags = push_block_a.stageFlags | push_block_b.stageFlags;
+
+                merged_layout->add_push_constant_buffer(push_block.offset, push_block.size, push_block.stageFlags);
+            }
+            else if (layout_a.has_push_constant_range())
+            {
+                const auto& push_block = layout_a.get_push_constant_range(0);
+                merged_layout->add_push_constant_buffer(push_block.offset, push_block.size, push_block.stageFlags);
+            }
+            else if (layout_b.has_push_constant_range())
+            {
+                const auto& push_block = layout_b.get_push_constant_range(0);
+                merged_layout->add_push_constant_buffer(push_block.offset, push_block.size, push_block.stageFlags);
+            }
+        }
+
+        std::vector<Shared<DescriptorSetLayout>> merged_set_layouts{};
+        for (const auto& set_layout : layout_a.get_set_layouts())
+        {
+            merged_set_layouts.push_back(set_layout);
+        }
+
+        const auto& set_layouts_b = layout_b.get_set_layouts();
+        for (u32 set = 0; set < set_layouts_b.size(); ++set)
+        {
+            const auto& set_layout = set_layouts_b.at(set);
+
+            if (merged_set_layouts.size() < CAST_U32(set + 1))
+            {
+                merged_set_layouts.resize(CAST_U32(set + 1));
+                merged_set_layouts[set] = set_layout;
+                continue;
+            }
+
+            merged_set_layouts[set] = merge_descriptor_set_layouts(*merged_set_layouts[set], *set_layout);
+        }
+
+        for (u32 set = 0; set < merged_set_layouts.size(); ++set)
+            merged_layout->add_set_layout(set, merged_set_layouts.at(set));
+
+        return merged_layout;
+    }
+
     VKAPI_ATTR VkBool32 VKAPI_CALL debug_message_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
                                                           VkDebugUtilsMessageTypeFlagsEXT /*message_type*/,
                                                           const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
@@ -674,5 +791,4 @@ namespace mill::rhi
         }
         return VK_FALSE;
     }
-
 }

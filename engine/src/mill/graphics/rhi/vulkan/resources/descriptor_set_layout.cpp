@@ -21,22 +21,23 @@ namespace mill::rhi
 
     DescriptorSetLayout::~DescriptorSetLayout() = default;
 
-    void DescriptorSetLayout::add_uniform_buffer(u32 binding)
+    void DescriptorSetLayout::add_binding(u32 binding, vk::DescriptorType type, vk::ShaderStageFlags shader_stages)
     {
         auto& layout_binding = m_bindings.emplace_back();
         layout_binding.setBinding(binding);
         layout_binding.setDescriptorCount(1);
-        layout_binding.setDescriptorType(vk::DescriptorType::eUniformBuffer);
-        layout_binding.setStageFlags(vk::ShaderStageFlagBits::eAll);
+        layout_binding.setDescriptorType(type);
+        layout_binding.setStageFlags(shader_stages);
+    }
+
+    void DescriptorSetLayout::add_uniform_buffer(u32 binding)
+    {
+        add_binding(binding, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAll);
     }
 
     void DescriptorSetLayout::add_sampled_image(u32 binding)
     {
-        auto& layout_binding = m_bindings.emplace_back();
-        layout_binding.setBinding(binding);
-        layout_binding.setDescriptorCount(1);
-        layout_binding.setDescriptorType(vk::DescriptorType::eCombinedImageSampler);
-        layout_binding.setStageFlags(vk::ShaderStageFlagBits::eAll);
+        add_binding(binding, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eAll);
     }
 
     void DescriptorSetLayout::build()
@@ -73,6 +74,11 @@ namespace mill::rhi
         return m_layout.get();
     }
 
+    auto DescriptorSetLayout::get_bindings() const -> const std::vector<vk::DescriptorSetLayoutBinding>&
+    {
+        return m_bindings;
+    }
+
     auto DescriptorSetLayout::operator=(DescriptorSetLayout&& rhs) noexcept -> DescriptorSetLayout&
     {
         std::swap(m_device, rhs.m_device);
@@ -101,4 +107,5 @@ namespace mill::rhi
 
         return hash;
     }
+
 }

@@ -78,12 +78,20 @@ namespace mill::rhi
         return m_layout.get();
     }
 
-    auto PipelineLayout::merge_layouts(const PipelineLayout& a, const PipelineLayout& b) -> PipelineLayout
+    auto PipelineLayout::get_set_layouts() const -> const std::vector<Shared<DescriptorSetLayout>>&
     {
-        vk::Device device = a.get_device();
-        PipelineLayout new_layout(device, a.get_flags() | b.get_flags());
-        // #TODO
-        return new_layout;
+        return m_setLayouts;
+    }
+
+    bool PipelineLayout::has_push_constant_range() const
+    {
+        return !m_pushConstantRanges.empty();
+    }
+
+    auto PipelineLayout::get_push_constant_range(u32 index) const -> const vk::PushConstantRange&
+    {
+        ASSERT(index >= 0 && index < m_pushConstantRanges.size());
+        return m_pushConstantRanges.at(index);
     }
 
     auto PipelineLayout::operator=(PipelineLayout&& rhs) noexcept -> PipelineLayout&
@@ -117,4 +125,5 @@ namespace mill::rhi
 
         return hash;
     }
+
 }

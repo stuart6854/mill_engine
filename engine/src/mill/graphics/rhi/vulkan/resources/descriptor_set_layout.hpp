@@ -13,6 +13,8 @@ namespace mill::rhi
         DescriptorSetLayout(DescriptorSetLayout&& other) noexcept;
         ~DescriptorSetLayout();
 
+        void add_binding(u32 binding, vk::DescriptorType type, vk::ShaderStageFlags shader_stages);
+
         void add_uniform_buffer(u32 binding);
         void add_sampled_image(u32 binding);
 
@@ -24,6 +26,8 @@ namespace mill::rhi
         auto get_flags() const -> const vk::DescriptorSetLayoutCreateFlags&;
         auto get_hash() const -> hasht;
         auto get_layout() const -> const vk::DescriptorSetLayout&;
+
+        auto get_bindings() const -> const std::vector<vk::DescriptorSetLayoutBinding>&;
 
         /* Operators */
 

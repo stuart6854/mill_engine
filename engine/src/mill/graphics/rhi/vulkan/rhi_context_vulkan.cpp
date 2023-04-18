@@ -91,61 +91,24 @@ namespace mill::rhi
     {
         auto& device = get_device();
 
-        if (!device.is_pipeline_vertex_input_state_compiled(state.get_hash()))
-        {
-            device.compile_pipeline_vertex_input_state(state);
-        }
-
         auto* context = device.get_context(context_id);
         ASSERT(context != nullptr);
 
-        context->set_pipeline_vertex_input_state(state.get_hash());
-    }
-
-    void set_pipeline_pre_rasterisation_state(u64 context_id, const PipelinePreRasterisationState& state)
-    {
-        auto& device = get_device();
-
-        if (!device.is_pipeline_pre_rasterisation_state_compiled(state.get_hash()))
-        {
-            device.compile_pipeline_pre_rasterisation_state(state);
-        }
-
-        auto* context = device.get_context(context_id);
-        ASSERT(context != nullptr);
-
-        context->set_pipeline_pre_rasterisation_state(state.get_hash());
         context->set_pipeline(pipeline_id);
     }
 
-    void set_pipeline_fragment_stage_state(u64 context_id, const PipelineFragmentStageState& state)
+    void set_index_buffer(u64 /*contex_id*/, HandleBuffer /*buffer*/, IndexType /*index_type*/) {}
+
+    void set_vertex_buffer(u64 /*context_id*/, HandleBuffer /*buffer*/) {}
+
+    void set_push_constants(u64 context_id, u32 offset, u32 size, const void* data)
     {
         auto& device = get_device();
-
-        if (!device.is_pipeline_fragment_stage_state_compiled(state.get_hash()))
-        {
-            device.compile_pipeline_fragment_stage_state(state);
-        }
 
         auto* context = device.get_context(context_id);
         ASSERT(context != nullptr);
 
-        context->set_pipeline_fragment_stage_state(state.get_hash());
-    }
-
-    void set_pipeline_fragment_output_state(u64 context_id, const PipelineFragmentOutputState& state)
-    {
-        auto& device = get_device();
-
-        if (!device.is_pipeline_fragment_output_state_compiled(state.get_hash()))
-        {
-            device.compile_pipeline_fragment_output_state(state);
-        }
-
-        auto* context = device.get_context(context_id);
-        ASSERT(context != nullptr);
-
-        context->set_pipeline_fragment_output_state(state.get_hash());
+        context->set_push_constants(offset, size, data);
     }
 
     void set_index_buffer(u64 /*contex_id*/, HandleBuffer /*buffer*/, IndexType /*index_type*/) {}
