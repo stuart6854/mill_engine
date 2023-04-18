@@ -167,7 +167,7 @@ public:
             buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
             m_triangleVertexBuffer = rhi::create_buffer(buffer_desc);
 
-            // rhi::write_buffer(m_triangleVertexBuffer, 0, buffer_desc.size, g_TriangleVertices.data());
+            rhi::write_buffer(m_triangleVertexBuffer, 0, buffer_desc.size, g_TriangleVertices.data());
         }
         // Triangle Index Buffer
         {
@@ -177,7 +177,7 @@ public:
             buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
             m_triangleIndexBuffer = rhi::create_buffer(buffer_desc);
 
-            // rhi::write_buffer(m_triangleIndexBuffer, 0, buffer_desc.size, g_TriangleIndices.data());
+            rhi::write_buffer(m_triangleIndexBuffer, 0, buffer_desc.size, g_TriangleIndices.data());
         }
 
         // Init push constants

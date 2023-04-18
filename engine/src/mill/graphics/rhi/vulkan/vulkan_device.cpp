@@ -397,6 +397,33 @@ namespace mill::rhi
         return buffer_id;
     }
 
+    void DeviceVulkan::write_buffer(u64 buffer_id, u64 offset, u64 size, const void* data)
+    {
+        ASSERT(m_buffers.contains(buffer_id));
+
+        auto& buffer = m_buffers.at(buffer_id);
+
+        bool is_host_visible = CAST_BOOL(buffer->get_alloc_flags() & vma::AllocationCreateFlagBits::eHostAccessSequentialWrite);
+        if (is_host_visible)
+        {
+            void* mapped = m_allocator->mapMemory(buffer->get_allocation());
+            ASSERT(mapped);
+
+            u8* offset_mapped = static_cast<u8*>(mapped) + offset;
+            ASSERT(offset_mapped);
+
+            std::memcpy(offset_mapped, data, size);
+
+            m_allocator->unmapMemory(buffer->get_allocation());
+
+            return;
+        }
+
+        LOG_WARN("DeviceVulkan - Writing to non-HostVisible buffers is not yet supported.");
+
+        // #TODO: Staging buffer
+    }
+
 #pragma endregion
 
     auto DeviceVulkan::get_instance() -> vk::Instance&

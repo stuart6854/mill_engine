@@ -53,6 +53,11 @@ namespace mill::rhi
         return device.create_buffer(buffer_desc);
     }
 
-    void write_buffer(HandleBuffer /*buffer*/, u64 /*offset*/, u64 /*size*/, const void* /*data*/) {}
+    void write_buffer(HandleBuffer buffer_id, u64 offset, u64 size, const void* data)
+    {
+        auto& device = get_device();
+
+        device.write_buffer(buffer_id, offset, size, data);
+    }
 
 }

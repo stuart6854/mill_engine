@@ -68,6 +68,7 @@ namespace mill::rhi
         /* Buffers */
 
         auto create_buffer(const BufferDescriptionVulkan& description) -> u64;
+        void write_buffer(u64 buffer_id, u64 offset, u64 size, const void* data);
 
 #pragma endregion
 

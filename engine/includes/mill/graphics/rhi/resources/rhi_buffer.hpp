@@ -29,5 +29,5 @@ namespace mill::rhi
 
     using HandleBuffer = u64;
     auto create_buffer(const BufferDescription& description) -> HandleBuffer;
-    void write_buffer(HandleBuffer buffer, u64 offset, u64 size, const void* data);
+    void write_buffer(HandleBuffer buffer_id, u64 offset, u64 size, const void* data);
 }
