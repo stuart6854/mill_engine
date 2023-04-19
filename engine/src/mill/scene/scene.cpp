@@ -1,7 +1,10 @@
 #include "mill/scene/scene.hpp"
 
+#include "mill/core/engine.hpp"
+#include "mill/resources/resource_manager.hpp"
 #include "mill/scene/entity.hpp"
 #include "mill/scene/components/transform_component.hpp"
+#include "mill/scene/components/static_mesh_component.hpp"
 #include "mill/utility/random.hpp"
 
 #include <entt/entity/entity.hpp>
@@ -15,6 +18,8 @@ namespace mill
 
     void Scene::on_load()
     {
+        auto* resources = Engine::get()->get_resources();
+
         {
             auto entity = create_entity();
             auto& transform = entity.add_component<TransformComponent>();
@@ -25,6 +30,9 @@ namespace mill
 
             const auto rotation = glm::quat(euler_angles);
             transform.set_rotation(rotation);
+
+            auto& static_mesh = entity.add_component<StaticMeshComponent>();
+            static_mesh.staticMesh = resources->get_handle(1998);
         }
         {
             auto entity = create_entity();
