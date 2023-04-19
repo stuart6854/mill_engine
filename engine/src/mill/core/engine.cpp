@@ -3,6 +3,7 @@
 #include "mill/core/base.hpp"
 #include "mill/events/events.hpp"
 #include "mill/platform/platform_interface.hpp"
+#include "mill/graphics/rhi/rhi_core.hpp"
 #include "mill/core/application.hpp"
 #include "platform/windowing.hpp"
 #include "mill/input/input.hpp"
@@ -235,6 +236,7 @@ namespace mill
         //  auto window_height = static_cast<u32>(static_cast<::mill::i64>(*toml_window_size->get(1)->as_integer()));
 
         platform::platform_initialise();
+        rhi::initialise();
 
         INIT_SYSTEM(input, CreateOwned<InputDefault>());
         /*m_pimpl->window->cb_on_input_keyboard_key.connect([this](i32 key, bool is_down)
@@ -264,6 +266,7 @@ namespace mill
         SHUTDOWN_SYSTEM(resources);
         SHUTDOWN_SYSTEM(input);
 
+        rhi::shutdown();
         platform::platform_shutdown();
     }
 

@@ -26,8 +26,6 @@ public:
         };
         m_windowHandle = platform::create_window(window_info);
 
-        rhi::initialise();
-
         rhi::assign_screen(0, platform::get_raw_window_handle(m_windowHandle));
         rhi::reset_screen(0, 1600, 900, true);
 
@@ -62,7 +60,6 @@ public:
     }
     void shutdown() override
     {
-        rhi::shutdown();
         platform::destroy_window(m_windowHandle);
     }
 
