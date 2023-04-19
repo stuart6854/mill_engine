@@ -14,6 +14,8 @@ namespace mill::rhi
         eR8,
         eR16,
         eR32,
+        // RG
+        eRG32,
         // RGB
         eRGB32,
         // RGBA

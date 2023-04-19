@@ -77,6 +77,7 @@ namespace mill::rhi
             case mill::rhi::Format::eR8: return vk::Format::eR8Unorm;
             case mill::rhi::Format::eR16: return vk::Format::eR16Unorm;
             case mill::rhi::Format::eR32: return vk::Format::eR32Uint;
+            case mill::rhi::Format::eRG32: return vk::Format::eR32G32Sfloat;
             case mill::rhi::Format::eRGB32: return vk::Format::eR32G32B32Sfloat;
             case mill::rhi::Format::eRGBA8: return vk::Format::eR8G8B8A8Unorm;
             case mill::rhi::Format::eD16: return vk::Format::eD16Unorm;

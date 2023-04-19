@@ -736,7 +736,12 @@ namespace mill::rhi::vulkan
     {
         switch (format)
         {
+            case vk::Format::eR8Srgb: return 1 * 1;
+            case vk::Format::eR8G8Srgb: return 1 * 2;
+            case vk::Format::eR8G8B8Srgb: return 1 * 3;
             case vk::Format::eR8G8B8A8Srgb: return 1 * 4;
+            case vk::Format::eR32Sfloat: return 4 * 1;
+            case vk::Format::eR32G32Sfloat: return 4 * 2;
             case vk::Format::eR32G32B32Sfloat: return 4 * 3;
             case vk::Format::eR32G32B32A32Sfloat: return 4 * 4;
             default: ASSERT(("Unknown vk::Format!", false)); break;
