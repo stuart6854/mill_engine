@@ -36,6 +36,7 @@ namespace mill
             m_indexBuffer = rhi::create_buffer(buffer_desc);
             rhi::write_buffer(m_indexBuffer, 0, buffer_desc.size, m_triangles.data());
         }
+        m_indexCount = CAST_U32(m_triangles.size());
 
         // Vertex Buffer
         {
@@ -68,6 +69,11 @@ namespace mill
     {
         return m_submeshes;
     }
+
+    auto StaticMesh::get_index_count() const -> u32
+    {
+        return m_indexCount;
+    };
 
     auto StaticMesh::get_index_buffer() const -> rhi::HandleBuffer
     {

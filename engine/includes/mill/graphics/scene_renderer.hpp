@@ -179,7 +179,9 @@ namespace mill
                     rhi::set_vertex_buffer(context, vertex_buffer);
 
                     rhi::set_push_constants(context, sizeof(glm::mat4) * 2, sizeof(glm::mat4), &instance.worldMat);
-                    rhi::draw_indexed(context, 3);
+
+                    const auto index_count = instance.staticMesh->get_index_count();
+                    rhi::draw_indexed(context, index_count);
                 }
             }
             rhi::end_view(context, m_viewId);
