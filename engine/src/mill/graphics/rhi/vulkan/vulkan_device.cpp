@@ -427,6 +427,7 @@ namespace mill::rhi
 
         auto& buffer = m_buffers.at(buffer_id);
 
+        // #TODO: This bool (below) is not quite correct.
         bool is_host_visible = CAST_BOOL(buffer->get_alloc_flags() & vma::AllocationCreateFlagBits::eHostAccessSequentialWrite);
         if (is_host_visible)
         {

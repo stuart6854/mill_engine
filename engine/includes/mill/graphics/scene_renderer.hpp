@@ -84,6 +84,12 @@ namespace mill
         std::vector<SceneRenderInstance> renderInstances{};
     };
 
+    struct CameraUniforms
+    {
+        glm::mat4 projection{ 1.0f };
+        glm::mat4 view{ 1.0f };
+    };
+
     class SceneRenderer
     {
     public:
@@ -103,6 +109,16 @@ namespace mill
                     .buffer = true,
                 };
                 m_cameraResourceSet = rhi::create_resource_set(set_desc);
+            }
+            // Camera UBO
+            {
+                rhi::BufferDescription buffer_desc{};
+                buffer_desc.size = sizeof(CameraUniforms);
+                buffer_desc.usage = rhi::BufferUsage::eUniformBuffer;
+                buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
+                m_cameraUBO = rhi::create_buffer(buffer_desc);
+
+                rhi::write_buffer(m_cameraUBO, 0, buffer_desc.size, &m_cameraUniforms);
             }
 
             // Pipeline
@@ -168,6 +184,10 @@ namespace mill
 
         auto render(u64 context, const SceneRenderInfo& scene_info) -> u64
         {
+            m_cameraUniforms.projection = scene_info.cameraProjMat;
+            m_cameraUniforms.view = scene_info.cameraViewMat;
+            rhi::write_buffer(m_cameraUBO, 0, sizeof(CameraUniforms), &m_cameraUniforms);
+
             rhi::begin_view(context, m_viewId, { 0.392f, 0.584f, 0.929f, 1 });
             {
                 rhi::set_viewport(context, 0, 0, 1600, 900, 0.0f, 1.0f);
@@ -204,6 +224,8 @@ namespace mill
         u64 m_viewId{};
 
         u64 m_cameraResourceSet{};
+        rhi::HandleBuffer m_cameraUBO{};
+        CameraUniforms m_cameraUniforms{};
 
         u64 m_pipeline{};
         rhi::HandleBuffer m_triangleIndexBuffer{};
