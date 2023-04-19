@@ -40,6 +40,9 @@ namespace mill
         auto get_indices() const -> const std::vector<u16>&;
         auto get_submeshes() const -> const std::vector<Submesh>&;
 
+        auto get_index_buffer() const -> rhi::HandleBuffer;
+        auto get_vertex_buffer() const -> rhi::HandleBuffer;
+
     private:
         std::vector<StaticVertex> m_vertices{};
         std::vector<u16> m_triangles{};

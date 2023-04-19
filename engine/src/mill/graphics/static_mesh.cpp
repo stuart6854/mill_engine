@@ -69,4 +69,14 @@ namespace mill
         return m_submeshes;
     }
 
+    auto StaticMesh::get_index_buffer() const -> rhi::HandleBuffer
+    {
+        return m_indexBuffer;
+    }
+
+    auto StaticMesh::get_vertex_buffer() const -> rhi::HandleBuffer
+    {
+        return m_vertexBuffer;
+    }
+
 }
