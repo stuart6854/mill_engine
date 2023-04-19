@@ -7,6 +7,7 @@
 
 #include "events/events.hpp"
 
+#include "graphics/static_vertex.hpp"
 #include "graphics/rhi.hpp"
 #include "platform/platform_interface.hpp"
 

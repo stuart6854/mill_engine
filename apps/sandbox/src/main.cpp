@@ -61,13 +61,7 @@ static const std::vector<u32> g_TriangleShaderSpirvFS = {
     0x0003003e, 0x00000009, 0x00000012, 0x000100fd, 0x00010038
 };
 
-struct Vertex
-{
-    glm::vec3 position{};
-    glm::vec3 color{};
-};
-
-static const std::vector<Vertex> g_TriangleVertices = {
+static const std::vector<StaticVertex> g_TriangleVertices = {
     { { 1.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
     { { -1.0f, 1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
     { { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
@@ -153,7 +147,7 @@ public:
         // Triangle Vertex Buffer
         {
             rhi::BufferDescription buffer_desc{};
-            buffer_desc.size = sizeof(Vertex) * g_TriangleVertices.size();
+            buffer_desc.size = sizeof(StaticVertex) * g_TriangleVertices.size();
             buffer_desc.usage = rhi::BufferUsage::eVertexBuffer;
             buffer_desc.memoryUsage = rhi::MemoryUsage::eDeviceHostVisble;
             m_triangleVertexBuffer = rhi::create_buffer(buffer_desc);

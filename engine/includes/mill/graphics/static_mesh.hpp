@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mill/core/base.hpp"
+#include "static_vertex.hpp"
 #include "mill/resources/resource.hpp"
 #include "mill/utility/signal.hpp"
 
@@ -12,13 +13,6 @@
 
 namespace mill
 {
-    struct StaticVertex
-    {
-        glm::vec3 position{};
-        glm::vec2 texCoord{};
-        glm::vec4 color{};
-    };
-
     class StaticMesh : public Resource
     {
     public:
