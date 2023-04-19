@@ -2,6 +2,7 @@
 
 #include "mill/core/base.hpp"
 #include "static_vertex.hpp"
+#include "static_mesh.hpp"
 #include "mill/graphics/rhi.hpp"
 
 #include <glm/ext/matrix_float4x4.hpp>
@@ -71,6 +72,8 @@ namespace mill
     struct SceneRenderInstance
     {
         glm::mat4 worldMat{ 1.0f };
+
+        StaticMesh* staticMesh{ nullptr };
     };
 
     struct SceneRenderInfo
@@ -164,11 +167,17 @@ namespace mill
                 rhi::set_push_constants(context, 0, sizeof(glm::mat4), &scene_info.cameraProjMat);
                 rhi::set_push_constants(context, sizeof(glm::mat4), sizeof(glm::mat4), &scene_info.cameraViewMat);
 
-                rhi::set_index_buffer(context, m_triangleIndexBuffer, rhi::IndexType::eU16);
-                rhi::set_vertex_buffer(context, m_triangleVertexBuffer);
-
                 for (const auto& instance : scene_info.renderInstances)
                 {
+                    if (instance.staticMesh == nullptr)
+                        continue;
+
+                    const auto index_buffer = instance.staticMesh->get_index_buffer();
+                    rhi::set_index_buffer(context, index_buffer, rhi::IndexType::eU16);
+
+                    const auto vertex_buffer = instance.staticMesh->get_vertex_buffer();
+                    rhi::set_vertex_buffer(context, vertex_buffer);
+
                     rhi::set_push_constants(context, sizeof(glm::mat4) * 2, sizeof(glm::mat4), &instance.worldMat);
                     rhi::draw_indexed(context, 3);
                 }

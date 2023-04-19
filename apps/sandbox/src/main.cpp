@@ -73,13 +73,25 @@ public:
         scene_render_info.cameraProjMat = m_cameraProjMat;
         scene_render_info.cameraViewMat = m_cameraViewMat;
 
-        auto view = registry.view<TransformComponent>();
+        auto view = registry.view<StaticMeshComponent>();
         for (auto entity : view)
         {
-            auto& transform = view.get<TransformComponent>(entity);
+            auto& static_mesh_comp = view.get<StaticMeshComponent>(entity);
+            if (!static_mesh_comp.staticMesh)
+                continue;
+
+            auto* static_mesh = static_mesh_comp.staticMesh.As<StaticMesh>();
+            if (static_mesh == nullptr)
+                continue;
 
             auto& render_instance = scene_render_info.renderInstances.emplace_back();
-            render_instance.worldMat = transform.get_transform();
+            render_instance.staticMesh = static_mesh;
+
+            if (registry.all_of<TransformComponent>(entity))
+            {
+                auto& transform = registry.get<TransformComponent>(entity);
+                render_instance.worldMat = transform.get_transform();
+            }
         }
 
         // Update window size. Call when window is resized.
