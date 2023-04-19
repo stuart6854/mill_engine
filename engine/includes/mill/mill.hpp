@@ -20,6 +20,11 @@
 #include "resources/resource.hpp"
 #include "resources/resource_manager.hpp"
 
+#include "scene/components/transform_component.hpp"
+#include "scene/entity.hpp"
+#include "scene/scene.hpp"
+#include "scene/scene_manager.hpp"
+
 #include "io/data_writer.hpp"
 #include "io/data_reader.hpp"
 #include "io/binary_writer.hpp"
