@@ -18,6 +18,8 @@ namespace mill
     using u32 = uint32_t;
     using u64 = uint64_t;
 
+    constexpr u32 i32_max = INT32_MAX;
+    constexpr u64 i64_max = INT64_MAX;
     constexpr u32 u32_max = UINT32_MAX;
     constexpr u64 u64_max = UINT64_MAX;
 
