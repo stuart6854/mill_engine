@@ -79,8 +79,6 @@ public:
         auto& events = Engine::get()->get_events();
         events.subscribe([this](const Event& event) { event_callback(event); });
 
-        m_sceneRenderer = CreateOwned<SceneRenderer>(SceneViewId);
-
         platform::WindowInfo window_info{
             .title = "Sandbox",
             .pos_x = 10,
@@ -169,10 +167,13 @@ public:
         {
             m_pushBlock.projMat = glm::perspectiveLH_ZO(glm::radians(70.0f), 1600.0f / 900.0f, 0.1f, 100.0f);
 
-            const glm::vec3 eye{ -1, 2, -3 };
-            const glm::vec3 target{ 0, 0, 0 };
+            const glm::vec3 eye{ -3, 4, -6 };
+            const glm::vec3 target{ 0, 2, 0 };
             m_pushBlock.viewMat = glm::lookAtLH(eye, target, glm::vec3(0, 1, 0));
         }
+
+        m_sceneRenderer = CreateOwned<SceneRenderer>(SceneViewId);
+        m_sceneRenderer->initialise();
     }
     void shutdown() override
     {
@@ -182,6 +183,23 @@ public:
 
     void update() override
     {
+        auto& scene = Engine::get()->get_scene_manager()->get_active_scene();
+        auto& registry = scene.get_registry();
+
+        // Gather scene render info
+        SceneRenderInfo scene_render_info{};
+        scene_render_info.cameraProjMat = m_pushBlock.projMat;
+        scene_render_info.cameraViewMat = m_pushBlock.viewMat;
+
+        auto view = registry.view<TransformComponent>();
+        for (auto entity : view)
+        {
+            auto& transform = view.get<TransformComponent>(entity);
+
+            auto& render_instance = scene_render_info.renderInstances.emplace_back();
+            render_instance.worldMat = transform.get_transform();
+        }
+
         // Update window size. Call when window is resized.
         // rhi::reset_screen(0, 1600, 900, true);
 
@@ -190,7 +208,8 @@ public:
             const static auto RenderContextId = "render_context"_hs;
             rhi::begin_context(RenderContextId);
 
-            rhi::begin_view(RenderContextId, SceneViewId, { 0.392f, 0.584f, 0.929f, 1 });
+#if 0
+		    rhi::begin_view(RenderContextId, SceneViewId, { 0.392f, 0.584f, 0.929f, 1 });
             {
                 rhi::set_viewport(RenderContextId, 0, 0, 1600, 900, 0.0f, 1.0f);
                 rhi::set_scissor(RenderContextId, 0, 0, 1600, 900);
@@ -204,8 +223,11 @@ public:
                 rhi::draw_indexed(RenderContextId, 3);
             }
             rhi::end_view(RenderContextId, SceneViewId);
+#endif  // 0
 
-            rhi::blit_to_screen(RenderContextId, 0, SceneViewId);
+            auto scene_view_id = m_sceneRenderer->render(RenderContextId, scene_render_info);
+
+            rhi::blit_to_screen(RenderContextId, 0, scene_view_id);
 
             rhi::end_context(RenderContextId);
         }
