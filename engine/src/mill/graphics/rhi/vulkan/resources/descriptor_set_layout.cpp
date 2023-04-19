@@ -30,14 +30,14 @@ namespace mill::rhi
         layout_binding.setStageFlags(shader_stages);
     }
 
-    void DescriptorSetLayout::add_uniform_buffer(u32 binding)
+    void DescriptorSetLayout::add_uniform_buffer(u32 binding, vk::ShaderStageFlags shader_stages)
     {
-        add_binding(binding, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAll);
+        add_binding(binding, vk::DescriptorType::eUniformBuffer, shader_stages);
     }
 
-    void DescriptorSetLayout::add_sampled_image(u32 binding)
+    void DescriptorSetLayout::add_sampled_image(u32 binding, vk::ShaderStageFlags shader_stages)
     {
-        add_binding(binding, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eAll);
+        add_binding(binding, vk::DescriptorType::eCombinedImageSampler, shader_stages);
     }
 
     void DescriptorSetLayout::build()

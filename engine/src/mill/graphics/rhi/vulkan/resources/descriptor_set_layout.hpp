@@ -15,8 +15,8 @@ namespace mill::rhi
 
         void add_binding(u32 binding, vk::DescriptorType type, vk::ShaderStageFlags shader_stages);
 
-        void add_uniform_buffer(u32 binding);
-        void add_sampled_image(u32 binding);
+        void add_uniform_buffer(u32 binding, vk::ShaderStageFlags shader_stages);
+        void add_sampled_image(u32 binding, vk::ShaderStageFlags shader_stages);
 
         void build();
 

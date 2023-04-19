@@ -198,8 +198,8 @@ namespace mill::rhi
             const auto& binding = description.bindings.at(i);
             switch (binding.type)
             {
-                case vk::DescriptorType::eUniformBuffer: layout->add_uniform_buffer(i); break;
-                case vk::DescriptorType::eCombinedImageSampler: layout->add_sampled_image(i); break;
+                case vk::DescriptorType::eUniformBuffer: layout->add_uniform_buffer(i, binding.shaderStages); break;
+                case vk::DescriptorType::eCombinedImageSampler: layout->add_sampled_image(i, binding.shaderStages); break;
                 default: ASSERT(("Unknown DescriptorType!", false)); break;
             }
         }
@@ -731,15 +731,31 @@ namespace mill::rhi
             pipeline_layout->add_push_constant_buffer(0, size, shader_stage);
         }
 
-#if 0
+        std::unordered_map<u32, Shared<DescriptorSetLayout>> set_map{};
         for (const auto& ubo : shader_resources.uniform_buffers)
         {
             const u32 set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
             const u32 binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
 
-            pipeline_layout_state.add_binding(set, binding, shader_stage, ResourceType::eUniformBuffer);
+            if (!set_map.contains(set))
+                set_map[set] = CreateShared<DescriptorSetLayout>(m_device.get());
+
+            auto& set_layout = set_map.at(set);
+
+            set_layout->add_uniform_buffer(binding, shader_stage);
         }
-#endif
+
+        for (auto& [set, set_layout] : set_map)
+        {
+            const auto set_layout_hash = set_layout->get_hash();
+            if (!m_descriptorSetLayouts.contains(set_layout_hash))
+            {
+                m_descriptorSetLayouts[set_layout_hash] = set_layout;
+                set_layout->build();
+            }
+
+            pipeline_layout->add_set_layout(set, m_descriptorSetLayouts[set_layout_hash]);
+        }
 
         const auto pipeline_layout_hash = pipeline_layout->get_hash();
         if (m_pipelineLayouts.contains(pipeline_layout_hash))
