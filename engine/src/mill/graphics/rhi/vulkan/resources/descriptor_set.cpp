@@ -29,7 +29,7 @@ namespace mill::rhi
         }
     }
 
-    void DescriptorSet::set_uniform_buffer(u32 binding, const Shared<Buffer>& buffer)
+    void DescriptorSet::set_uniform_buffer(u32 binding, const Buffer& buffer)
     {
         vk::WriteDescriptorSet write{};
         write.setDstBinding(binding);
@@ -39,9 +39,9 @@ namespace mill::rhi
         for (auto& frame : m_frames)
         {
             auto& buffer_info = frame.bufferInfos.emplace_back();
-            buffer_info.setBuffer(buffer->get_buffer());
+            buffer_info.setBuffer(buffer.get_buffer());
             buffer_info.setOffset(0);
-            buffer_info.setRange(buffer->get_size());
+            buffer_info.setRange(buffer.get_size());
 
             write.setDstSet(frame.set.get());
             write.setBufferInfo(buffer_info);
@@ -50,8 +50,10 @@ namespace mill::rhi
         }
     }
 
-    void DescriptorSet::flush_writes()
+    void DescriptorSet::next_frame()
     {
+        m_frameIndex = (m_frameIndex + 1) % m_frames.size();
+
         auto& frame = m_frames.at(m_frameIndex);
         m_device.get_device().updateDescriptorSets(frame.pendingWrites, {});
 

@@ -89,6 +89,14 @@ namespace mill::rhi
         wait_idle();
     }
 
+    void DeviceVulkan::next_frame()
+    {
+        for (auto& [id, set] : m_descriptorSets)
+        {
+            set->next_frame();
+        }
+    }
+
     void DeviceVulkan::wait_idle() const
     {
         ASSERT(m_device);

@@ -103,16 +103,6 @@ namespace mill
         {
             rhi::reset_view(m_viewId, 1600, 900);
 
-            // Camera Resource Set
-            {
-                rhi::ResourceSetDescription set_desc{
-                    .bindings = {
-                        {rhi::ResourceType::eUniformBuffer, 1, rhi::ShaderStage::eVertex},
-                    },
-                    .buffer = true,
-                };
-                m_cameraResourceSet = rhi::create_resource_set(set_desc);
-            }
             // Camera UBO
             {
                 rhi::BufferDescription buffer_desc{};
@@ -122,6 +112,17 @@ namespace mill
                 m_cameraUBO = rhi::create_buffer(buffer_desc);
 
                 rhi::write_buffer(m_cameraUBO, 0, buffer_desc.size, &m_cameraUniforms);
+            }
+            // Camera Resource Set
+            {
+                rhi::ResourceSetDescription set_desc{
+                    .bindings = {
+                        {rhi::ResourceType::eUniformBuffer, 1, rhi::ShaderStage::eVertex},
+                    },
+                    .buffer = true,
+                };
+                m_cameraResourceSet = rhi::create_resource_set(set_desc);
+                rhi::bind_buffer_to_resource_set(m_cameraResourceSet, 0, m_cameraUBO);
             }
 
             // Pipeline

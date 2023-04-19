@@ -1,6 +1,7 @@
 #include "rhi_resource_set_vulkan.hpp"
 
 #include "../rhi_core_vulkan.hpp"
+#include "descriptor_set.hpp"
 #include "../vulkan_device.hpp"
 #include "../vulkan_helpers.hpp"
 #include "../vulkan_includes.hpp"
@@ -16,6 +17,18 @@ namespace mill::rhi
         ASSERT(set_id);
 
         return set_id;
+    }
+
+    void bind_buffer_to_resource_set(u64 resource_set_id, u32 binding, u64 buffer_id)
+    {
+        auto& device = get_device();
+
+        const auto& buffer = device.get_buffer(buffer_id);
+
+        auto& resource_set = device.get_resource_set(resource_set_id);
+
+        LOG_DEBUG("RHI Vulkan - Binding buffer <{}> to resource set <{}> in binding {}.", buffer_id, resource_set_id, binding);
+        resource_set->set_uniform_buffer(binding, buffer);
     }
 
     auto to_vulkan(const ResourceBinding& binding) -> ResourceBindingVulkan

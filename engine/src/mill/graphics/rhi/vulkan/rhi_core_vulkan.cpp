@@ -52,6 +52,8 @@ namespace mill::rhi
         {
             screen->acquire_image();
         }
+
+        g_Device->next_frame();
     }
 
     void end_frame()

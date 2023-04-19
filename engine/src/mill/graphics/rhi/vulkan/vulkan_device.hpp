@@ -31,6 +31,9 @@ namespace mill::rhi
 
         bool initialise();
         void shutdown();
+
+        void next_frame();
+
         void wait_idle() const;
 
 #pragma region Resources

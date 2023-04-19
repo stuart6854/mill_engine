@@ -15,9 +15,9 @@ namespace mill::rhi
         DescriptorSet(DeviceVulkan& device, const Shared<DescriptorSetLayout>& layout, bool buffered);
         ~DescriptorSet() = default;
 
-        void set_uniform_buffer(u32 binding, const Shared<Buffer>& buffer);
+        void set_uniform_buffer(u32 binding, const Buffer& buffer);
 
-        void flush_writes();
+        void next_frame();
 
         /* Getters */
 
