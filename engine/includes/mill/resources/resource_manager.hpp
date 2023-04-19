@@ -30,6 +30,9 @@ namespace mill
         template <typename T>
         auto As() -> T*;
 
+        template <typename T>
+        auto As() const -> const T*;
+
         /* Operators */
 
         auto operator=(const ResourceHandle& rhs) -> ResourceHandle&;
@@ -118,4 +121,11 @@ namespace mill
         auto* cast_resource = static_cast<T*>(resource);
         return cast_resource;
     }
+
+    template <typename T>
+    inline auto ResourceHandle::As() const -> const T*
+    {
+        return As<T>();
+    }
+
 }
