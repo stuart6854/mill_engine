@@ -215,6 +215,11 @@ namespace mill
         return m_pimpl->resources.get();
     }
 
+    auto Engine::get_scene_manager() const -> SceneManager*
+    {
+        return m_pimpl->sceneManager.get();
+    }
+
     void Engine::initialise()
     {
 #if MILL_DEBUG

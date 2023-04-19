@@ -8,6 +8,7 @@ namespace mill
     class WindowInterface;
     class InputInterface;
     class ResourceManager;
+    class SceneManager;
     class Application;
 
     class Engine
@@ -28,6 +29,7 @@ namespace mill
         auto get_window() const -> WindowInterface*;
         auto get_input() const -> InputInterface*;
         auto get_resources() const -> ResourceManager*;
+        auto get_scene_manager() const -> SceneManager*;
 
     private:
         void initialise();
