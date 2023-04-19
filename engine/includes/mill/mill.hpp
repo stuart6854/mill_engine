@@ -21,6 +21,7 @@
 #include "resources/resource_manager.hpp"
 
 #include "scene/components/transform_component.hpp"
+#include "scene/components/static_mesh_component.hpp"
 #include "scene/entity.hpp"
 #include "scene/scene.hpp"
 #include "scene/scene_manager.hpp"
