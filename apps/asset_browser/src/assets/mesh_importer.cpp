@@ -37,7 +37,7 @@ namespace mill::asset_browser
             if (mesh->HasVertexColors(0))
             {
                 const auto& in_color = mesh->mColors[0][i];
-                out_vertex.color = { in_color.r, in_color.g, in_color.b, in_color.a };
+                out_vertex.color = { in_color.r, in_color.g, in_color.b };
             }
         }
 
@@ -86,7 +86,7 @@ namespace mill::asset_browser
 
         process_node(scene->mRootNode, scene, vertices, triangles, submeshes);
 
-        auto static_mesh = Engine::get()->get_renderer()->create_static_mesh();
+        auto static_mesh = CreateOwned<StaticMesh>();
         static_mesh->set_submeshes(submeshes);
         static_mesh->set_vertices(vertices);
         static_mesh->set_triangles(triangles);
