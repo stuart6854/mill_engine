@@ -195,6 +195,8 @@ namespace mill
 
                 rhi::set_pipeline(context, m_pipeline);
 
+                rhi::set_resource_sets(context, { m_cameraResourceSet });
+
                 rhi::set_push_constants(context, 0, sizeof(glm::mat4), &scene_info.cameraProjMat);
                 rhi::set_push_constants(context, sizeof(glm::mat4), sizeof(glm::mat4), &scene_info.cameraViewMat);
 

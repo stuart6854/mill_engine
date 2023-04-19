@@ -26,6 +26,7 @@ namespace mill::rhi
     void set_index_buffer(u64 context_id, HandleBuffer buffer_id, IndexType index_type);
     void set_vertex_buffer(u64 context_id, HandleBuffer buffer_id);
 
+    void set_resource_sets(u64 context_id, const std::vector<u64>& resource_set_ids);
     void set_push_constants(u64 context_id, u32 offset, u32 size, const void* data);
 
     void draw(u64 context_id, u32 vertex_count);

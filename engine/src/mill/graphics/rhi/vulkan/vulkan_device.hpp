@@ -54,6 +54,7 @@ namespace mill::rhi
         auto get_or_create_resource_set_layout(const ResourceSetDescriptionVulkan& description) -> Shared<DescriptorSetLayout>;
 
         auto create_resource_set(const ResourceSetDescriptionVulkan& description) -> u64;
+        auto get_resource_set(u64 resource_set_id) -> const Shared<DescriptorSet>&;
 
         /* Pipelines */
 

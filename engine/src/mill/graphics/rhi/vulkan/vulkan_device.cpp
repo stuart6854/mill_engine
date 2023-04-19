@@ -234,6 +234,13 @@ namespace mill::rhi
         return id;
     }
 
+    auto DeviceVulkan::get_resource_set(u64 resource_set_id) -> const Shared<DescriptorSet>&
+    {
+        ASSERT(resource_set_id);
+        ASSERT(m_descriptorSets.contains(resource_set_id));
+        return m_descriptorSets.at(resource_set_id);
+    }
+
     /* Pipelines */
 
     auto DeviceVulkan::get_or_create_pipeline_vertex_input_module(const PipelineVertexInputStateVulkan& state)

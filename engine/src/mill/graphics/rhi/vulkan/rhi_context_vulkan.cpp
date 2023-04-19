@@ -118,6 +118,16 @@ namespace mill::rhi
         context->set_vertex_buffer(buffer_id);
     }
 
+    void set_resource_sets(u64 context_id, const std::vector<u64>& resource_set_ids)
+    {
+        auto& device = get_device();
+
+        auto* context = device.get_context(context_id);
+        ASSERT(context != nullptr);
+
+        context->set_resource_sets(resource_set_ids);
+    }
+
     void set_push_constants(u64 context_id, u32 offset, u32 size, const void* data)
     {
         auto& device = get_device();

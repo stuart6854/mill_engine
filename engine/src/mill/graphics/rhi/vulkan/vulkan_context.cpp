@@ -5,6 +5,7 @@
 #include "rhi_core_vulkan.hpp"
 #include "resources/pipeline_layout.hpp"
 #include "resources/pipeline.hpp"
+#include "resources/descriptor_set.hpp"
 #include "resources/buffer.hpp"
 #include "vulkan_device.hpp"
 #include "vulkan_image.hpp"
@@ -95,6 +96,33 @@ namespace mill::rhi
         m_boundPipeline = m_device.get_pipeline(pipeline_id);
 
         get_cmd().bindPipeline(vk::PipelineBindPoint::eGraphics, m_boundPipeline->get_pipeline());
+
+        get_frame().wasRecorded = true;
+    }
+
+    void ContextVulkan::set_resource_sets(const std::vector<u64>& resource_set_ids)
+    {
+        if (m_boundPipeline == nullptr)
+        {
+            LOG_ERROR("ContextVulkan - Trying to set resource sets without any pipeline bound!");
+            return;
+        }
+
+        const auto layout = m_boundPipeline->get_layout();
+        if (layout->get_set_layouts().empty())
+        {
+            // LOG_WARN("ContextVulkan - Trying to set resource sets for a pipeline that does not have any !");
+            return;
+        }
+
+        std::vector<vk::DescriptorSet> sets(resource_set_ids.size());
+        for (u32 i = 0; i < sets.size(); ++i)
+        {
+            const auto set_id = resource_set_ids[i];
+            sets[i] = m_device.get_resource_set(set_id)->get_set();
+        }
+
+        get_cmd().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout->get_layout(), 0, sets, {});
 
         get_frame().wasRecorded = true;
     }
@@ -243,5 +271,4 @@ namespace mill::rhi
     {
         return m_associatedScreenIds;
     }
-
 }
