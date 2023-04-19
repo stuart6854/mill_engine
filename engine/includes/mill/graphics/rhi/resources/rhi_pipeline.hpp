@@ -3,7 +3,6 @@
 #include "mill/core/base.hpp"
 #include "../rhi_resource.hpp"
 
-#include <string>
 #include <vector>
 
 namespace mill::rhi

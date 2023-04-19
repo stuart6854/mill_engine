@@ -13,6 +13,7 @@ namespace mill::rhi
     class ContextVulkan;
     class ViewVulkan;
     class DescriptorSetLayout;
+    class DescriptorSet;
     class PipelineLayout;
     class PipelineModule;
     class PipelineModuleVertexInput;
@@ -51,6 +52,8 @@ namespace mill::rhi
         /* Resource Set */
 
         auto get_or_create_resource_set_layout(const ResourceSetDescriptionVulkan& description) -> Shared<DescriptorSetLayout>;
+
+        auto create_resource_set(const ResourceSetDescriptionVulkan& description) -> u64;
 
         /* Pipelines */
 
@@ -128,6 +131,8 @@ namespace mill::rhi
         std::unordered_map<u64, Owned<ViewVulkan>> m_views{};
 
         std::unordered_map<hasht, Shared<DescriptorSetLayout>> m_descriptorSetLayouts{};
+        std::unordered_map<hasht, Shared<DescriptorSet>> m_descriptorSets{};
+        u64 m_nextResourceSetId{ 1 };
 
         std::unordered_map<hasht, Shared<PipelineLayout>> m_pipelineLayouts{};
         std::unordered_map<hasht, Shared<PipelineModuleVertexInput>> m_vertexInputPipelineModules{};

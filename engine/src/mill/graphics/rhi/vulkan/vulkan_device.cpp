@@ -15,6 +15,7 @@
 #include "resources/pipeline_module_fragment_stage.hpp"
 #include "resources/pipeline_module_fragment_output.hpp"
 #include "resources/pipeline.hpp"
+#include "resources/descriptor_set.hpp"
 #include "resources/buffer.hpp"
 
 #define VMA_IMPLEMENTATION
@@ -216,6 +217,21 @@ namespace mill::rhi
         LOG_DEBUG("DeviceVulkan - Descriptor Set Layout has been created: {}", layout_hash);
 
         return layout;
+    }
+
+    auto DeviceVulkan::create_resource_set(const ResourceSetDescriptionVulkan& description) -> u64
+    {
+        auto layout = get_or_create_resource_set_layout(description);
+        ASSERT(layout);
+
+        const auto id = m_nextResourceSetId;
+        ++m_nextResourceSetId;
+
+        m_descriptorSets[id] = CreateShared<DescriptorSet>(*this, layout, description.buffered);
+
+        LOG_DEBUG("DeviceVulkan - ResourceSet has been created: {}", id);
+
+        return id;
     }
 
     /* Pipelines */

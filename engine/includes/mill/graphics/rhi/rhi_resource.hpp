@@ -33,34 +33,8 @@ namespace mill::rhi
     void reset_screen(u64 screen_id, u32 width, u32 height, bool vsync);
 
     void reset_view(u64 view_id, u32 width, u32 height);
-
-    enum class ShaderStage : u8
-    {
-        eNone = 0,
-        eVertex = 1u << 0,
-        eFragment = 1u << 1,
-    };
-    using ShaderStageFlags = Flags<ShaderStage>;
-
-    enum class ResourceType : u8
-    {
-        eNone,
-        eUniformBuffer,
-        eTexture,
-    };
-
-    struct ResourceBinding
-    {
-        ResourceType type{};
-        u32 count{ 1 };
-        ShaderStageFlags shaderStages{};
-    };
-
-    struct ResourceSetDescription
-    {
-        std::vector<ResourceBinding> bindings{};
-    };
 }
 
 #include "resources/rhi_pipeline.hpp"
+#include "resources/rhi_resource_set.hpp"
 #include "resources/rhi_buffer.hpp"

@@ -94,6 +94,17 @@ namespace mill
         {
             rhi::reset_view(m_viewId, 1600, 900);
 
+            // Camera Resource Set
+            {
+                rhi::ResourceSetDescription set_desc{
+                    .bindings = {
+                        {rhi::ResourceType::eUniformBuffer, 1, rhi::ShaderStage::eVertex},
+                    },
+                    .buffer = true,
+                };
+                m_cameraResourceSet = rhi::create_resource_set(set_desc);
+            }
+
             // Pipeline
             {
                 rhi::PipelineDescription pipeline_desc{
@@ -191,6 +202,8 @@ namespace mill
 
     private:
         u64 m_viewId{};
+
+        u64 m_cameraResourceSet{};
 
         u64 m_pipeline{};
         rhi::HandleBuffer m_triangleIndexBuffer{};
