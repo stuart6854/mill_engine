@@ -21,10 +21,13 @@ namespace mill
         }
         ~RefCount()
         {
-            --(*m_count);
-            if (*m_count == 0)
+            if (m_count)
             {
-                delete m_count;
+                --(*m_count);
+                if (*m_count == 0)
+                {
+                    delete m_count;
+                }
             }
         }
 
