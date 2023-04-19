@@ -1,9 +1,11 @@
 #version 450
 
 layout(location = 0) in vec3 in_position;
-layout(location = 1) in vec3 in_color;
+layout(location = 1) in vec2 in_texCoord;
+layout(location = 2) in vec3 in_color;
 
-layout(location = 0) out vec3 out_color;
+layout(location = 0) out vec2 out_texCoord;
+layout(location = 1) out vec3 out_color;
 
 layout (push_constant) uniform PushBlock
 {
@@ -31,5 +33,6 @@ void main()
     */
 
     gl_Position = u_consts.proj * u_consts.view * u_consts.world * vec4(in_position, 1.0);
+    out_texCoord = in_texCoord;
     out_color = in_color;
 }
