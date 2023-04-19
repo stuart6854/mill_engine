@@ -200,8 +200,8 @@ namespace mill
 
                 rhi::set_resource_sets(context, { m_cameraResourceSet });
 
-                rhi::set_push_constants(context, 0, sizeof(glm::mat4), &scene_info.cameraProjMat);
-                rhi::set_push_constants(context, sizeof(glm::mat4), sizeof(glm::mat4), &scene_info.cameraViewMat);
+                // rhi::set_push_constants(context, 0, sizeof(glm::mat4), &scene_info.cameraProjMat);
+                // rhi::set_push_constants(context, sizeof(glm::mat4), sizeof(glm::mat4), &scene_info.cameraViewMat);
 
                 for (const auto& instance : scene_info.renderInstances)
                 {
@@ -214,7 +214,7 @@ namespace mill
                     const auto vertex_buffer = instance.staticMesh->get_vertex_buffer();
                     rhi::set_vertex_buffer(context, vertex_buffer);
 
-                    rhi::set_push_constants(context, sizeof(glm::mat4) * 2, sizeof(glm::mat4), &instance.worldMat);
+                    rhi::set_push_constants(context, 0, sizeof(glm::mat4), &instance.worldMat);
 
                     const auto index_count = instance.staticMesh->get_index_count();
                     rhi::draw_indexed(context, index_count);
