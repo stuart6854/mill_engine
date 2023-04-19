@@ -1,12 +1,9 @@
 #include "mill/graphics/static_mesh.hpp"
 
+#include "mill/graphics/rhi/resources/rhi_buffer.hpp"
+
 namespace mill
 {
-    StaticMesh::~StaticMesh()
-    {
-        cb_on_destroyed.emit(this);
-    }
-
     void StaticMesh::set_vertices(const std::vector<StaticVertex>& vertices)
     {
         m_vertices = vertices;
@@ -24,7 +21,37 @@ namespace mill
 
     void StaticMesh::apply()
     {
-        cb_on_data_changed.emit(this);
+        // Index Buffer
+        {
+#if 0
+            if (m_indexBuffer)
+                rhi::destroy_buffer(m_indexBuffer);
+#endif
+
+            rhi::BufferDescription buffer_desc{
+                .size = sizeof(u16) * m_triangles.size(),
+                .usage = rhi::BufferUsage::eIndexBuffer,
+                .memoryUsage = rhi::MemoryUsage::eDeviceHostVisble,
+            };
+            m_indexBuffer = rhi::create_buffer(buffer_desc);
+            rhi::write_buffer(m_indexBuffer, 0, buffer_desc.size, m_triangles.data());
+        }
+
+        // Vertex Buffer
+        {
+#if 0 
+            if (m_indexBuffer) 
+                rhi::destroy_buffer(m_indexBuffer);
+#endif
+
+            rhi::BufferDescription buffer_desc{
+                .size = sizeof(StaticVertex) * m_vertices.size(),
+                .usage = rhi::BufferUsage::eVertexBuffer,
+                .memoryUsage = rhi::MemoryUsage::eDeviceHostVisble,
+            };
+            m_vertexBuffer = rhi::create_buffer(buffer_desc);
+            rhi::write_buffer(m_vertexBuffer, 0, buffer_desc.size, m_vertices.data());
+        }
     }
 
     auto StaticMesh::get_vertices() const -> const std::vector<StaticVertex>&

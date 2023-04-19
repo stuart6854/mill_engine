@@ -1,13 +1,12 @@
 #include "mill/resources/resource_factory.hpp"
 
 #include "mill/io/binary_reader.hpp"
+#include "mill/graphics/static_mesh.hpp"
 
 namespace mill
 {
     auto StaticMeshFactory::load(const ResourceMetadata& metadata) -> Owned<Resource>
     {
-        UNUSED(metadata);
-#if 0
         BinaryReader reader(metadata.binaryFile);
 
         // File Header
@@ -59,7 +58,7 @@ namespace mill
             triangles.push_back(reader.read_u16());
         }
 
-        // Submeshes
+        // Sub-meshes
         sizet submesh_count = reader.read_u64();
         std::vector<StaticMesh::Submesh> submeshes{};
         submeshes.reserve(submesh_count);
@@ -74,14 +73,12 @@ namespace mill
             submesh.materialIndex = reader.read_u32();
         }
 
-        auto static_mesh = m_renderer->create_static_mesh();
+        auto static_mesh = CreateOwned<StaticMesh>();
         static_mesh->set_vertices(vertices);
         static_mesh->set_triangles(triangles);
         static_mesh->set_submeshes(submeshes);
         static_mesh->apply();
         return std::move(static_mesh);
-#endif
-        return nullptr;
     }
 
 }
