@@ -58,7 +58,7 @@ namespace mill
     template <typename T>
     auto mill::Entity::add_component() -> T&
     {
-        m_scene->get_registry().emplace<T>(m_entity);
+        return m_scene->get_registry().emplace<T>(m_entity);
     }
 
     template <typename T>
