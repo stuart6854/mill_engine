@@ -232,6 +232,12 @@ namespace mill
         LOG_DEBUG("ResourceManager - Force loading <{}>.", id);
 
         auto& metadata = get_metadata(id);
+        if (!m_resourceFactories.contains(metadata.typeId))
+        {
+            LOG_ERROR("ResourceManager - No factory registered to resource type id {}!", metadata.typeId);
+            return;
+        }
+
         auto* factory = m_resourceFactories[metadata.typeId].get();
         auto resource = factory->load(metadata);
         if (resource == nullptr)

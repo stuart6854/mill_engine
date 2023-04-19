@@ -4,6 +4,7 @@
 #include "mill/events/events.hpp"
 #include "mill/platform/platform_interface.hpp"
 #include "mill/graphics/rhi/rhi_core.hpp"
+#include "mill/graphics/static_mesh.hpp"
 #include "mill/core/application.hpp"
 #include "platform/windowing.hpp"
 #include "mill/input/input.hpp"
@@ -248,8 +249,7 @@ namespace mill
         ResourceManagerInit resource_manager_init{};
         INIT_SYSTEM(resources, CreateOwned<ResourceManager>(), resource_manager_init);
 
-        /*m_pimpl->resources->register_resource_type<StaticMesh>(ResourceType_StaticMesh,
-                                                               std::move(CreateOwned<StaticMeshFactory>(m_pimpl->renderer.get())));*/
+        m_pimpl->resources->register_resource_type<StaticMesh>(ResourceType_StaticMesh, std::move(CreateOwned<StaticMeshFactory>()));
 
         INIT_SYSTEM(sceneManager, CreateOwned<SceneManager>());
 
