@@ -1,0 +1,19 @@
+resources:
+  - id: 6876786
+    type: 0
+    data_bank: "data_bank.bin"
+    data_offset: 0
+    data_size: 256
+    flags: 0
+  - id: 23455
+    type: 0
+    data_bank: "data_bank.bin"
+    data_offset: 256
+    data_size: 128
+    flags: 1
+  - id: 1998
+    type: 0
+    data_bank: "cube_1x1.obj.bin"
+    data_offset: 0
+    data_size: 893
+    flags: 0
