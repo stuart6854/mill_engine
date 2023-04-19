@@ -44,6 +44,9 @@ namespace mill
 
             const auto rotation = glm::quat(euler_angles);
             transform.set_rotation(rotation);
+
+            auto& static_mesh = entity.add_component<StaticMeshComponent>();
+            static_mesh.staticMesh = resources->get_handle(1998, true);
         }
         {
             auto entity = create_entity();
@@ -55,6 +58,9 @@ namespace mill
 
             const auto rotation = glm::quat(euler_angles);
             transform.set_rotation(rotation);
+
+            auto& static_mesh = entity.add_component<StaticMeshComponent>();
+            static_mesh.staticMesh = resources->get_handle(1998, true);
         }
         {
             auto entity = create_entity();
@@ -66,6 +72,9 @@ namespace mill
 
             const auto rotation = glm::quat(euler_angles);
             transform.set_rotation(rotation);
+
+            auto& static_mesh = entity.add_component<StaticMeshComponent>();
+            static_mesh.staticMesh = resources->get_handle(1998, true);
         }
     }
 
