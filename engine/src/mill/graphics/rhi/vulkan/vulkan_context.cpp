@@ -139,7 +139,11 @@ namespace mill::rhi
         const auto pipeline = m_boundPipeline->get_pipeline();
 
         const auto& push_block = layout->get_push_constant_range();
-        ASSERT(offset + size <= push_block.size);
+        if (offset + size > push_block.size)
+        {
+            LOG_ERROR("ContextVulkan - Cannot not write data outside of push constant block!");
+            return;
+        }
 
         const auto& stage_flags = push_block.stageFlags;
         get_cmd().pushConstants(layout->get_layout(), stage_flags, offset, size, data);
