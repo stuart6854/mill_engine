@@ -94,6 +94,8 @@ namespace mill::asset_browser
     void Renderer::initialise()
     {
         auto& io = ImGui::GetIO();
+        io.BackendFlags |=
+            ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
 
         // ImGui Font Texture
         {
