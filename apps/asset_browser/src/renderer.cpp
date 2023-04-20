@@ -264,6 +264,12 @@ namespace mill::asset_browser
                     // Project scissor/clipping rectangles into framebuffer space
                     ImVec2 clip_min(pcmd->ClipRect.x - clip_offset.x, pcmd->ClipRect.y - clip_offset.y);
                     ImVec2 clip_max(pcmd->ClipRect.z - clip_offset.x, pcmd->ClipRect.w - clip_offset.y);
+
+                    // Clamp clip to viewport
+                    clip_min.x = std::max(0.0f, clip_min.x);
+                    clip_min.y = std::max(0.0f, clip_min.y);
+                    clip_max.x = std::min(clip_max.x, fb_width);
+                    clip_max.y = std::max(clip_max.y, fb_height);
                     if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                         continue;
 
