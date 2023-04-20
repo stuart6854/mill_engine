@@ -215,10 +215,14 @@ namespace mill::asset_browser
             for (i32 i = 0; i < draw_data->CmdListsCount; ++i)
             {
                 const auto* cmd_list = draw_data->CmdLists[i];
-                rhi::write_buffer(m_imguiVertexBuffer, vtx_offset, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), cmd_list->VtxBuffer.Data);
-                rhi::write_buffer(m_imguiIndexBuffer, idx_offset, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), cmd_list->IdxBuffer.Data);
-                vtx_offset += cmd_list->VtxBuffer.Size;
-                idx_offset += cmd_list->IdxBuffer.Size;
+
+                const auto vtx_data_size = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
+                rhi::write_buffer(buffer.vertexBuffer, vtx_offset, vtx_data_size, cmd_list->VtxBuffer.Data);
+                vtx_offset += vtx_data_size;
+
+                const auto idx_data_size = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
+                rhi::write_buffer(buffer.indexBuffer, idx_offset, idx_data_size, cmd_list->IdxBuffer.Data);
+                idx_offset += idx_data_size;
             }
         }
 
