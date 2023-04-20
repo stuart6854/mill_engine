@@ -179,29 +179,32 @@ namespace mill::asset_browser
         if (fb_width <= 0 || fb_height <= 0)
             return;
 
+        m_bufferIndex = (m_bufferIndex + 1) % m_buffers.size();
+        auto& buffer = m_buffers[m_bufferIndex];
+
         if (draw_data->TotalVtxCount > 0)
         {
             sizet vertex_size = draw_data->TotalVtxCount * sizeof(ImDrawVert);
-            if (!m_imguiVertexBuffer || m_imguiVertexSize < vertex_size)
+            if (!buffer.vertexBuffer || buffer.vertexSize < vertex_size)
             {
                 rhi::BufferDescription buffer_desc{
                     .size = vertex_size,
                     .usage = rhi::BufferUsage::eVertexBuffer,
                     .memoryUsage = rhi::MemoryUsage::eDeviceHostVisble,
                 };
-                m_imguiVertexBuffer = rhi::create_buffer(buffer_desc);
-                m_imguiVertexSize = vertex_size;
+                buffer.vertexBuffer = rhi::create_buffer(buffer_desc);
+                buffer.vertexSize = vertex_size;
             }
             sizet index_size = draw_data->TotalIdxCount * sizeof(ImDrawIdx);
-            if (!m_imguiIndexBuffer || m_imguiIndexSize < index_size)
+            if (!buffer.indexBuffer || buffer.indexSize < index_size)
             {
                 rhi::BufferDescription buffer_desc{
                     .size = index_size,
                     .usage = rhi::BufferUsage::eIndexBuffer,
                     .memoryUsage = rhi::MemoryUsage::eDeviceHostVisble,
                 };
-                m_imguiIndexBuffer = rhi::create_buffer(buffer_desc);
-                m_imguiIndexSize = index_size;
+                buffer.indexBuffer = rhi::create_buffer(buffer_desc);
+                buffer.indexSize = index_size;
             }
 
             // Write buffers
@@ -221,8 +224,8 @@ namespace mill::asset_browser
 
         if (draw_data->TotalVtxCount > 0)
         {
-            rhi::set_vertex_buffer(context_id, m_imguiVertexBuffer);
-            rhi::set_index_buffer(context_id, m_imguiIndexBuffer, rhi::IndexType::eU16);
+            rhi::set_vertex_buffer(context_id, buffer.vertexBuffer);
+            rhi::set_index_buffer(context_id, buffer.indexBuffer, rhi::IndexType::eU16);
         }
 
         rhi::set_viewport(context_id,

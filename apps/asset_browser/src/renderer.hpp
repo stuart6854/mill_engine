@@ -27,9 +27,14 @@ namespace mill::asset_browser
         u64 m_fontResourceSet{};
 
         u64 m_imguiPipeline{};
-        rhi::HandleBuffer m_imguiVertexBuffer{};
-        rhi::HandleBuffer m_imguiIndexBuffer{};
-        sizet m_imguiVertexSize{};
-        sizet m_imguiIndexSize{};
+        struct Buffer
+        {
+            rhi::HandleBuffer vertexBuffer{};
+            rhi::HandleBuffer indexBuffer{};
+            sizet vertexSize{};
+            sizet indexSize{};
+        };
+        std::array<Buffer, 2> m_buffers;
+        u32 m_bufferIndex{};
     };
 }
