@@ -85,6 +85,8 @@ namespace mill
     #define CAST_U16(_x) static_cast<u16>(_x)
     #define CAST_U32(_x) static_cast<u32>(_x)
     #define CAST_U64(_x) static_cast<u64>(_x)
+    #define CAST_F32(_x) static_cast<f32>(_x)
+    #define CAST_F64(_x) static_cast<f64>(_x)
 #endif
 
 #ifndef DISABLE_COPY
