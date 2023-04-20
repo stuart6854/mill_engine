@@ -522,14 +522,60 @@ namespace mill::rhi
 
     void DeviceVulkan::write_texture(u64 texture_id, u32 mip_level, const void* data)
     {
-        UNUSED(texture_id);
-        UNUSED(mip_level);
-        UNUSED(data);
+        ASSERT(m_textures.contains(texture_id));
+
+        const auto& texture = m_textures.at(texture_id);
+
+        const auto format_size = vulkan::get_format_byte_size(texture->get_format());
+        const auto size =
+            texture->get_dimensions().width * texture->get_dimensions().height * texture->get_dimensions().depth * format_size;
+
+        auto staging_buffer = CreateOwned<Buffer>(*this);
+        staging_buffer->set_size(size);
+        staging_buffer->set_usage(vk::BufferUsageFlagBits::eTransferSrc);
+        staging_buffer->set_memory_usage(vma::MemoryUsage::eAutoPreferDevice);
+        staging_buffer->set_alloc_flags(vma::AllocationCreateFlagBits::eHostAccessSequentialWrite);
+        staging_buffer->build();
+
+        void* mapped = m_allocator->mapMemory(staging_buffer->get_allocation());
+        ASSERT(mapped);
+        std::memcpy(mapped, data, size);
+        m_allocator->unmapMemory(staging_buffer->get_allocation());
+
+        auto transfer_dst_barrier =
+            vulkan::get_barrier_image_to_transfer_dst(texture->get_image(), texture->get_format(), texture->get_layout());
+        vk::DependencyInfo in_dependency{};
+        in_dependency.setImageMemoryBarriers(transfer_dst_barrier);
+
+        vk::BufferImageCopy2 region{};
+        region.setImageExtent(texture->get_dimensions());
+        region.imageSubresource.setAspectMask(vk::ImageAspectFlagBits::eColor);
+        region.imageSubresource.setBaseArrayLayer(0);
+        region.imageSubresource.setLayerCount(1);
+        region.imageSubresource.setMipLevel(mip_level);
+
+        vk::CopyBufferToImageInfo2 copy{};
+        copy.setSrcBuffer(staging_buffer->get_buffer());
+        copy.setDstImage(texture->get_image());
+        copy.setDstImageLayout(vk::ImageLayout::eTransferDstOptimal);
+        copy.setRegions(region);
+
+        auto sampled_barrier =
+            vulkan::get_barrier_image_to_shader_read_only(texture->get_image(), texture->get_format(), texture->get_layout());
+        vk::DependencyInfo out_dependency{};
+        out_dependency.setImageMemoryBarriers(sampled_barrier);
+
+        auto cmd = begin_transfer_cmd();
+        cmd.pipelineBarrier2(in_dependency);
+        cmd.copyBufferToImage2(copy);
+        cmd.pipelineBarrier2(out_dependency);
+        end_transfer_cmd_blocking(cmd);
     }
 
     void DeviceVulkan::generate_mip_maps(u64 texture_id)
     {
         UNUSED(texture_id);
+        ASSERT(("Not Implemented!", false));
     }
 
 #pragma endregion
