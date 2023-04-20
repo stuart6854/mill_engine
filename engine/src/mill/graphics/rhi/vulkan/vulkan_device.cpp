@@ -527,6 +527,14 @@ namespace mill::rhi
 
     /* Textures */
 
+    auto DeviceVulkan::get_texture(u64 texture_id) -> const ImageVulkan&
+    {
+        ASSERT(m_textures.contains(texture_id));
+
+        const auto& texture = m_textures.at(texture_id);
+        return *texture;
+    }
+
     auto DeviceVulkan::create_texture(const TextureDescriptionVulkan& description) -> u64
     {
         const auto texture_id = m_nextTextureId;

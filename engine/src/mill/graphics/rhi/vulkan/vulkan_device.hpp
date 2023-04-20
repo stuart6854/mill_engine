@@ -89,6 +89,7 @@ namespace mill::rhi
 
         /* Textures */
 
+        auto get_texture(u64 texture_id) -> const ImageVulkan&;
         auto create_texture(const TextureDescriptionVulkan& description) -> u64;
         void write_texture(u64 texture_id, u32 mip_level, const void* data);
         void generate_mip_maps(u64 texture_id);
