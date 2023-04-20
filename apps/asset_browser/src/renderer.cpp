@@ -26,6 +26,16 @@ namespace mill::asset_browser
             m_fontTexture = rhi::create_texture(texture_desc);
             rhi::write_texture(m_fontTexture, 0, pixels);
         }
+        // ImGui Font Resource Set
+        {
+            rhi::ResourceSetDescription set_desc{
+                .bindings = { 
+                    {rhi::ResourceType::eTexture, 1, rhi::ShaderStage::eFragment},    
+                },
+            };
+            m_fontResourceSet = rhi::create_resource_set(set_desc);
+            rhi::bind_texture_to_resource_set(m_fontResourceSet, 0, m_fontTexture);
+        }
 
         rhi::reset_view(m_viewId, 1600, 900);
     }

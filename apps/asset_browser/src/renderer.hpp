@@ -22,6 +22,8 @@ namespace mill::asset_browser
 
     private:
         u64 m_fontTexture{};
+        u64 m_fontResourceSet{};
+
         u64 m_viewId{};
     };
 }
