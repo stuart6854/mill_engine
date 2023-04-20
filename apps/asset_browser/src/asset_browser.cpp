@@ -64,6 +64,8 @@ namespace mill::asset_browser
         m_renderer = CreateOwned<Renderer>(g_MainViewId);
         m_renderer->initialise();
 
+        m_assetBrowserView.inititialise();
+
         // Load and export all assets in asset directory
         for (auto& dir_entry : std::filesystem::recursive_directory_iterator(g_AssetPath))
         {
@@ -122,6 +124,8 @@ namespace mill::asset_browser
 
         static bool s_ShowDemo = true;
         ImGui::ShowDemoWindow(&s_ShowDemo);
+
+        m_assetBrowserView.render();
 
         rhi::begin_frame();
         {

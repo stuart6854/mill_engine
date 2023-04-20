@@ -1,6 +1,7 @@
 #pragma once
 
 #include "renderer.hpp"
+#include "views/asset_browser_view.hpp"
 
 #include <mill/mill.hpp>
 
@@ -26,5 +27,7 @@ namespace mill::asset_browser
 
         const u64 g_PrimaryScreenId = "primary_screen"_hs;
         const u64 g_MainViewId = "main_view"_hs;
+
+        AssetBrowserView m_assetBrowserView{};
     };
 }
