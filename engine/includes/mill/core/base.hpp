@@ -81,10 +81,17 @@ namespace mill
 
 #ifndef CAST_U32
     #define CAST_BOOL(_x) static_cast<bool>(_x)
+
+    #define CAST_I8(_x) static_cast<i8>(_x)
+    #define CAST_I16(_x) static_cast<i16>(_x)
+    #define CAST_I32(_x) static_cast<i32>(_x)
+    #define CAST_I64(_x) static_cast<i64>(_x)
+
     #define CAST_U8(_x) static_cast<u8>(_x)
     #define CAST_U16(_x) static_cast<u16>(_x)
     #define CAST_U32(_x) static_cast<u32>(_x)
     #define CAST_U64(_x) static_cast<u64>(_x)
+
     #define CAST_F32(_x) static_cast<f32>(_x)
     #define CAST_F64(_x) static_cast<f64>(_x)
 #endif
