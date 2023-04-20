@@ -609,6 +609,58 @@ namespace mill::rhi::vulkan
         return barrier;
     }
 
+    auto get_barrier_image_to_shader_read_only(vk::Image image, vk::Format format, vk::ImageLayout old_layout) -> vk::ImageMemoryBarrier2
+    {
+        const vk::ImageLayout new_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+        if (old_layout == new_layout)
+        {
+            return {};
+        }
+
+        auto range = get_image_subresource_range_2d(format);
+
+        vk::ImageMemoryBarrier2 barrier{};
+        barrier.setImage(image);
+        barrier.setSubresourceRange(range);
+        barrier.setNewLayout(new_layout);
+        barrier.setDstAccessMask(vk::AccessFlagBits2::eShaderRead);
+        barrier.setDstStageMask(vk::PipelineStageFlagBits2::eFragmentShader);
+
+        barrier.setOldLayout(old_layout);
+        if (old_layout == vk::ImageLayout::eUndefined)
+        {
+            barrier.setSrcAccessMask(vk::AccessFlagBits2::eNone);
+            barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eTopOfPipe);
+        }
+        else if (old_layout == vk::ImageLayout::eTransferSrcOptimal)
+        {
+            barrier.setSrcAccessMask(vk::AccessFlagBits2::eTransferRead);
+            barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eTransfer);
+        }
+        else if (old_layout == vk::ImageLayout::eTransferDstOptimal)
+        {
+            barrier.setSrcAccessMask(vk::AccessFlagBits2::eTransferWrite);
+            barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eTransfer);
+        }
+        else if (old_layout == vk::ImageLayout::eAttachmentOptimal)
+        {
+            barrier.setSrcAccessMask(vk::AccessFlagBits2::eColorAttachmentWrite);
+            barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eColorAttachmentOutput);
+        }
+        else if (old_layout == vk::ImageLayout::ePresentSrcKHR)
+        {
+            barrier.setSrcAccessMask(vk::AccessFlagBits2::eNone);
+            barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eBottomOfPipe);
+        }
+        else
+        {
+            LOG_ERROR("Unsupported `old_layout` for image barrier!");
+            ASSERT(false);
+        }
+
+        return barrier;
+    }
+
     auto get_barrier_image_to_attachment(vk::Image image, vk::Format format, vk::ImageLayout old_layout) -> vk::ImageMemoryBarrier2
     {
         const vk::ImageLayout new_layout = vk::ImageLayout::eAttachmentOptimal;
@@ -745,9 +797,13 @@ namespace mill::rhi::vulkan
     {
         switch (format)
         {
+            case vk::Format::eR8Unorm:
             case vk::Format::eR8Srgb: return 1 * 1;
+            case vk::Format::eR8G8Unorm:
             case vk::Format::eR8G8Srgb: return 1 * 2;
+            case vk::Format::eR8G8B8Unorm:
             case vk::Format::eR8G8B8Srgb: return 1 * 3;
+            case vk::Format::eR8G8B8A8Unorm:
             case vk::Format::eR8G8B8A8Srgb: return 1 * 4;
             case vk::Format::eR32Sfloat: return 4 * 1;
             case vk::Format::eR32G32Sfloat: return 4 * 2;

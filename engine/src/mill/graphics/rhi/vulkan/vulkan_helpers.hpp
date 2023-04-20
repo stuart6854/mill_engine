@@ -164,6 +164,7 @@ namespace mill::rhi::vulkan
 
     auto get_barrier_image_to_transfer_src(vk::Image image, vk::Format format, vk::ImageLayout old_layout) -> vk::ImageMemoryBarrier2;
     auto get_barrier_image_to_transfer_dst(vk::Image image, vk::Format format, vk::ImageLayout old_layout) -> vk::ImageMemoryBarrier2;
+    auto get_barrier_image_to_shader_read_only(vk::Image image, vk::Format format, vk::ImageLayout old_layout) -> vk::ImageMemoryBarrier2;
     auto get_barrier_image_to_attachment(vk::Image image, vk::Format format, vk::ImageLayout old_layout) -> vk::ImageMemoryBarrier2;
     auto get_barrier_image_to_present(vk::Image image, vk::Format format, vk::ImageLayout old_layout) -> vk::ImageMemoryBarrier2;
 
