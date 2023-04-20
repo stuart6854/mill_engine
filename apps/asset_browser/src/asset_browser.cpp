@@ -29,10 +29,10 @@ namespace mill::asset_browser
         rhi::assign_screen(g_PrimaryScreenId, platform::get_raw_window_handle(m_windowHandle));
         rhi::reset_screen(g_PrimaryScreenId, 1600, 900, true);
 
+        init_imgui();
+
         m_renderer = CreateOwned<Renderer>(g_MainViewId);
         m_renderer->initialise();
-
-        init_imgui();
 
         // Load and export all assets in asset directory
         for (auto& dir_entry : std::filesystem::recursive_directory_iterator(g_AssetPath))
@@ -73,7 +73,7 @@ namespace mill::asset_browser
     void AssetBrowserApp::update(f32 delta_time)
     {
         auto& io = ImGui::GetIO();
-        io.DeltaTime = delta_time;
+        io.DeltaTime = std::max(0.01f, delta_time);
 
         ImGui::NewFrame();
 
