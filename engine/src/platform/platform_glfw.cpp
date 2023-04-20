@@ -16,6 +16,9 @@ namespace mill::platform
 {
     void close_callback(GLFWwindow* window);
     void size_callback(GLFWwindow* window, i32 width, i32 height);
+    void key_callback(GLFWwindow* window, i32 key, int scancode, int action, int mods);
+    void mouse_btn_callback(GLFWwindow* window, i32 btn, int action, int mods);
+    void cursor_pos_callback(GLFWwindow* window, f64 x, f64 y);
 
     bool platform_initialise()
     {
@@ -59,6 +62,9 @@ namespace mill::platform
 
         glfwSetWindowCloseCallback(handle, close_callback);
         glfwSetWindowSizeCallback(handle, size_callback);
+        glfwSetKeyCallback(handle, key_callback);
+        glfwSetMouseButtonCallback(handle, mouse_btn_callback);
+        glfwSetCursorPosCallback(handle, cursor_pos_callback);
 
         return handle;
     }
@@ -110,6 +116,44 @@ namespace mill::platform
         event.context = window;
         event.data.u32[0] = width;
         event.data.u32[1] = height;
+
+        Engine::get()->get_events().post_immediate(event);
+    }
+
+    void key_callback(GLFWwindow* window, i32 key, int scancode, int action, int mods)
+    {
+        UNUSED(scancode);
+        UNUSED(mods);
+
+        Event event{};
+        event.type = EventType::eInputKey;
+        event.context = window;
+        event.data.u32[0] = key;
+        event.data.u32[1] = action != GLFW_RELEASE;
+
+        Engine::get()->get_events().post_immediate(event);
+    }
+
+    void mouse_btn_callback(GLFWwindow* window, i32 btn, int action, int mods)
+    {
+        UNUSED(mods);
+
+        Event event{};
+        event.type = EventType::eInputMouseBtn;
+        event.context = window;
+        event.data.u32[0] = btn;
+        event.data.u32[1] = action != GLFW_RELEASE;
+
+        Engine::get()->get_events().post_immediate(event);
+    }
+
+    void cursor_pos_callback(GLFWwindow* window, f64 x, f64 y)
+    {
+        Event event{};
+        event.type = EventType::eInputMouseMove;
+        event.context = window;
+        event.data.i32[0] = CAST_I32(x);
+        event.data.i32[1] = CAST_I32(y);
 
         Engine::get()->get_events().post_immediate(event);
     }
