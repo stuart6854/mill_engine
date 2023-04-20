@@ -30,7 +30,7 @@ namespace mill::rhi
     void set_push_constants(u64 context_id, u32 offset, u32 size, const void* data);
 
     void draw(u64 context_id, u32 vertex_count);
-    void draw_indexed(u64 context_id, u32 index_count);
+    void draw_indexed(u64 context_id, u32 index_count, u32 instance_count, u32 index_offset, u32 vertex_offset);
 
     void blit_to_screen(u64 context_id, u64 screen, u64 view);
 }

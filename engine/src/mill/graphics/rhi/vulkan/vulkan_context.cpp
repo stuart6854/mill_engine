@@ -178,9 +178,9 @@ namespace mill::rhi
         get_frame().wasRecorded = true;
     }
 
-    void ContextVulkan::draw_indexed(u32 index_count)
+    void ContextVulkan::draw_indexed(u32 index_count, u32 instance_count, u32 index_offset, u32 vertex_offset)
     {
-        get_cmd().drawIndexed(index_count, 1, 0, 0, 0);
+        get_cmd().drawIndexed(index_count, instance_count, index_offset, vertex_offset, 0);
 
         get_frame().wasRecorded = true;
     }
@@ -236,6 +236,7 @@ namespace mill::rhi
         blit_info.setDstImage(dstImage.get_image());
         blit_info.setDstImageLayout(dstImage.get_layout());
         blit_info.setRegions(region);
+        blit_info.setFilter(vk::Filter::eLinear);
         get_cmd().blitImage2(blit_info);
 
         get_frame().wasRecorded = true;

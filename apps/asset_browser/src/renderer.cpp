@@ -235,6 +235,9 @@ namespace mill::asset_browser
         rhi::set_push_constants(context_id, sizeof(f32) * 2, sizeof(f32) * 2, translate);
 
         ImVec2 clip_offset = draw_data->DisplayPos;
+
+        u32 global_index_offset{};
+        u32 global_vertex_offset{};
         for (i32 i = 0; i < draw_data->CmdListsCount; ++i)
         {
             const auto* cmd_list = draw_data->CmdLists[i];
@@ -263,9 +266,13 @@ namespace mill::asset_browser
 
                     rhi::set_resource_sets(context_id, { *(u64*)pcmd->GetTexID() });
 
-                    rhi::draw_indexed(context_id, pcmd->ElemCount /*, pcmd->IdxOffset, pcmd->VtxOffset*/);
+                    rhi::draw_indexed(
+                        context_id, pcmd->ElemCount, 1, pcmd->IdxOffset + global_index_offset, pcmd->VtxOffset + global_vertex_offset);
                 }
             }
+
+            global_index_offset += cmd_list->IdxBuffer.Size;
+            global_vertex_offset += cmd_list->VtxBuffer.Size;
         }
     }
 }

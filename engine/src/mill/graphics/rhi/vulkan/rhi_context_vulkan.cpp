@@ -148,14 +148,14 @@ namespace mill::rhi
         context->draw(vertex_count);
     }
 
-    void draw_indexed(u64 context_id, u32 index_count)
+    void draw_indexed(u64 context_id, u32 index_count, u32 instance_count, u32 index_offset, u32 vertex_offset)
     {
         auto& device = get_device();
 
         auto* context = device.get_context(context_id);
         ASSERT(context != nullptr);
 
-        context->draw_indexed(index_count);
+        context->draw_indexed(index_count, instance_count, index_offset, vertex_offset);
     }
 
     void blit_to_screen(u64 context_id, u64 screen_id, u64 view_id)
