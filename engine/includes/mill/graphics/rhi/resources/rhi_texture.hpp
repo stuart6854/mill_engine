@@ -7,11 +7,19 @@
 
 namespace mill::rhi
 {
+    enum class FilterMode
+    {
+        eLinear,
+        eNearest,
+    };
+
     struct TextureDescription
     {
         glm::uvec3 dimensions{};
         Format format{};
         u32 mipLevels{ 1 };
+
+        FilterMode filterMode{ FilterMode::eLinear };
     };
 
     auto create_texture(const TextureDescription& description) -> u64;

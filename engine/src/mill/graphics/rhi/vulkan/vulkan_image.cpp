@@ -1,5 +1,6 @@
 #include "vulkan_image.hpp"
 
+#include "resources/sampler.hpp"
 #include "vulkan_includes.hpp"
 #include "vulkan_device.hpp"
 #include "vulkan_helpers.hpp"
@@ -47,42 +48,52 @@ namespace mill::rhi
         }
     }
 
+    void ImageVulkan::set_sampler(const Shared<Sampler>& sampler)
+    {
+        m_sampler = sampler;
+    }
+
     void ImageVulkan::set_layout(vk::ImageLayout layout)
     {
         m_layout = layout;
     }
 
-    auto ImageVulkan::get_image() -> vk::Image&
+    auto ImageVulkan::get_image() const -> const vk::Image&
     {
         return m_image;
     }
 
-    auto ImageVulkan::get_view() -> vk::ImageView&
+    auto ImageVulkan::get_view() const -> const vk::ImageView&
     {
         return m_view;
     }
 
-    auto ImageVulkan::get_usage() -> vk::ImageUsageFlags
+    auto ImageVulkan::get_sampler() const -> const Shared<Sampler>&
+    {
+        return m_sampler;
+    }
+
+    auto ImageVulkan::get_usage() const -> vk::ImageUsageFlags
     {
         return m_usage;
     }
 
-    auto ImageVulkan::get_dimensions() -> vk::Extent3D
+    auto ImageVulkan::get_dimensions() const -> vk::Extent3D
     {
         return m_dimensions;
     }
 
-    auto ImageVulkan::get_format() -> vk::Format
+    auto ImageVulkan::get_format() const -> vk::Format
     {
         return m_format;
     }
 
-    auto ImageVulkan::get_mip_levels() -> u32
+    auto ImageVulkan::get_mip_levels() const -> u32
     {
         return m_mipLevels;
     }
 
-    auto ImageVulkan::get_layout() -> vk::ImageLayout
+    auto ImageVulkan::get_layout() const -> vk::ImageLayout
     {
         return m_layout;
     }

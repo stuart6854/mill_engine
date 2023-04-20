@@ -7,12 +7,24 @@
 
 namespace mill::rhi
 {
+    auto to_vulkan(FilterMode filter_mode) -> vk::Filter
+    {
+        switch (filter_mode)
+        {
+            case mill::rhi::FilterMode::eLinear: return vk::Filter::eLinear;
+            case mill::rhi::FilterMode::eNearest: return vk::Filter::eNearest;
+            default: ASSERT(("Unknown FilterMode!", false)); break;
+        }
+        return {};
+    }
+
     auto to_vulkan(const TextureDescription& in_desc) -> TextureDescriptionVulkan
     {
         TextureDescriptionVulkan out_desc{};
         out_desc.extent = vk::Extent3D(in_desc.dimensions.x, in_desc.dimensions.y, in_desc.dimensions.z);
         out_desc.format = to_vulkan(in_desc.format);
         out_desc.mipLevels = in_desc.mipLevels;
+        out_desc.samplerDesc.filter = to_vulkan(in_desc.filterMode);
         return out_desc;
     }
 

@@ -22,6 +22,7 @@ namespace mill::rhi
     class PipelineModuleFragmentOutput;
     class Pipeline;
     class Buffer;
+    class Sampler;
     class ImageVulkan;
 
     class DeviceVulkan
@@ -81,6 +82,10 @@ namespace mill::rhi
         auto get_buffer(u64 buffer_id) -> const Buffer&;
         auto create_buffer(const BufferDescriptionVulkan& description) -> u64;
         void write_buffer(u64 buffer_id, u64 offset, u64 size, const void* data);
+
+        /* Samplers */
+
+        auto get_or_create_sampler(const SamplerDescriptionVulkan& description) -> Shared<Sampler>;
 
         /* Textures */
 
@@ -159,6 +164,8 @@ namespace mill::rhi
 
         std::unordered_map<u64, Owned<Buffer>> m_buffers{};
         u64 m_nextBufferId{ 1 };
+
+        std::unordered_map<hasht, Shared<Sampler>> m_samplers{};
 
         std::unordered_map<u64, Owned<ImageVulkan>> m_textures{};
         u64 m_nextTextureId{ 1 };

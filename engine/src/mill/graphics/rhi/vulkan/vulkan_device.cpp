@@ -17,6 +17,7 @@
 #include "resources/pipeline.hpp"
 #include "resources/descriptor_set.hpp"
 #include "resources/buffer.hpp"
+#include "resources/sampler.hpp"
 #include "vulkan_image.hpp"
 
 #define VMA_IMPLEMENTATION
@@ -501,6 +502,29 @@ namespace mill::rhi
         // #TODO: Staging buffer
     }
 
+    /* Samplers */
+
+    auto DeviceVulkan::get_or_create_sampler(const SamplerDescriptionVulkan& description) -> Shared<Sampler>
+    {
+        auto sampler = CreateShared<Sampler>(m_device.get());
+
+        sampler->set_filter(description.filter);
+
+        const hasht sampler_hash = sampler->get_hash();
+        ASSERT(sampler_hash);
+
+        if (m_samplers.contains(sampler_hash))
+            return m_samplers.at(sampler_hash);
+
+        m_samplers[sampler_hash] = sampler;
+
+        sampler->build();
+
+        LOG_DEBUG("DeviceVulkan - Sampler has been created: {}", sampler_hash);
+
+        return sampler;
+    }
+
     /* Textures */
 
     auto DeviceVulkan::create_texture(const TextureDescriptionVulkan& description) -> u64
@@ -508,8 +532,12 @@ namespace mill::rhi
         const auto texture_id = m_nextTextureId;
         ++m_nextTextureId;
 
+        auto sampler = get_or_create_sampler(description.samplerDesc);
+        ASSERT(sampler);
+
         vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
         m_textures[texture_id] = CreateOwned<ImageVulkan>(*this, usage, description.extent, description.format, description.mipLevels);
+        m_textures[texture_id]->set_sampler(sampler);
 
         LOG_DEBUG("DeviceVulkan - Texture has been created: id={}, dimensions=[{},{},{}]",
                   texture_id,
