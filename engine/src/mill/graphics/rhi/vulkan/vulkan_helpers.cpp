@@ -805,6 +805,7 @@ namespace mill::rhi::vulkan
             case vk::Format::eR8G8B8Srgb: return 1 * 3;
             case vk::Format::eR8G8B8A8Unorm:
             case vk::Format::eR8G8B8A8Srgb: return 1 * 4;
+            case vk::Format::eR32Uint: return 4 * 1;
             case vk::Format::eR32Sfloat: return 4 * 1;
             case vk::Format::eR32G32Sfloat: return 4 * 2;
             case vk::Format::eR32G32B32Sfloat: return 4 * 3;
