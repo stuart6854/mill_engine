@@ -113,18 +113,27 @@ namespace mill::rhi::vulkan
     {
         auto queue_props = physical_device.getQueueFamilyProperties();
 
-        // Try find a Transfer queue without compute & graphics
+        // Try find a combined Transfer, Graphics & Compute queue
         for (u32 i = 0; i < queue_props.size(); ++i)
         {
             const auto& family = queue_props[i];
-            if (family.queueFlags & vk::QueueFlagBits::eTransfer && !(family.queueFlags & vk::QueueFlagBits::eCompute) &&
-                !(family.queueFlags & vk::QueueFlagBits::eGraphics))
+            if (family.queueFlags & (vk::QueueFlagBits::eTransfer | vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute))
             {
                 return i;
             }
         }
 
-        // Now, just return the first Graphics queue available
+        // Now, try find a combined Transfer & Graphics queue
+        for (u32 i = 0; i < queue_props.size(); ++i)
+        {
+            const auto& family = queue_props[i];
+            if (family.queueFlags & (vk::QueueFlagBits::eTransfer | vk::QueueFlagBits::eGraphics))
+            {
+                return i;
+            }
+        }
+
+        // Now, just return the first Transfer queue available
         for (u32 i = 0; i < queue_props.size(); ++i)
         {
             const auto& family = queue_props[i];

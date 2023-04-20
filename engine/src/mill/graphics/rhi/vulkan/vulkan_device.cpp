@@ -699,21 +699,27 @@ namespace mill::rhi
         m_graphicsQueueFamily = vulkan::find_graphics_queue_family(m_physicalDevice);
         m_transferQueueFamily = vulkan::find_transfer_queue_family(m_physicalDevice);
 
-        std::vector<vk::DeviceQueueCreateInfo> queue_infos{};
-        const f32 queue_priority = 1.0f;
+        std::unordered_map<u32, vk::DeviceQueueCreateInfo> queue_info_map{};
+        const std::vector queue_priorities(3, 1.0f);
         if (m_graphicsQueueFamily != -1)
         {
-            auto& queue_info = queue_infos.emplace_back();
+            auto& queue_info = queue_info_map[m_graphicsQueueFamily];
             queue_info.setQueueFamilyIndex(m_graphicsQueueFamily);
-            queue_info.setQueueCount(1);
-            queue_info.setQueuePriorities(queue_priority);
+            queue_info.setPQueuePriorities(queue_priorities.data());
+            queue_info.queueCount++;
         }
         if (m_transferQueueFamily != -1)
         {
-            auto& queue_info = queue_infos.emplace_back();
+            auto& queue_info = queue_info_map[m_transferQueueFamily];
             queue_info.setQueueFamilyIndex(m_transferQueueFamily);
-            queue_info.setQueueCount(1);
-            queue_info.setQueuePriorities(queue_priority);
+            queue_info.setPQueuePriorities(queue_priorities.data());
+            queue_info.queueCount++;
+        }
+
+        std::vector<vk::DeviceQueueCreateInfo> queue_infos{};
+        for (const auto& [family, create_info] : queue_info_map)
+        {
+            queue_infos.push_back(create_info);
         }
 
         vk::DeviceCreateInfo device_info{};
@@ -738,17 +744,29 @@ namespace mill::rhi
                 LOG_DEBUG("\t{}", ext);
             }
         }
+        LOG_DEBUG("DeviceVulkan - The following queue families were chosen:");
+        for (const auto& create_info : queue_infos)
+        {
+            const auto& queue_info = m_physicalDevice.getQueueFamilyProperties()[create_info.queueFamilyIndex];
+            LOG_DEBUG("\tFamily={}, Count={}, Flags={}",
+                      create_info.queueFamilyIndex,
+                      create_info.queueCount,
+                      vk::to_string(queue_info.queueFlags));
+        }
 
         VULKAN_HPP_DEFAULT_DISPATCHER.init(*m_device);
 
+        std::unordered_map<u32, u32> queue_index_map{};
         if (m_graphicsQueueFamily != -1)
         {
-            m_graphicsQueue = m_device->getQueue(m_graphicsQueueFamily, 0);
+            const auto index = queue_index_map[m_graphicsQueueFamily]++;
+            m_graphicsQueue = m_device->getQueue(m_graphicsQueueFamily, index);
             SET_VK_OBJECT_NAME(*m_device, VkQueue, m_graphicsQueue, "Main Queue (Graphics)");
         }
         if (m_transferQueueFamily != -1)
         {
-            m_transferQueue = m_device->getQueue(m_transferQueueFamily, 0);
+            const auto index = queue_index_map[m_transferQueueFamily]++;
+            m_transferQueue = m_device->getQueue(m_transferQueueFamily, index);
             SET_VK_OBJECT_NAME(*m_device, VkQueue, m_transferQueue, "Main Queue (Transfer)");
         }
 
