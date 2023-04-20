@@ -189,6 +189,9 @@ namespace mill::asset_browser
             sizet vertex_size = draw_data->TotalVtxCount * sizeof(ImDrawVert);
             if (!buffer.vertexBuffer || buffer.vertexSize < vertex_size)
             {
+                if (buffer.vertexBuffer)
+                    rhi::destroy_buffer(buffer.vertexBuffer);
+
                 rhi::BufferDescription buffer_desc{
                     .size = vertex_size,
                     .usage = rhi::BufferUsage::eVertexBuffer,
@@ -200,6 +203,9 @@ namespace mill::asset_browser
             sizet index_size = draw_data->TotalIdxCount * sizeof(ImDrawIdx);
             if (!buffer.indexBuffer || buffer.indexSize < index_size)
             {
+                if (buffer.indexBuffer)
+                    rhi::destroy_buffer(buffer.indexBuffer);
+
                 rhi::BufferDescription buffer_desc{
                     .size = index_size,
                     .usage = rhi::BufferUsage::eIndexBuffer,

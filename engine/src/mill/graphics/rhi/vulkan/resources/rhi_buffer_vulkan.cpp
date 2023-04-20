@@ -60,4 +60,11 @@ namespace mill::rhi
         device.write_buffer(buffer_id, offset, size, data);
     }
 
+    void destroy_buffer(u64 buffer_id)
+    {
+        auto& device = get_device();
+
+        device.destroy_buffer(buffer_id);
+    }
+
 }

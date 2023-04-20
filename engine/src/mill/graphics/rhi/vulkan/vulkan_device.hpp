@@ -1,9 +1,12 @@
 #pragma once
 
 #include "mill/core/base.hpp"
+#include "rhi_core_vulkan.hpp"
 #include "rhi_resource_vulkan.hpp"
 #include "vulkan_includes.hpp"
 
+#include <array>
+#include <queue>
 #include <vector>
 #include <unordered_map>
 
@@ -40,6 +43,8 @@ namespace mill::rhi
 
         auto begin_transfer_cmd() -> vk::CommandBuffer;
         void end_transfer_cmd_blocking(vk::CommandBuffer cmd);
+
+        void add_deletion_func(std::function<void()>&& func);
 
 #pragma region Resources
 
@@ -82,6 +87,8 @@ namespace mill::rhi
         auto get_buffer(u64 buffer_id) -> const Buffer&;
         auto create_buffer(const BufferDescriptionVulkan& description) -> u64;
         void write_buffer(u64 buffer_id, u64 offset, u64 size, const void* data);
+
+        void destroy_buffer(u64 buffer_id);
 
         /* Samplers */
 
@@ -143,6 +150,9 @@ namespace mill::rhi
 
         vma::UniqueAllocator m_allocator{};
         vk::UniqueDescriptorPool m_descriptorPool{};
+
+        std::array<std::queue<std::function<void()>>, g_FrameBufferCount> m_destructionQueues;
+        u32 m_frameIndex{};
 
         std::unordered_map<u64, Owned<ScreenVulkan>> m_screens{};
         std::vector<ScreenVulkan*> m_allScreens{};

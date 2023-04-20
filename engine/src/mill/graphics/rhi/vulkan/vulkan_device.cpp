@@ -101,9 +101,18 @@ namespace mill::rhi
 
     void DeviceVulkan::next_frame()
     {
+        m_frameIndex = (m_frameIndex + 1) % g_FrameBufferCount;
+
         for (auto& [id, set] : m_descriptorSets)
         {
             set->next_frame();
+        }
+
+        auto& deletion_queue = m_destructionQueues[m_frameIndex];
+        while (!deletion_queue.empty())
+        {
+            deletion_queue.front()();
+            deletion_queue.pop();
         }
     }
 
@@ -139,6 +148,11 @@ namespace mill::rhi
 
         UNUSED(m_device->waitForFences(fence.get(), true, u64_max));
         m_device->freeCommandBuffers(m_transferCmdPool.get(), cmd);
+    }
+
+    void DeviceVulkan::add_deletion_func(std::function<void()>&& func)
+    {
+        m_destructionQueues.at(m_frameIndex).push(std::move(func));
     }
 
 #pragma region Resources
@@ -500,6 +514,20 @@ namespace mill::rhi
         LOG_WARN("DeviceVulkan - Writing to non-HostVisible buffers is not yet supported.");
 
         // #TODO: Staging buffer
+    }
+
+    void DeviceVulkan::destroy_buffer(u64 buffer_id)
+    {
+        ASSERT(m_buffers.contains(buffer_id));
+
+        auto& buffer = m_buffers.at(buffer_id);
+        auto vk_buffer = buffer->get_buffer();
+        auto vk_alloc = buffer->get_allocation();
+        auto add_deletion_func([this, vk_buffer, vk_alloc]() { m_allocator->destroyBuffer(vk_buffer, vk_alloc); });
+
+        LOG_DEBUG("DeviceVulkan - Buffer being destroyed: id={}, , size={}B.", buffer_id, buffer->get_size());
+
+        m_buffers.erase(buffer_id);
     }
 
     /* Samplers */
