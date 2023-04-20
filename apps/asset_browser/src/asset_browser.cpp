@@ -8,7 +8,33 @@
 #include <mill/mill.hpp>
 #include <imgui.h>
 
+#include <string>
+#include <format>
 #include <filesystem>
+
+auto get_converted_mem_str(mill::u64 in_bytes) -> std::string
+{
+    const mill::f32 kilobyte_coefficient = 1024.0f;
+    const mill::f32 megabyte_coefficient = kilobyte_coefficient * 1024.0f;
+    const mill::f32 gigabyte_coefficient = megabyte_coefficient * 1024.0f;
+
+    auto memory = static_cast<mill::f32>(in_bytes);
+
+    if (memory < kilobyte_coefficient)
+    {
+        return std::format("{}{}", memory, "B");
+    }
+    else if (memory < megabyte_coefficient)
+    {
+        return std::format("{}{}", memory / kilobyte_coefficient, "KB");
+    }
+    else if (memory < gigabyte_coefficient)
+    {
+        return std::format("{}{}", memory / megabyte_coefficient, "MB");
+    }
+
+    return std::format("{}{}", memory / gigabyte_coefficient, "GB");
+}
 
 namespace mill::asset_browser
 {
@@ -83,6 +109,16 @@ namespace mill::asset_browser
 
         // #TODO: Application update
         // #TODO: ImGui Render
+
+        if (ImGui::Begin("Stats"))
+        {
+            auto mem_stats = rhi::get_memory_stats();
+
+            ImGui::Text("Device Memory: %s/%s",
+                        get_converted_mem_str(mem_stats.DeviceTotalUsage).c_str(),
+                        get_converted_mem_str(mem_stats.DeviceTotalBudget).c_str());
+        }
+        ImGui::End();
 
         static bool s_ShowDemo = true;
         ImGui::ShowDemoWindow(&s_ShowDemo);

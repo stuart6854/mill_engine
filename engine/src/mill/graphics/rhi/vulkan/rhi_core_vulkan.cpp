@@ -1,6 +1,7 @@
-#include "mill/graphics/rhi/rhi_core.hpp"
+#include "rhi_core_vulkan.hpp"
 
 #include "mill/core/debug.hpp"
+#include "mill/graphics/rhi/rhi_core.hpp"
 #include "vulkan_device.hpp"
 #include "vulkan_screen.hpp"
 #include "vulkan_context.hpp"
@@ -137,5 +138,32 @@ namespace mill::rhi
         present_info.setWaitSemaphores(present_wait_semaphores);
         auto result = queue.presentKHR(present_info);
         ASSERT(result == vk::Result::eSuccess);
+    }
+
+    auto get_memory_stats() -> MemoryStats
+    {
+        auto& device = get_device();
+
+        auto& physical_device = device.get_physical_device();
+
+        vk::PhysicalDeviceMemoryBudgetPropertiesEXT memory_budget_props{};
+        vk::PhysicalDeviceMemoryProperties2 mem_props{};
+        mem_props.pNext = &memory_budget_props;
+        physical_device.getMemoryProperties2(&mem_props);
+
+        MemoryStats mem_stats{};
+
+        u32 memory_heap_count = mem_props.memoryProperties.memoryHeapCount;
+        for (u32 heap_index = 0; heap_index < memory_heap_count; ++heap_index)
+        {
+            const auto& mem_heap = mem_props.memoryProperties.memoryHeaps.at(heap_index);
+            if (mem_heap.flags & vk::MemoryHeapFlagBits::eDeviceLocal)
+            {
+                mem_stats.DeviceTotalBudget += memory_budget_props.heapBudget[heap_index];
+                mem_stats.DeviceTotalUsage += memory_budget_props.heapUsage[heap_index];
+            }
+        }
+
+        return mem_stats;
     }
 }
