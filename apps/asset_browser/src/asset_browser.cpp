@@ -23,7 +23,11 @@ namespace mill::asset_browser
         auto& events = Engine::get()->get_events();
         events.subscribe([this](const Event& event) { event_callback(event); });
 
-        platform::WindowInfo window_info{};
+        platform::WindowInfo window_info{
+            .title = "Asset Browser",
+            .width = 1600,
+            .height = 900,
+        };
         m_windowHandle = platform::create_window(window_info);
 
         rhi::assign_screen(g_PrimaryScreenId, platform::get_raw_window_handle(m_windowHandle));
