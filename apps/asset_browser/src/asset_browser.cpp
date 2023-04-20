@@ -5,6 +5,9 @@
 #include "assets/mesh_importer.hpp"
 #include "assets/mesh_exporter.hpp"
 
+#include <mill/mill.hpp>
+#include <imgui.h>
+
 #include <filesystem>
 
 namespace mill::asset_browser
@@ -28,6 +31,8 @@ namespace mill::asset_browser
 
         m_renderer = CreateOwned<Renderer>(g_MainViewId);
         m_renderer->initialise();
+
+        init_imgui();
 
         // Load and export all assets in asset directory
         for (auto& dir_entry : std::filesystem::recursive_directory_iterator(g_AssetPath))
@@ -57,6 +62,8 @@ namespace mill::asset_browser
 
     void AssetBrowserApp::shutdown()
     {
+        shutdown_imgui();
+
         m_renderer->shutdown();
         m_renderer = nullptr;
 
@@ -65,6 +72,17 @@ namespace mill::asset_browser
 
     void AssetBrowserApp::update(f32 delta_time)
     {
+        auto& io = ImGui::GetIO();
+        io.DeltaTime = delta_time;
+
+        ImGui::NewFrame();
+
+        // #TODO: Application update
+        // #TODO: ImGui Render
+
+        static bool s_ShowDemo = true;
+        ImGui::ShowDemoWindow(&s_ShowDemo);
+
         rhi::begin_frame();
         {
             const static auto ContextId = "main_render_context"_hs;
@@ -99,7 +117,64 @@ namespace mill::asset_browser
                 rhi::reset_screen(g_PrimaryScreenId, width, height, true);
                 rhi::reset_view(g_MainViewId, width, height);
             }
+
+            auto& io = ImGui::GetIO();
+            io.DisplaySize.x = CAST_F32(event.data.u32[0]);
+            io.DisplaySize.y = CAST_F32(event.data.u32[1]);
         }
+        else if (event.type == EventType::eInputMouseMove)
+        {
+            auto& io = ImGui::GetIO();
+            io.AddMousePosEvent(CAST_F32(event.data.u32[0]), CAST_F32(event.data.u32[0]));
+
+            if (!io.WantCaptureMouse)
+            {
+                // #TODO: Forward input to Game
+            }
+        }
+        else if (event.type == EventType::eInputKey)
+        {
+            auto& io = ImGui::GetIO();
+            // io.AddKeyEvent(event.data.u32[0], event.data.u32[1]);
+
+            if (!io.WantCaptureKeyboard)
+            {
+                // #TODO: Forward input to Game
+            }
+        }
+        else if (event.type == EventType::eInputMouseBtn)
+        {
+            auto& io = ImGui::GetIO();
+            io.AddMouseButtonEvent(event.data.u32[0], event.data.u32[1]);
+
+            if (!io.WantCaptureMouse)
+            {
+                // #TODO: Forward input to Game
+            }
+        }
+    }
+
+    void AssetBrowserApp::init_imgui()
+    {
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        auto& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+        ImGui::StyleColorsDark();
+
+        io.Fonts->AddFontDefault();
+        // io.Fonts->AddFontFromFileTTF("", 18.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
+
+        io.DisplaySize.x = 1600;
+        io.DisplaySize.y = 900;
+    }
+
+    void AssetBrowserApp::shutdown_imgui()
+    {
+        ImGui::DestroyContext();
     }
 
 }

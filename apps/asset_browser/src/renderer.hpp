@@ -2,6 +2,8 @@
 
 #include <mill/mill.hpp>
 
+#include <imgui.h>
+
 namespace mill::asset_browser
 {
     class Renderer
@@ -14,6 +16,9 @@ namespace mill::asset_browser
         void shutdown();
 
         auto render(u64 context_id) -> u64;
+
+    private:
+        void render_draw_data(const ImDrawData* draw_data);
 
     private:
         u64 m_viewId{};

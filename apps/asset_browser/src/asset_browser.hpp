@@ -17,6 +17,9 @@ namespace mill::asset_browser
     private:
         void event_callback(const Event& event);
 
+        void init_imgui();
+        void shutdown_imgui();
+
     private:
         platform::HandleWindow m_windowHandle{ nullptr };
         Owned<Renderer> m_renderer{};
