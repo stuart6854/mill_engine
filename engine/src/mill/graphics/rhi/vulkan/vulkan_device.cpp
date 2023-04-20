@@ -133,7 +133,7 @@ namespace mill::rhi
         vk::SubmitInfo submit_info{};
         submit_info.setCommandBuffers(cmd);
 
-        auto fence = m_device->createFenceUnique({ vk::FenceCreateFlagBits::eSignaled });
+        auto fence = m_device->createFenceUnique({});
 
         m_transferQueue.submit(submit_info, fence.get());
 
@@ -574,6 +574,7 @@ namespace mill::rhi
             vulkan::get_barrier_image_to_transfer_dst(texture->get_image(), texture->get_format(), texture->get_layout());
         vk::DependencyInfo in_dependency{};
         in_dependency.setImageMemoryBarriers(transfer_dst_barrier);
+        texture->set_layout(vk::ImageLayout::eTransferDstOptimal);
 
         vk::BufferImageCopy2 region{};
         region.setImageExtent(texture->get_dimensions());
@@ -592,6 +593,7 @@ namespace mill::rhi
             vulkan::get_barrier_image_to_shader_read_only(texture->get_image(), texture->get_format(), texture->get_layout());
         vk::DependencyInfo out_dependency{};
         out_dependency.setImageMemoryBarriers(sampled_barrier);
+        texture->set_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
 
         auto cmd = begin_transfer_cmd();
         cmd.pipelineBarrier2(in_dependency);
