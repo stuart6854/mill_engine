@@ -31,6 +31,18 @@ namespace mill::rhi
         resource_set->set_uniform_buffer(binding, buffer);
     }
 
+    void bind_texture_to_resource_set(u64 resource_set_id, u32 binding, u64 texture_id)
+    {
+        auto& device = get_device();
+
+        const auto& texture = device.get_texture(texture_id);
+
+        auto& resource_set = device.get_resource_set(resource_set_id);
+
+        LOG_DEBUG("RHI Vulkan - Binding texture <{}> to resource set <{}> in binding {}.", texture_id, resource_set_id, binding);
+        resource_set->set_image(binding, texture);
+    }
+
     auto to_vulkan(const ResourceBinding& binding) -> ResourceBindingVulkan
     {
         ResourceBindingVulkan out_binding{};

@@ -8,6 +8,7 @@ namespace mill::rhi
     class DeviceVulkan;
     class DescriptorSetLayout;
     class Buffer;
+    class ImageVulkan;
 
     class DescriptorSet
     {
@@ -16,6 +17,7 @@ namespace mill::rhi
         ~DescriptorSet() = default;
 
         void set_uniform_buffer(u32 binding, const Buffer& buffer);
+        void set_image(u32 binding, const ImageVulkan& image);
 
         void next_frame();
 
@@ -33,6 +35,7 @@ namespace mill::rhi
             vk::UniqueDescriptorSet set{};
 
             std::vector<vk::DescriptorBufferInfo> bufferInfos{};
+            std::vector<vk::DescriptorImageInfo> imageInfos{};
             std::vector<vk::WriteDescriptorSet> pendingWrites{};
         };
         std::vector<Frame> m_frames{};

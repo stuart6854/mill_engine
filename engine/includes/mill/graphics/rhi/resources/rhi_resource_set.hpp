@@ -38,4 +38,5 @@ namespace mill::rhi
     auto create_resource_set(const ResourceSetDescription& description) -> u64;
 
     void bind_buffer_to_resource_set(u64 resource_set_id, u32 binding, u64 buffer_id);
+    void bind_texture_to_resource_set(u64 resource_set_id, u32 binding, u64 texture_id);
 }

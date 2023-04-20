@@ -3,6 +3,8 @@
 #include "../rhi_core_vulkan.hpp"
 #include "descriptor_set_layout.hpp"
 #include "buffer.hpp"
+#include "sampler.hpp"
+#include "../vulkan_image.hpp"
 #include "../vulkan_device.hpp"
 
 namespace mill::rhi
@@ -45,6 +47,29 @@ namespace mill::rhi
 
             write.setDstSet(frame.set.get());
             write.setBufferInfo(buffer_info);
+
+            frame.pendingWrites.push_back(write);
+        }
+    }
+
+    void DescriptorSet::set_image(u32 binding, const ImageVulkan& image)
+    {
+        vk::WriteDescriptorSet write{};
+        write.setDstBinding(binding);
+        write.setDescriptorCount(1);
+        write.setDescriptorType(vk::DescriptorType::eCombinedImageSampler);
+
+        for (auto& frame : m_frames)
+        {
+            auto& image_info = frame.imageInfos.emplace_back();
+            image_info.setImageView(image.get_view());
+            image_info.setImageLayout(image.get_layout());
+
+            ASSERT(image.get_sampler());
+            image_info.setSampler(image.get_sampler()->get_sampler());
+
+            write.setDstSet(frame.set.get());
+            write.setImageInfo(image_info);
 
             frame.pendingWrites.push_back(write);
         }
