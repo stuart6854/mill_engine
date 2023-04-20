@@ -910,6 +910,8 @@ namespace mill::rhi
         }
 
         std::unordered_map<u32, Shared<DescriptorSetLayout>> set_map{};
+
+        // Uniform Buffers
         for (const auto& ubo : shader_resources.uniform_buffers)
         {
             const u32 set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
@@ -921,6 +923,19 @@ namespace mill::rhi
             auto& set_layout = set_map.at(set);
 
             set_layout->add_uniform_buffer(binding, shader_stage);
+        }
+        // Sampled Images
+        for (const auto& ubo : shader_resources.sampled_images)
+        {
+            const u32 set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
+            const u32 binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
+
+            if (!set_map.contains(set))
+                set_map[set] = CreateShared<DescriptorSetLayout>(m_device.get());
+
+            auto& set_layout = set_map.at(set);
+
+            set_layout->add_sampled_image(binding, shader_stage);
         }
 
         for (auto& [set, set_layout] : set_map)
