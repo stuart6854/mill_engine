@@ -54,6 +54,14 @@ namespace mill::rhi
         if (!init_device())
             return false;
 
+        // Transfer Command Pool
+        {
+            vk::CommandPoolCreateInfo pool_info{};
+            pool_info.setQueueFamilyIndex(m_transferQueueFamily);
+            pool_info.setFlags(vk::CommandPoolCreateFlagBits::eTransient);
+            m_transferCmdPool = m_device->createCommandPoolUnique(pool_info);
+        }
+
         // Allocator
         {
             vma::AllocatorCreateInfo alloc_info{};
@@ -102,6 +110,34 @@ namespace mill::rhi
     {
         ASSERT(m_device);
         m_device->waitIdle();
+    }
+
+    auto DeviceVulkan::begin_transfer_cmd() -> vk::CommandBuffer
+    {
+        vk::CommandBufferAllocateInfo alloc_info{};
+        alloc_info.setCommandPool(m_transferCmdPool.get());
+        alloc_info.setCommandBufferCount(1);
+        alloc_info.setLevel(vk::CommandBufferLevel::ePrimary);
+        auto cmd = m_device->allocateCommandBuffers(alloc_info)[0];
+
+        cmd.begin(vk::CommandBufferBeginInfo());
+
+        return cmd;
+    }
+
+    void DeviceVulkan::end_transfer_cmd_blocking(vk::CommandBuffer cmd)
+    {
+        cmd.end();
+
+        vk::SubmitInfo submit_info{};
+        submit_info.setCommandBuffers(cmd);
+
+        auto fence = m_device->createFenceUnique({ vk::FenceCreateFlagBits::eSignaled });
+
+        m_transferQueue.submit(submit_info, fence.get());
+
+        UNUSED(m_device->waitForFences(fence.get(), true, u64_max));
+        m_device->freeCommandBuffers(m_transferCmdPool.get(), cmd);
     }
 
 #pragma region Resources

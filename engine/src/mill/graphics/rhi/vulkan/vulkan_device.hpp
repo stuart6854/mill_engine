@@ -37,6 +37,9 @@ namespace mill::rhi
 
         void wait_idle() const;
 
+        auto begin_transfer_cmd() -> vk::CommandBuffer;
+        void end_transfer_cmd_blocking(vk::CommandBuffer cmd);
+
 #pragma region Resources
 
         void create_screen(u64 screen_id, void* window_handle);
@@ -129,6 +132,8 @@ namespace mill::rhi
         vk::Queue m_computeQueue{};
         i32 m_transferQueueFamily{};
         vk::Queue m_transferQueue{};
+
+        vk::UniqueCommandPool m_transferCmdPool{};
 
         vma::UniqueAllocator m_allocator{};
         vk::UniqueDescriptorPool m_descriptorPool{};
