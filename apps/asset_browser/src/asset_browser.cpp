@@ -129,7 +129,7 @@ namespace mill::asset_browser
         else if (event.type == EventType::eInputMouseMove)
         {
             auto& io = ImGui::GetIO();
-            io.AddMousePosEvent(CAST_F32(event.data.u32[0]), CAST_F32(event.data.u32[0]));
+            io.AddMousePosEvent(CAST_F32(event.data.u32[0]), CAST_F32(event.data.u32[1]));
 
             if (!io.WantCaptureMouse)
             {
