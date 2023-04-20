@@ -11,7 +11,7 @@ namespace mill
         virtual void initialise() {}
         virtual void shutdown() {}
 
-        virtual void update() {}
+        virtual void update(f32 /*delta_time*/) {}
     };
 
     extern auto create_application() -> Application*;

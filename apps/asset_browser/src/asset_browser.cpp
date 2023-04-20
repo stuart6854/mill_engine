@@ -63,7 +63,7 @@ namespace mill::asset_browser
         platform::destroy_window(m_windowHandle);
     }
 
-    void AssetBrowserApp::update()
+    void AssetBrowserApp::update(f32 delta_time)
     {
         rhi::begin_frame();
         {

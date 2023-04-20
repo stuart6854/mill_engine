@@ -12,7 +12,7 @@ namespace mill::asset_browser
         void initialise() override;
         void shutdown() override;
 
-        void update() override;
+        void update(f32 delta_time) override;
 
     private:
         void event_callback(const Event& event);

@@ -185,7 +185,7 @@ namespace mill
 
             if (m_pimpl->app != nullptr)
             {
-                m_pimpl->app->update();
+                m_pimpl->app->update(m_pimpl->deltaTime);
             }
         }
 

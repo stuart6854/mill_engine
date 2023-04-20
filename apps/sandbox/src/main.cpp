@@ -58,13 +58,16 @@ public:
         m_sceneRenderer = CreateOwned<SceneRenderer>(SceneViewId);
         m_sceneRenderer->initialise();
     }
+
     void shutdown() override
     {
         platform::destroy_window(m_windowHandle);
     }
 
-    void update() override
+    void update(f32 delta_time) override
     {
+        UNUSED(delta_time);
+
         auto& scene = Engine::get()->get_scene_manager()->get_active_scene();
         auto& registry = scene.get_registry();
 
