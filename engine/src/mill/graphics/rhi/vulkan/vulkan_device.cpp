@@ -472,7 +472,7 @@ namespace mill::rhi
         const auto texture_id = m_nextTextureId;
         ++m_nextTextureId;
 
-        vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eSampled;
+        vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
         m_textures[texture_id] = CreateOwned<ImageVulkan>(*this, usage, description.extent, description.format, description.mipLevels);
 
         LOG_DEBUG("DeviceVulkan - Texture has been created: id={}, dimensions=[{},{},{}]",
