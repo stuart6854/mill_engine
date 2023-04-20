@@ -18,12 +18,18 @@ namespace mill::asset_browser
         auto render(u64 context_id) -> u64;
 
     private:
-        void render_draw_data(const ImDrawData* draw_data);
+        void render_draw_data(u64 context_id, const ImDrawData* draw_data);
 
     private:
+        u64 m_viewId{};
+
         u64 m_fontTexture{};
         u64 m_fontResourceSet{};
 
-        u64 m_viewId{};
+        u64 m_imguiPipeline{};
+        rhi::HandleBuffer m_imguiVertexBuffer{};
+        rhi::HandleBuffer m_imguiIndexBuffer{};
+        sizet m_imguiVertexSize{};
+        sizet m_imguiIndexSize{};
     };
 }
