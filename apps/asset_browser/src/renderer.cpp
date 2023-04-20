@@ -173,10 +173,15 @@ namespace mill::asset_browser
 
     void Renderer::render_draw_data(u64 context_id, const ImDrawData* draw_data)
     {
+        // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
+        const u32 fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
+        const u32 fb_height = (int)(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
+        if (fb_width <= 0 || fb_height <= 0)
+            return;
+
         if (draw_data->TotalVtxCount > 0)
         {
             sizet vertex_size = draw_data->TotalVtxCount * sizeof(ImDrawVert);
-            sizet index_size = draw_data->TotalIdxCount * sizeof(ImDrawIdx);
             if (!m_imguiVertexBuffer || m_imguiVertexSize < vertex_size)
             {
                 rhi::BufferDescription buffer_desc{
@@ -187,6 +192,7 @@ namespace mill::asset_browser
                 m_imguiVertexBuffer = rhi::create_buffer(buffer_desc);
                 m_imguiVertexSize = vertex_size;
             }
+            sizet index_size = draw_data->TotalIdxCount * sizeof(ImDrawIdx);
             if (!m_imguiIndexBuffer || m_imguiIndexSize < index_size)
             {
                 rhi::BufferDescription buffer_desc{
