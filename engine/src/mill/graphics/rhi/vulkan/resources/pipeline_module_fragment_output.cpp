@@ -29,6 +29,12 @@ namespace mill::rhi
         blend_attachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                                            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
         blend_attachment.setBlendEnable(m_colorBlend);
+        blend_attachment.setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha);
+        blend_attachment.setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha);
+        blend_attachment.setColorBlendOp(vk::BlendOp::eAdd);
+        blend_attachment.setSrcAlphaBlendFactor(vk::BlendFactor::eOne);
+        blend_attachment.setDstAlphaBlendFactor(vk::BlendFactor::eZero);
+        blend_attachment.setAlphaBlendOp(vk::BlendOp::eAdd);
 
         vk::PipelineColorBlendStateCreateInfo color_blend_state{};
         color_blend_state.setAttachments(blend_attachment);
