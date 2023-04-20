@@ -21,6 +21,7 @@ namespace mill::asset_browser
         void render_draw_data(const ImDrawData* draw_data);
 
     private:
+        u64 m_fontTexture{};
         u64 m_viewId{};
     };
 }

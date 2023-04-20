@@ -1,5 +1,7 @@
 #include "renderer.hpp"
 
+#include <mill/mill.hpp>
+
 #include <imgui.h>
 
 namespace mill::asset_browser
@@ -8,6 +10,23 @@ namespace mill::asset_browser
 
     void Renderer::initialise()
     {
+        auto& io = ImGui::GetIO();
+
+        // ImGui Font Texture
+        {
+            int width, height;
+            unsigned char* pixels = nullptr;
+            io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+            rhi::TextureDescription texture_desc{
+                .dimensions = { width, height, 1 },
+                .format = rhi::Format::eRGBA8,
+                .mipLevels = 1,
+            };
+            m_fontTexture = rhi::create_texture(texture_desc);
+            rhi::write_texture(m_fontTexture, 0, pixels);
+        }
+
         rhi::reset_view(m_viewId, 1600, 900);
     }
 
