@@ -4,6 +4,7 @@
 #include "resources/rhi_pipeline_vulkan.hpp"
 #include "resources/rhi_resource_set_vulkan.hpp"
 #include "resources/rhi_buffer_vulkan.hpp"
+#include "resources/rhi_texture_vulkan.hpp"
 #include "vulkan_includes.hpp"
 
 namespace mill::rhi

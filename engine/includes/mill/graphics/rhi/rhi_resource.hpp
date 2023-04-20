@@ -38,3 +38,4 @@ namespace mill::rhi
 #include "resources/rhi_pipeline.hpp"
 #include "resources/rhi_resource_set.hpp"
 #include "resources/rhi_buffer.hpp"
+#include "resources/rhi_texture.hpp"

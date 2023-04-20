@@ -22,6 +22,7 @@ namespace mill::rhi
     class PipelineModuleFragmentOutput;
     class Pipeline;
     class Buffer;
+    class ImageVulkan;
 
     class DeviceVulkan
     {
@@ -77,6 +78,12 @@ namespace mill::rhi
         auto get_buffer(u64 buffer_id) -> const Buffer&;
         auto create_buffer(const BufferDescriptionVulkan& description) -> u64;
         void write_buffer(u64 buffer_id, u64 offset, u64 size, const void* data);
+
+        /* Textures */
+
+        auto create_texture(const TextureDescriptionVulkan& description) -> u64;
+        void write_texture(u64 texture_id, u32 mip_level, const void* data);
+        void generate_mip_maps(u64 texture_id);
 
 #pragma endregion
 
@@ -147,5 +154,8 @@ namespace mill::rhi
 
         std::unordered_map<u64, Owned<Buffer>> m_buffers{};
         u64 m_nextBufferId{ 1 };
+
+        std::unordered_map<u64, Owned<ImageVulkan>> m_textures{};
+        u64 m_nextTextureId{ 1 };
     };
 }

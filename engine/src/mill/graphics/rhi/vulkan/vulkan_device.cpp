@@ -17,6 +17,7 @@
 #include "resources/pipeline.hpp"
 #include "resources/descriptor_set.hpp"
 #include "resources/buffer.hpp"
+#include "vulkan_image.hpp"
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
@@ -462,6 +463,37 @@ namespace mill::rhi
         LOG_WARN("DeviceVulkan - Writing to non-HostVisible buffers is not yet supported.");
 
         // #TODO: Staging buffer
+    }
+
+    /* Textures */
+
+    auto DeviceVulkan::create_texture(const TextureDescriptionVulkan& description) -> u64
+    {
+        const auto texture_id = m_nextTextureId;
+        ++m_nextTextureId;
+
+        vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eSampled;
+        m_textures[texture_id] = CreateOwned<ImageVulkan>(*this, usage, description.extent, description.format, description.mipLevels);
+
+        LOG_DEBUG("DeviceVulkan - Texture has been created: id={}, dimensions=[{},{},{}]",
+                  texture_id,
+                  description.extent.width,
+                  description.extent.height,
+                  description.extent.depth);
+
+        return texture_id;
+    }
+
+    void DeviceVulkan::write_texture(u64 texture_id, u32 mip_level, const void* data)
+    {
+        UNUSED(texture_id);
+        UNUSED(mip_level);
+        UNUSED(data);
+    }
+
+    void DeviceVulkan::generate_mip_maps(u64 texture_id)
+    {
+        UNUSED(texture_id);
     }
 
 #pragma endregion
