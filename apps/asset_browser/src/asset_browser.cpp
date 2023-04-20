@@ -109,6 +109,37 @@ namespace mill::asset_browser
 
         ImGui::NewFrame();
 
+        if (ImGui::BeginMainMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                if (ImGui::MenuItem("Exit"))
+                {
+                    Engine::get()->quit();
+                }
+
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Asset"))
+            {
+                if (ImGui::MenuItem("Import..."))
+                {
+                }
+                ImGui::Separator();
+                ImGui::TextDisabled("Selected Assets");
+                if (ImGui::MenuItem("Delete"))
+                {
+                }
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMainMenuBar();
+        }
+
+        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), dockspace_flags);
+
         // #TODO: Application update
         // #TODO: ImGui Render
 
