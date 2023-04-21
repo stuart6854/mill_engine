@@ -7,6 +7,7 @@
 
 #include <mill/mill.hpp>
 #include <imgui.h>
+#include <portable-file-dialogs.h>
 
 #include <string>
 #include <format>
@@ -113,6 +114,10 @@ namespace mill::asset_browser
         {
             if (ImGui::BeginMenu("File"))
             {
+                if (ImGui::MenuItem("Open Project..."))
+                {
+                    open_project();
+                }
                 if (ImGui::MenuItem("Exit"))
                 {
                     Engine::get()->quit();
@@ -170,6 +175,11 @@ namespace mill::asset_browser
             rhi::end_context(ContextId);
         }
         rhi::end_frame();
+    }
+
+    void AssetBrowserApp::reload_project()
+    {
+        LOG_INFO("AssetBrowser - Reloading project.");
     }
 
     void AssetBrowserApp::event_callback(const Event& event)
@@ -250,6 +260,34 @@ namespace mill::asset_browser
     void AssetBrowserApp::shutdown_imgui()
     {
         ImGui::DestroyContext();
+    }
+
+    void AssetBrowserApp::open_project()
+    {
+        const std::string dialog_title = "Select project root directory...";
+        const std::string dialog_default_path{};
+        const auto dialog_options = pfd::opt::none;
+        auto selected_dir = pfd::select_folder(dialog_title, dialog_default_path, dialog_options).result();
+
+        open_project(selected_dir);
+    }
+
+    void AssetBrowserApp::open_project(const std::filesystem::path& project_dir)
+    {
+        const auto data_dir = project_dir / "data";
+        const auto assets_dir = project_dir / "assets";
+        if (!std::filesystem::exists(data_dir) || !std::filesystem::exists(assets_dir))
+        {
+            LOG_ERROR("AssetBrowser - Tried opening directory as project, but it didn't have either a assets or data sub-directory: {}",
+                      project_dir.string());
+            return;
+        }
+
+        LOG_INFO("AssetBrowser - Opening project dir: {}.", project_dir.string());
+
+        m_projectDir = project_dir;
+
+        reload_project();
     }
 
 }
