@@ -11,6 +11,7 @@ entt/3.11.1
 stb/cci.20220909
 imgui/cci.20230105+1.89.2.docking
 assimp/5.2.2
+portable-file-dialogs/0.1.0
 
 [options]
 fmt:header_only=True
