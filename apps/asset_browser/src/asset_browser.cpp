@@ -2,6 +2,7 @@
 
 #include "renderer.hpp"
 #include "assets/assets.hpp"
+#include "assets/asset_metadata.hpp"
 #include "assets/mesh_importer.hpp"
 #include "assets/mesh_exporter.hpp"
 
@@ -77,17 +78,18 @@ namespace mill::asset_browser
 
             const auto filePath = dir_entry.path();
             const auto ext = filePath.extension().string();
-            if (!g_AssetTypeMap.contains(ext))
+
+            const auto asset_type = get_asset_type(ext);
+            if (asset_type == AssetType::eNone)
             {
                 continue;
             }
 
             LOG_INFO("AssetBrowser - Importing asset <{}>", filePath.string());
 
-            const auto assetType = g_AssetTypeMap.at(ext);
-            switch (assetType)
+            switch (asset_type)
             {
-                case AssetType::eMesh: handle_static_mesh(filePath.string()); break;
+                case AssetType::eModel: handle_static_mesh(filePath.string()); break;
                 default: break;
             }
         }
