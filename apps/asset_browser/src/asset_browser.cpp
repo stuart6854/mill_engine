@@ -118,6 +118,7 @@ namespace mill::asset_browser
                 {
                     open_project();
                 }
+                ImGui::Separator();
                 if (ImGui::MenuItem("Exit"))
                 {
                     Engine::get()->quit();
@@ -125,12 +126,20 @@ namespace mill::asset_browser
 
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("Asset"))
+            if (ImGui::BeginMenu("Project"))
             {
                 if (ImGui::MenuItem("Import..."))
                 {
                 }
                 ImGui::Separator();
+                if (ImGui::MenuItem("Bake & Export"))
+                {
+                }
+
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Asset"))
+            {
                 ImGui::TextDisabled("Selected Assets");
                 if (ImGui::MenuItem("Delete"))
                 {
