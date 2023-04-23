@@ -4,6 +4,5 @@
 
 namespace mill::asset_browser
 {
-
-    static const auto* g_AssetPath = "..\\..\\assets";
+    static const auto* g_AssetPath = "..\\..\\assets";  // #TODO: Remove me
 }
