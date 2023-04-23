@@ -191,6 +191,8 @@ namespace mill::asset_browser
     void AssetBrowserApp::reload_project()
     {
         LOG_INFO("AssetBrowser - Reloading project.");
+
+        m_assetRegistry.clear();
     }
 
     void AssetBrowserApp::event_callback(const Event& event)
