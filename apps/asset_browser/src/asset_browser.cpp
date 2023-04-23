@@ -66,7 +66,7 @@ namespace mill::asset_browser
         m_renderer = CreateOwned<Renderer>(g_MainViewId);
         m_renderer->initialise();
 
-        m_assetBrowserView.inititialise();
+        m_assetBrowserView.inititialise(m_assetRegistry);
 
         // Load and export all assets in asset directory
         for (auto& dir_entry : std::filesystem::recursive_directory_iterator(g_AssetPath))
@@ -193,6 +193,10 @@ namespace mill::asset_browser
         LOG_INFO("AssetBrowser - Reloading project.");
 
         m_assetRegistry.clear();
+
+        scan_for_and_register_assets(m_projectDir / "assets");
+
+        m_assetBrowserView.refresh();
     }
 
     void AssetBrowserApp::event_callback(const Event& event)
@@ -300,7 +304,32 @@ namespace mill::asset_browser
 
         m_projectDir = project_dir;
 
+        m_assetBrowserView.set_root_dir(assets_dir);
+
         reload_project();
+    }
+
+    void AssetBrowserApp::scan_for_and_register_assets(const fs::path& dir_to_scan)
+    {
+        LOG_INFO("AssetBrowser - Scanning for assets in directory <{}>.", dir_to_scan.string());
+
+        for (const auto& dir_entry : fs::recursive_directory_iterator(dir_to_scan))
+        {
+            if (!dir_entry.is_regular_file())
+                continue;
+
+            const auto& file_path = dir_entry.path();
+            const auto& file_name = file_path.filename();
+
+            const bool is_metadata_file = file_name.string().ends_with(".meta");
+            if (!is_metadata_file)
+                continue;
+
+            LOG_DEBUG("AssetBrowser - Found asset metadata: {}.", file_path.string());
+
+            const auto metadata = AssetMetadata::from_file(file_path);
+            m_assetRegistry.register_metadata(metadata);
+        }
     }
 
 }

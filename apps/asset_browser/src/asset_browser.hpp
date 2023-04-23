@@ -10,6 +10,8 @@
 
 namespace mill::asset_browser
 {
+    namespace fs = std::filesystem;
+
     class AssetBrowserApp : public mill::Application
     {
     public:
@@ -27,7 +29,9 @@ namespace mill::asset_browser
         void shutdown_imgui();
 
         void open_project();
-        void open_project(const std::filesystem::path& project_dir);
+        void open_project(const fs::path& project_dir);
+
+        void scan_for_and_register_assets(const fs::path& dir_to_scan);
 
     private:
         platform::HandleWindow m_windowHandle{ nullptr };
@@ -39,6 +43,6 @@ namespace mill::asset_browser
         AssetRegistry m_assetRegistry{};
         AssetBrowserView m_assetBrowserView{};
 
-        std::filesystem::path m_projectDir{};
+        fs::path m_projectDir{};
     };
 }
