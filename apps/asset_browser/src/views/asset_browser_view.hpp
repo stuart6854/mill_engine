@@ -14,6 +14,8 @@ namespace mill::asset_browser
     class AssetBrowserView
     {
     public:
+        Signal<u64> OnAssetSelected;
+
         void inititialise(AssetRegistry& asset_registry);
 
         void set_root_dir(const fs::path& root_dir);
@@ -51,6 +53,6 @@ namespace mill::asset_browser
 
         Owned<TreeNode> m_rootNode{};
 
-        bool m_showUnimportedAssets{ true };
+        TreeNode* m_selectedNode{ nullptr };
     };
 }

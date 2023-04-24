@@ -161,6 +161,8 @@ namespace mill::asset_browser
 
     void AssetBrowserView::render_dir_tree_node(TreeNode& node)
     {
+        const bool is_selected = m_selectedNode != nullptr ? m_selectedNode->asset_id == node.asset_id : false;
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
 
@@ -191,20 +193,28 @@ namespace mill::asset_browser
         }
         else
         {
+            ImGui::TableSetColumnIndex(0);
+            static const auto selectable_flags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap;
             const auto name = node.name;
-            ImGui::TreeNodeEx(name.c_str(),
-                              ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth);
+            if (ImGui::Selectable(name.c_str(), is_selected, selectable_flags))
+            {
+                m_selectedNode = &node;
+                OnAssetSelected.emit(m_selectedNode->asset_id);
+            }
+            /*ImGui::TreeNodeEx(name.c_str(),
+                              ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth);*/
             if (ImGui::BeginPopupContextItem())
             {
                 asset_context_menu(node);
                 ImGui::EndPopup();
             }
 
-            ImGui::TableNextColumn();
-
+            ImGui::TableSetColumnIndex(1);
             ImGui::Text(get_asset_type_str(node.metadata->type).c_str());
-            ImGui::TableNextColumn();
+
+            ImGui::TableSetColumnIndex(2);
             ImGui::Text("%s", "<asset_size>");
+
             ImGui::TableNextColumn();
         }
     }
