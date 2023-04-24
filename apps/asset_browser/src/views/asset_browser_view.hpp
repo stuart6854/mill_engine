@@ -6,6 +6,8 @@
 
 namespace mill::asset_browser
 {
+    namespace fs = fs;
+
     struct AssetMetadata;
     class AssetRegistry;
 
@@ -14,7 +16,7 @@ namespace mill::asset_browser
     public:
         void inititialise(AssetRegistry& asset_registry);
 
-        void set_root_dir(const std::filesystem::path& root_dir);
+        void set_root_dir(const fs::path& root_dir);
 
         /* Clear and rebuild file tree structure. */
         void refresh();
@@ -23,21 +25,24 @@ namespace mill::asset_browser
 
     private:
         struct TreeNode;
-        void recurse_dir_tree(TreeNode& parent_node, const std::filesystem::path& current_dir);
-        auto add_dir_tree_node(TreeNode& parent_node, const std::filesystem::path& path, bool is_folder) -> TreeNode&;
+        void recurse_dir_tree(TreeNode& parent_node, const fs::path& current_dir);
+        auto add_dir_tree_node(TreeNode& parent_node, const fs::path& path, bool is_folder) -> TreeNode&;
 
         void render_dir_tree_node(TreeNode& node);
 
+        void folder_context_menu(TreeNode& node);
+        void asset_context_menu(TreeNode& node);
+
     private:
         AssetRegistry* m_assetRegistry;
-        std::filesystem::path m_rootDir{};
+        fs::path m_rootDir{};
 
         struct TreeNode
         {
             u64 asset_id{};
             const AssetMetadata* metadata{ nullptr };
 
-            std::filesystem::path path{};
+            fs::path path{};
             std::string name{};
 
             bool is_folder{};
