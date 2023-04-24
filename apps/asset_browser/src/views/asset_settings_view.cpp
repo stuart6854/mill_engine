@@ -26,6 +26,14 @@ namespace mill::asset_browser
                     m_activeMetadata->exportSettings.push_back(new_settings);
                 }
 
+                ImGui::SameLine();
+
+                if (ImGui::Button("Apply Settings"))
+                {
+                    auto metadata_filename = fs::path(m_activeMetadata->assetFilename).concat(".meta");
+                    AssetMetadata::to_file(*m_activeMetadata, metadata_filename);
+                }
+
                 for (const auto& settings : m_activeMetadata->exportSettings)
                 {
                     static const auto collapse_header_flags = ImGuiTreeNodeFlags_None;
