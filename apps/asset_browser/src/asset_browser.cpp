@@ -68,7 +68,8 @@ namespace mill::asset_browser
 
         m_assetBrowserView.inititialise(m_assetRegistry);
 
-        // Load and export all assets in asset directory
+#if 0
+		// Load and export all assets in asset directory
         for (auto& dir_entry : std::filesystem::recursive_directory_iterator(g_AssetPath))
         {
             if (!dir_entry.is_regular_file())
@@ -93,6 +94,7 @@ namespace mill::asset_browser
                 default: break;
             }
         }
+#endif  // 0
     }
 
     void AssetBrowserApp::shutdown()
@@ -174,6 +176,7 @@ namespace mill::asset_browser
         ImGui::ShowDemoWindow(&s_ShowDemo);
 
         m_assetBrowserView.render();
+        m_assetSettingsView.render();
 
         rhi::begin_frame();
         {

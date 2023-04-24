@@ -2,6 +2,7 @@
 
 #include "assets/asset_registry.hpp"
 #include "views/asset_browser_view.hpp"
+#include "views/asset_settings_view.hpp"
 #include "renderer.hpp"
 
 #include <mill/mill.hpp>
@@ -45,6 +46,7 @@ namespace mill::asset_browser
 
         AssetRegistry m_assetRegistry{};
         AssetBrowserView m_assetBrowserView{};
+        AssetSettingView m_assetSettingsView{};
 
         fs::path m_projectDir{};
     };
