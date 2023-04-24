@@ -1,6 +1,7 @@
 metadata:
   id: 9876897324
-  name: "cube_1x1"
+  name: cube_1x1
   type: 1
   settings:
-    model_type: "Static"
+    - mesh_type: 0
+      lod_count: 1
