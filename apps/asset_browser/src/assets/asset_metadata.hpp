@@ -1,20 +1,16 @@
 #pragma once
 
+#include "asset_type.hpp"
+#include "asset_export_settings.hpp"
+
 #include <mill/mill.hpp>
 
+#include <vector>
 #include <string>
-#include <string_view>
 #include <filesystem>
 
 namespace mill::asset_browser
 {
-    enum class AssetType
-    {
-        eNone,
-        eModel,
-        eTexture2D,
-    };
-
     struct AssetMetadata
     {
         u64 id{};
@@ -23,10 +19,9 @@ namespace mill::asset_browser
         AssetType type{};
         u64 fileSizeBytes{};
 
+        std::vector<Shared<ExportSettings>> exportSettings{};
+
         static void to_file(const AssetMetadata& metadata, const std::filesystem::path& filename);
         static auto from_file(const std::filesystem::path& filename) -> AssetMetadata;
     };
-
-    auto get_asset_type(const std::string& ext) -> AssetType;
-    auto get_asset_type_str(AssetType type) -> std::string;
 }

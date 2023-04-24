@@ -1,5 +1,8 @@
 #include "asset_metadata.hpp"
 
+#include "asset_type.hpp"
+#include "asset_export_settings.hpp"
+
 #include <yaml-cpp/yaml.h>
 
 #include <string>
@@ -21,6 +24,19 @@ namespace mill::asset_browser
             out << YAML::Key << "id" << YAML::Value << metadata.id;
             out << YAML::Key << "name" << YAML::Value << metadata.name;
             out << YAML::Key << "type" << YAML::Value << enum_to_underlying(metadata.type);
+            out << YAML::Key << "settings";
+            out << YAML::BeginSeq;
+            {
+                for (const auto& settings : metadata.exportSettings)
+                {
+                    out << YAML::BeginMap;
+                    {
+                        settings->write(out);
+                    }
+                    out << YAML::EndMap;
+                }
+            }
+            out << YAML::EndSeq;
             out << YAML::EndMap;
         }
         out << YAML::EndMap;
@@ -47,36 +63,19 @@ namespace mill::asset_browser
         metadata.assetFilename = std::filesystem::path(filename).replace_extension();
         metadata.type = static_cast<AssetType>(metadata_node["type"].as<u32>());
 
-        // #TODO: Read settings based on `AssetType`
-
-        return metadata;
-    }
-
-    auto get_asset_type(const std::string& ext) -> AssetType
-    {
-        static const std::unordered_map<std::string, AssetType> s_AssetTypeMap{
-            { ".obj", AssetType::eModel },     { ".fbx", AssetType::eModel },     { ".gltf", AssetType::eModel },
-            { ".png", AssetType::eTexture2D }, { ".jpg", AssetType::eTexture2D },
-        };
-
-        const auto it = s_AssetTypeMap.find(ext);
-        if (it != s_AssetTypeMap.end())
-            return it->second;
-
-        return AssetType::eNone;
-    }
-
-    auto get_asset_type_str(AssetType type) -> std::string
-    {
-        switch (type)
+        const auto& settings_node = metadata_node["settings"];
+        if (settings_node)
         {
-            case mill::asset_browser::AssetType::eNone: return "None";
-            case mill::asset_browser::AssetType::eModel: return "Model";
-            case mill::asset_browser::AssetType::eTexture2D: return "Texture2D";
-            default: ASSERT(("Unknown AssetType!", false)); break;
+            for (auto i = 0; i < settings_node.size(); ++i)
+            {
+                auto settings = create_asset_settings(metadata.type);
+                metadata.exportSettings.push_back(settings);
+
+                settings->read(settings_node[i]);
+            }
         }
 
-        return "<unknown_type>";
+        return metadata;
     }
 
 }
