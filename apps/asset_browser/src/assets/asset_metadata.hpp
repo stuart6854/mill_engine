@@ -23,6 +23,7 @@ namespace mill::asset_browser
         AssetType type{};
         u64 fileSizeBytes{};
 
+        static void to_file(const AssetMetadata& metadata, const std::filesystem::path& filename);
         static auto from_file(const std::filesystem::path& filename) -> AssetMetadata;
     };
 

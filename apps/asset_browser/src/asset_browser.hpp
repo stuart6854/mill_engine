@@ -22,6 +22,9 @@ namespace mill::asset_browser
 
         void reload_project();
 
+        void import_assets();
+        void import_asset(const fs::path& asset_filename, const fs::path& target_dir);
+
     private:
         void event_callback(const Event& event);
 

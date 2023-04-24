@@ -130,8 +130,9 @@ namespace mill::asset_browser
             }
             if (ImGui::BeginMenu("Project"))
             {
-                if (ImGui::MenuItem("Import..."))
+                if (ImGui::MenuItem("Import Asset..."))
                 {
+                    import_assets();
                 }
                 ImGui::Separator();
                 if (ImGui::MenuItem("Bake & Export"))
@@ -197,6 +198,56 @@ namespace mill::asset_browser
         scan_for_and_register_assets(m_projectDir / "assets");
 
         m_assetBrowserView.refresh();
+    }
+
+    void AssetBrowserApp::import_assets()
+    {
+        std::vector<std::string> assets_to_import{};
+        {
+            const std::string dialog_title = "Select assets to import to project...";
+            const std::string dialog_default_path{};
+            const std::vector<std::string> file_filters = {
+                "All Files", "*", "Model Files", "*.obj *.fbx *.gltf", "Image Files", "*.png *.jpg",
+            };
+            const auto dialog_options = pfd::opt::multiselect;
+            assets_to_import = pfd::open_file(dialog_title, dialog_default_path, file_filters, dialog_options).result();
+        }
+
+        if (assets_to_import.empty())
+            return;
+
+        std::string target_dir{};
+        {
+            const std::string dialog_title = "Select folder to import to...";
+            const std::string dialog_default_path = (m_projectDir / "assets").string();
+            const auto dialog_options = pfd::opt::none;
+            target_dir = pfd::select_folder(dialog_title, dialog_default_path, dialog_options).result();
+        }
+
+        if (target_dir.empty())
+            return;
+
+        for (const auto& file : assets_to_import)
+            import_asset(file, target_dir);
+    }
+
+    void AssetBrowserApp::import_asset(const fs::path& asset_filename, const fs::path& target_dir)
+    {
+        const auto target_asset_filename = target_dir / asset_filename.filename();
+        const auto copy_options = fs::copy_options::skip_existing;
+        fs::copy_file(asset_filename, target_asset_filename, copy_options);
+
+        // Create & Write new metadata
+        AssetMetadata metadata{};
+        metadata.id = random::random_u64();
+        metadata.assetFilename = target_asset_filename.string();
+        metadata.name = target_asset_filename.filename().string();
+        metadata.type = get_asset_type(target_asset_filename.extension().string());
+
+        const auto meta_filename = fs::path(target_asset_filename).concat(".meta");
+        AssetMetadata::to_file(metadata, meta_filename);
+
+        reload_project();
     }
 
     void AssetBrowserApp::event_callback(const Event& event)

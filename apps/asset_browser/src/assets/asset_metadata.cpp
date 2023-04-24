@@ -5,9 +5,31 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <fstream>
 
 namespace mill::asset_browser
 {
+
+    void AssetMetadata::to_file(const AssetMetadata& metadata, const std::filesystem::path& filename)
+    {
+        YAML::Emitter out{};
+
+        out << YAML::BeginMap;
+        out << YAML::Key << "metadata";
+        {
+            out << YAML::BeginMap;
+            out << YAML::Key << "id" << YAML::Value << metadata.id;
+            out << YAML::Key << "name" << YAML::Value << metadata.name;
+            out << YAML::Key << "type" << YAML::Value << enum_to_underlying(metadata.type);
+            out << YAML::EndMap;
+        }
+        out << YAML::EndMap;
+
+        std::ofstream file(filename, std::ios::trunc);
+        file << out.c_str();
+        file.close();
+    }
+
     auto AssetMetadata::from_file(const std::filesystem::path& filename) -> AssetMetadata
     {
         ASSERT(std::filesystem::exists(filename));
