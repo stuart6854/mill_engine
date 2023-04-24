@@ -30,6 +30,8 @@
 #include "io/data_reader.hpp"
 #include "io/binary_writer.hpp"
 #include "io/binary_reader.hpp"
+
+#include "utility/random.hpp"
 #include "utility/signal.hpp"
 #include "utility/flags.hpp"
 #include "utility/ref_count.hpp"
