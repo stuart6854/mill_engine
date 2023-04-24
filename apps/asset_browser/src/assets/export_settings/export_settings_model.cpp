@@ -22,14 +22,14 @@ namespace mill::asset_browser
 
     void ExportSettingsModel::write(YAML::Emitter& out)
     {
-        out << YAML::Key << "mesh_type" << YAML::Key << enum_to_underlying(m_type);
+        out << YAML::Key << "mesh_type" << YAML::Key << static_cast<i32>(m_type);
         out << YAML::Key << "lod_count" << YAML::Key << m_lodCount;
     }
 
     void ExportSettingsModel::read(const YAML::Node& settings_root_node)
     {
         if (settings_root_node["mesh_type"])
-            m_type = static_cast<MeshType>(settings_root_node["mesh_type"].as<u8>());
+            m_type = static_cast<MeshType>(settings_root_node["mesh_type"].as<i32>());
         if (settings_root_node["lod_count"])
             m_lodCount = settings_root_node["lod_count"].as<u32>();
     }
