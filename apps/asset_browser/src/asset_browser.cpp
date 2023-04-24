@@ -68,6 +68,16 @@ namespace mill::asset_browser
 
         m_assetBrowserView.inititialise(m_assetRegistry);
 
+        m_assetBrowserView.OnAssetSelected.connect(
+            [this](u64 asset_id)
+            {
+                if (!asset_id)
+                    return;
+
+                auto& metadata = m_assetRegistry.get_metadata_ref(asset_id);
+                m_assetSettingsView.set_active_asset(&metadata);
+            });
+
 #if 0
 		// Load and export all assets in asset directory
         for (auto& dir_entry : std::filesystem::recursive_directory_iterator(g_AssetPath))

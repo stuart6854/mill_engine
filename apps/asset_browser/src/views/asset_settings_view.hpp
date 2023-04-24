@@ -7,6 +7,8 @@ namespace mill::asset_browser
     class AssetSettingView
     {
     public:
+        void set_active_asset(AssetMetadata* asset_metadata);
+
         void render();
 
     private:
