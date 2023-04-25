@@ -45,6 +45,16 @@ namespace mill::asset_browser
         return m_resourceFlags;
     }
 
+    auto ExportSettings::get_resource() -> const Shared<Resource>&
+    {
+        return m_resource;
+    }
+
+    void ExportSettings::set_resource(const Shared<Resource>& resource)
+    {
+        m_resource = resource;
+    }
+
     auto create_asset_settings(AssetType type) -> Shared<ExportSettings>
     {
         switch (type)

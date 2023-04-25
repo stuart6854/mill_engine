@@ -34,6 +34,8 @@ namespace mill::asset_browser
                 {
                     auto metadata_filename = fs::path(m_activeMetadata->assetFilename).concat(".meta");
                     AssetMetadata::to_file(*m_activeMetadata, metadata_filename);
+
+                    m_activeMetadata->import_asset();
                 }
 
                 const auto& export_settings = m_activeMetadata->exportSettings;

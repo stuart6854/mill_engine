@@ -19,6 +19,8 @@ namespace mill::asset_browser
         virtual void write(YAML::Emitter& out);
         virtual void read(const YAML::Node& settings_root_node);
 
+        virtual void import_asset(const fs::path& asset_filename) = 0;
+
         virtual void render();
 
         /* Getters */
@@ -26,16 +28,22 @@ namespace mill::asset_browser
         auto get_name() const -> const std::string&;
         auto get_resource_id() const -> u64;
         auto get_resource_flags() const -> ResourceFlags;
+        auto get_resource() -> const Shared<Resource>&;
 
         /* Operators */
 
         auto operator=(const ExportSettings&) -> ExportSettings& = delete;
         auto operator=(ExportSettings&&) -> ExportSettings& = default;
 
+    protected:
+        void set_resource(const Shared<Resource>& resource);
+
     private:
         std::string m_name{};
         u64 m_resourceId{};  // The exported resource id
         ResourceFlags m_resourceFlags{};
+
+        Shared<Resource> m_resource{ nullptr };
     };
 
     auto create_asset_settings(AssetType type) -> Shared<ExportSettings>;

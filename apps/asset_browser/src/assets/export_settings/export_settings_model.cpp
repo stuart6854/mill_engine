@@ -1,5 +1,7 @@
 #include "export_settings_model.hpp"
 
+#include "../mesh_importer.hpp"
+
 #include <mill/mill.hpp>
 
 #include <imgui.h>
@@ -36,6 +38,14 @@ namespace mill::asset_browser
             m_type = static_cast<MeshType>(settings_root_node["mesh_type"].as<i32>());
         if (settings_root_node["lod_count"])
             m_lodCount = settings_root_node["lod_count"].as<u32>();
+    }
+
+    void ExportSettingsModel::import_asset(const fs::path& asset_filename)
+    {
+        if (m_type == MeshType::eStatic)
+            set_resource(import_static_mesh(asset_filename.string()));
+
+        // #TODO: Import skeletal mesh
     }
 
     void ExportSettingsModel::render()

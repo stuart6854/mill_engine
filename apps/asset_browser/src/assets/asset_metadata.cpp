@@ -12,6 +12,11 @@
 
 namespace mill::asset_browser
 {
+    void AssetMetadata::import_asset()
+    {
+        for (auto& settings : exportSettings)
+            settings->import_asset(assetFilename);
+    }
 
     void AssetMetadata::to_file(const AssetMetadata& metadata, const std::filesystem::path& filename)
     {
@@ -74,6 +79,8 @@ namespace mill::asset_browser
                 settings->read(settings_node[i]);
             }
         }
+
+        metadata.import_asset();
 
         return metadata;
     }

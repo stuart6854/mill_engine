@@ -20,6 +20,8 @@ namespace mill::asset_browser
         void write(YAML::Emitter& out) override;
         void read(const YAML::Node& settings_root_node) override;
 
+        void import_asset(const fs::path& asset_filename) override;
+
         void render() override;
 
     private:
