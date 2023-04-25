@@ -3,5 +3,7 @@ metadata:
   name: cube_1x1
   type: 1
   settings:
-    - mesh_type: 0
+    - name: default_cube
+      resource_id: 875678678
+      mesh_type: 0
       lod_count: 1

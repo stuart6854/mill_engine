@@ -3,4 +3,7 @@ metadata:
   name: bunny.obj
   type: 1
   settings:
-    []
+    - name: unnamed_settings
+      resource_id: 34985798
+      mesh_type: 0
+      lod_count: 3

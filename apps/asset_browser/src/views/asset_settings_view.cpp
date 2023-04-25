@@ -5,6 +5,8 @@
 
 #include <imgui.h>
 
+#include <format>
+
 namespace mill::asset_browser
 {
     void AssetSettingView::set_active_asset(AssetMetadata* asset_metadata)
@@ -34,10 +36,14 @@ namespace mill::asset_browser
                     AssetMetadata::to_file(*m_activeMetadata, metadata_filename);
                 }
 
-                for (const auto& settings : m_activeMetadata->exportSettings)
+                const auto& export_settings = m_activeMetadata->exportSettings;
+                for (auto i = 0; i < export_settings.size(); ++i)
                 {
+                    const auto& settings = export_settings[i];
                     static const auto collapse_header_flags = ImGuiTreeNodeFlags_None;
-                    if (ImGui::CollapsingHeader("<settings_name>", collapse_header_flags))
+
+                    auto label = std::format("{}###{}", settings->get_name(), i);
+                    if (ImGui::CollapsingHeader(label.c_str(), collapse_header_flags))
                     {
                         settings->render();
                     }
