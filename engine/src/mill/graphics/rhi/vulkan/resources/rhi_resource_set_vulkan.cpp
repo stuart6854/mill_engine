@@ -3,6 +3,8 @@
 #include "../rhi_core_vulkan.hpp"
 #include "descriptor_set.hpp"
 #include "../vulkan_device.hpp"
+#include "../vulkan_view.hpp"
+#include "../vulkan_image.hpp"
 #include "../vulkan_helpers.hpp"
 #include "../vulkan_includes.hpp"
 
@@ -41,6 +43,29 @@ namespace mill::rhi
 
         LOG_DEBUG("RHI Vulkan - Binding texture <{}> to resource set <{}> in binding {}.", texture_id, resource_set_id, binding);
         resource_set->set_image(binding, texture);
+    }
+
+    void bind_view_to_resource_set(u64 resource_set_id, u32 binding, u64 view_id)
+    {
+        auto& device = get_device();
+
+        auto* view = device.get_view(view_id);
+        ASSERT(view);
+
+        auto* view_color_image = view->get_color_attachment();
+        if (view_color_image->get_sampler() == nullptr)
+        {
+            SamplerDescriptionVulkan sampler_desc{
+                .filter = vk::Filter::eLinear,
+            };
+            auto sampler = device.get_or_create_sampler(sampler_desc);
+            view_color_image->set_sampler(sampler);
+        }
+
+        auto& resource_set = device.get_resource_set(resource_set_id);
+
+        LOG_DEBUG("RHI Vulkan - Binding view <{}> to resource set <{}> in binding {}.", view_id, resource_set_id, binding);
+        resource_set->set_image(binding, *view_color_image);
     }
 
     auto to_vulkan(const ResourceBinding& binding) -> ResourceBindingVulkan

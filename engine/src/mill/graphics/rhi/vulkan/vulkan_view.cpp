@@ -25,10 +25,11 @@ namespace mill::rhi
 
         m_resolution = vk::Extent2D(width, height);
 
-        m_colorImage = CreateOwned<ImageVulkan>(m_device,
-                                                vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
-                                                vk::Extent3D(m_resolution, 1),
-                                                vk::Format::eR8G8B8A8Unorm);
+        m_colorImage = CreateOwned<ImageVulkan>(
+            m_device,
+            vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
+            vk::Extent3D(m_resolution, 1),
+            vk::Format::eR8G8B8A8Unorm);
         m_colorAttachment.setImageLayout(vk::ImageLayout::eAttachmentOptimal);
         m_colorAttachment.setImageView(m_colorImage->get_view());
         m_colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
