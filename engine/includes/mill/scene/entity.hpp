@@ -14,8 +14,8 @@ namespace mill
     public:
         Entity();
         Entity(Scene& scene, entt::entity entity);
-        Entity(const Entity&) = default;
-        Entity(Entity&&) = default;
+        Entity(const Entity& other);
+        Entity(Entity&& other) noexcept;
         ~Entity();
 
         template <typename T>
@@ -35,6 +35,9 @@ namespace mill
         auto get_scene() const -> const Scene&;
 
         /* Operators */
+
+        auto operator=(const Entity& rhs) -> Entity&;
+        auto operator=(Entity&& rhs) noexcept -> Entity&;
 
         operator bool() const;
 
