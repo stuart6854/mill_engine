@@ -63,6 +63,9 @@ namespace mill::asset_browser
 
         init_imgui();
 
+        m_sceneRenderer = CreateOwned<SceneRenderer>(g_SceneViewId);
+        m_sceneRenderer->initialise();
+
         m_renderer = CreateOwned<Renderer>(g_MainViewId);
         m_renderer->initialise();
 
@@ -77,6 +80,8 @@ namespace mill::asset_browser
                 auto& metadata = m_assetRegistry.get_metadata_ref(asset_id);
                 m_assetSettingsView.set_active_asset(&metadata);
             });
+
+        m_assetPreviewView.init(g_SceneViewId);
 
 #if 0
 		// Load and export all assets in asset directory
@@ -187,12 +192,15 @@ namespace mill::asset_browser
 
         m_assetBrowserView.render();
         m_assetSettingsView.render();
+        m_assetPreviewView.render();
 
         rhi::begin_frame();
         {
             const static auto ContextId = "main_render_context"_hs;
             rhi::begin_context(ContextId);
             {
+                const auto scene_info = gather_scene_info();
+                m_sceneRenderer->render(ContextId, scene_info);
                 auto view_id = m_renderer->render(ContextId);
 
                 rhi::blit_to_screen(ContextId, g_PrimaryScreenId, view_id);
@@ -318,6 +326,13 @@ namespace mill::asset_browser
                 // #TODO: Forward input to Game
             }
         }
+    }
+
+    auto AssetBrowserApp::gather_scene_info() -> SceneRenderInfo
+    {
+        SceneRenderInfo scene_info{};
+
+        return scene_info;
     }
 
     void AssetBrowserApp::init_imgui()

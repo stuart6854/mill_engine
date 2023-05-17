@@ -3,6 +3,7 @@
 #include "assets/asset_registry.hpp"
 #include "views/asset_browser_view.hpp"
 #include "views/asset_settings_view.hpp"
+#include "views/asset_preview_view.hpp"
 #include "renderer.hpp"
 
 #include <mill/mill.hpp>
@@ -29,6 +30,8 @@ namespace mill::asset_browser
     private:
         void event_callback(const Event& event);
 
+        auto gather_scene_info() -> SceneRenderInfo;
+
         void init_imgui();
         void shutdown_imgui();
 
@@ -39,14 +42,17 @@ namespace mill::asset_browser
 
     private:
         platform::HandleWindow m_windowHandle{ nullptr };
+        Owned<SceneRenderer> m_sceneRenderer{ nullptr };
         Owned<Renderer> m_renderer{};
 
         const u64 g_PrimaryScreenId = "primary_screen"_hs;
+        const u64 g_SceneViewId = "scene_view"_hs;
         const u64 g_MainViewId = "main_view"_hs;
 
         AssetRegistry m_assetRegistry{};
         AssetBrowserView m_assetBrowserView{};
         AssetSettingView m_assetSettingsView{};
+        AssetPreviewView m_assetPreviewView{};
 
         fs::path m_projectDir{};
     };
